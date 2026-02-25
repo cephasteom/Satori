@@ -31,7 +31,7 @@ body {
     font-family: var(--font-2);
     color: white;
     height: calc(100vh - 2rem);
-    letter-spacing: 0.15rem;
+    letter-spacing: 0.2rem;
     line-height: 1.4;
     opacity: var(--app-opacity);
     background-color: var(--black);
@@ -117,7 +117,7 @@ header {
         }
 
         & svg {
-            height: var(--spacer);
+            height: 2rem;
             fill: #FFF;
         }
 
@@ -254,7 +254,7 @@ header {
 
 .prism-code-editor {
     font-family: var(--font-2)!important;
-    letter-spacing: .15rem;
+    letter-spacing: .2rem;
 
     font-size: 1rem;
 }

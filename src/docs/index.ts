@@ -105,7 +105,8 @@ const addSearch = () => {
 };
 
 export const init = () => {
-    const docs = document.querySelector('#docs')
+    const docs = document.querySelector('#docs') as HTMLElement;
+    
     // add inner div and input for search
     if(docs) docs.innerHTML = `
         <div></div>
