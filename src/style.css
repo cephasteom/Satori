@@ -73,6 +73,14 @@ header {
         display: flex;
         gap: var(--spacer);
     }
+
+}
+.logo {
+    width: 10rem;
+
+    & img {
+        width: 100%;
+    }
 }
 
 .app {
