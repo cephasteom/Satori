@@ -840,7 +840,9 @@ const qphase = (index: number|Pattern<number>) => P((from, to) => {
     const states = circuit.stateAsArray()
     const i = unwrap(index, from, to) % states.length
     return [{ from, to, value: states[i].phase }];
-}).mtr(0, 1, -Math.PI, Math.PI)
+})
+    .add(Math.PI * 2).mod(Math.PI * 2) // shift from [-π, π] to [0, 2π]
+    .mtr(0, 1, 0, 2 * Math.PI)         // normalise to [0, 1]
     .fixed(5);
 
 /** Alias for qphase.
@@ -855,7 +857,8 @@ const qphases = () => P((from, to) => {
     const phases = circuit.stateAsArray().map((s: any) => s.phase);
     return [{ from, to, value: phases }];
 })
-    .mtr(0, 1, -Math.PI, Math.PI)
+    .add(Math.PI * 2).mod(Math.PI * 2) // shift from [-π, π] to [0, 2π]
+    .mtr(0, 1, 0, 2 * Math.PI)         // normalise to [0, 1]
     .fixed(5);
 
 /** Alias for qphases.
