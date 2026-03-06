@@ -6,7 +6,7 @@ const latency = 0.1; // seconds to schedule ahead
 export class Satori {
     cps: number = 0.5;
     transport;
-    divisions: number = 32; // how many times / cycle to query
+    divisions: number = 8; // how many times / cycle to query
     t: number = 0; // time pointer in cycles
     loop: Loop;
 
