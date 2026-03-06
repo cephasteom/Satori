@@ -505,15 +505,6 @@ const often = (...args: any[]) => weightedCoin(0.75, ...args);
  * @example coin().and(coin()) // returns 1 when both coins() are true
  */
 const and = withValue((v, w) => v && w);
-// const and = (...args: any[]) => {
-//     const pattern = args[args.length - 1] as Pattern<any>;
-//     const other = args[0];
-//     return combine(
-//         pattern,
-//         wrap(typeof other === 'function' ? other() : other),
-//         (v, w) => v && w
-//     );
-// }
 
 /**
  * Compare values. If one of them is true, return 1, else 0.
@@ -675,7 +666,7 @@ const operators = Object.getOwnPropertyNames(Math)
 export function unwrap<T>(value: Pattern<T>|any, from: number, to: number) {
     value = typeof value === "string" ? mini(value as string) : value;
     return value instanceof Pattern 
-        ? value.query(from, to)[0].value // 
+        ? value.query(from, to)[0].value
         : value;
 }
 
