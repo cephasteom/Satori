@@ -505,6 +505,15 @@ const often = (...args: any[]) => weightedCoin(0.75, ...args);
  * @example coin().and(coin()) // returns 1 when both coins() are true
  */
 const and = withValue((v, w) => v && w);
+// const and = (...args: any[]) => {
+//     const pattern = args[args.length - 1] as Pattern<any>;
+//     const other = args[0];
+//     return combine(
+//         pattern,
+//         wrap(typeof other === 'function' ? other() : other),
+//         (v, w) => v && w
+//     );
+// }
 
 /**
  * Compare values. If one of them is true, return 1, else 0.
@@ -570,7 +579,7 @@ const fallsOnFrom = (pattern: Pattern<any>) =>
  * @example every(2) // returns 1 every 2 cycles. Equivalent to seq(1).slow(2).
  */
 // @ts-ignore
-const every = (n: number) => seq(1).slow(n);
+const every = (n: number) => seq(1).slow(n).fallsOnFrom();
 
 /**
  * Toggle 1s and 0s when the condition is met.
@@ -666,7 +675,7 @@ const operators = Object.getOwnPropertyNames(Math)
 export function unwrap<T>(value: Pattern<T>|any, from: number, to: number) {
     value = typeof value === "string" ? mini(value as string) : value;
     return value instanceof Pattern 
-        ? value.query(from, to)[0].value 
+        ? value.query(from, to)[0].value // 
         : value;
 }
 
@@ -777,7 +786,7 @@ const print = (...args: any[]) => P((from, to) => {
  * @example qm(0) // measures qubit 0
  */
 const qmeasure = (index: number|Pattern<number>) => P((from, to) => {
-    runCircuit(from, to); // memoized circuit run. Only runs once per time range.
+    runCircuit(from); // memoized circuit run. Only runs once per time range.
     return [{ from, to, value: circuit.measure(unwrap(index, from, to)) || 0 }];
 }); 
 
@@ -791,7 +800,7 @@ const qm = qmeasure
  * @example qmeasures() // measures all qubits
  */
 const qmeasures = () => P((from, to) => {
-    runCircuit(from, to); // memoized circuit run. Only runs once per time range.
+    runCircuit(from); // memoized circuit run. Only runs once per time range.
     return [{ from, to, value: circuit.measureAll() }];
 });
 
