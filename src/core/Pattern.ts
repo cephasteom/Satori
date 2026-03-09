@@ -115,10 +115,10 @@ const withValue = (callback: (...args: any[]) => any) =>
         const pattern = args[args.length - 1] as Pattern<any>;
         return P((from, to) => pattern.query(from, to).map((hap) => ({
             ...hap,
-            // handle numbers and arrays of numbers
             value: unwrapArray([hap.value].flat().map(v => callback(
-                // pass and unwrap all args except the last (which is the pattern itself)
-                ...args.slice(0, -1).map(v => unwrap(v, from, to)), 
+                ...args.slice(0, -1).map(a => 
+                    typeof a === 'function' ? a : unwrap(a, hap.from, hap.to)
+                ),
                 v, hap.from, hap.to
             )))
         })))
@@ -504,21 +504,32 @@ const often = (...args: any[]) => weightedCoin(0.75, ...args);
  * @param value
  * @example coin().and(coin()) // returns 1 when both coins() are true
  */
-const and = withValue((v, w) => v && w);
+const and = withValue((other, v, from, to) => {
+    if (!v) return 0;
+    const resolved = typeof other === 'function' ? other() : other; // handle thunked patterns
+    return v && unwrap(resolved, from, to);
+});
 
 /**
  * Compare values. If one of them is true, return 1, else 0.
  * @param value
  * @example coin().or(coin()) // returns 1 when either coin() is true
  */
-const or = withValue((v, w) => v || w);
+const or = withValue((other, v, from, to) => {
+    if (v) return 1;
+    const resolved = typeof other === 'function' ? other() : other; // handle thunked patterns
+    return unwrap(resolved, from, to) ? 1 : 0;
+});
 
 /**
  * Compare values. If one is true and the other is false, return 1, else 0.
  * @param value
  * @example set(1).xor(1) // returns 0
  */
-const xor = withValue((v, w) => v != w ? 1 : 0);
+const xor = withValue((other, v, from, to) => {
+    const resolved = typeof other === 'function' ? other() : other; // handle thunked patterns
+    return unwrap(resolved, from, to) ? (v ? 0 : 1) : (v ? 1 : 0);
+});
 
 /**
  * If else control structure for patterns.
@@ -592,33 +603,29 @@ const toggle = (condition: Pattern<any>) => {
 }
 
 /**
- * Fill a cache with x values and repeat them once per cycle.
- * @param size - amount of values to cache per cycle
- * @param clear - empties the cache when this pattern returns true
- * @param value - value or pattern to cache
- * @example coin().cache(16) // caches 16 values from coin() and repeats once per cycle. 
- * @example random().cache(8, every(4)) // caches 8 random values, and refreshes the cache every 4 cycles.
+ * Fill a cache with n number of cycles worth of values from the preceding pattern
+ * @param cycles - number of cycles to cache. Default is 1.
+ * @param clear - if true, clear the cache. Default is false.
+ * @param pattern - pattern to cache
+ * @example '1?0*8'.cache(1,every(4)) // caches 1 cycle worth of random 0 or 1s. Clears the cache every 4 cycles.
+ * @returns 
  */
 const cache = (...args: any[]) => {
-    let state: any[] = [];
-    let pattern = args.pop() as Pattern<any>;
+    let state: Record<number, any[]> = {};
+    const pattern = args[args.length - 1] as Pattern<any>;
+    
+    return P((from, to) => pattern.query(from, to).map((hap) => {
+        const {from, to} = hap;
+        const cycles = args.length > 1 ? unwrap(args[0], from, to) : 1;
+        const clear = args.length > 2 ? unwrap(args[1], from, to) : false;
+        const i = from % cycles;
 
-    return P((from, to) => {
-        const size = unwrap(args[0] || 16, from, to);
-        const clear = unwrap(args[1]?.fallsOnFrom() || 0, from, to);
-
-        clear && (state = [])
-        if(state.length === 0) {
-            state = Array.from({ length: size }, (_, i) => {
-                const frac = i / size;
-                const t = from + frac * (to - from);
-                return unwrap(pattern, t, t + 1e-9);
-            })
-        }
+        state[i] === undefined && (state[i] = hap.value);
+        clear && (state = {});
         
-        return seq(...state).query(from, to);
-    })
-};
+        return { ...hap, value: state[i] };
+    }));
+}
 
 /**
  * Increment a counter each time a condition is met.
@@ -774,12 +781,16 @@ const print = (...args: any[]) => P((from, to) => {
 /**
  * Measure Qubit at index.
  * @param index - qubit index
+ * @param divisions - how many times to measure the circuit each cycle. Default is 16ths.
  * @example qm(0) // measures qubit 0
  */
-const qmeasure = (index: number|Pattern<number>) => P((from, to) => {
-    runCircuit(from); // memoized circuit run. Only runs once per time range.
-    return [{ from, to, value: circuit.measure(unwrap(index, from, to)) || 0 }];
-}); 
+const qmeasure = (index: number|Pattern<number>, divisions: number = 16) => 
+    mini('1').fast(divisions)
+        .and(() => P((from, to) => {
+            runCircuit(from); // memoized circuit run. Only runs once per time range.
+            const value = circuit.measure(unwrap(index, from, to)) || 0;
+            return [{ from, to, value: value ? 1 : 0 }];
+        }));
 
 /**
  * Alias for qmeasure.
@@ -788,12 +799,15 @@ const qm = qmeasure
 
 /**
  * Measure all Qubits. Returns an array of measured values.
+ * @param divisions - how many times to measure the circuit each cycle. Default is 16ths.
  * @example qmeasures() // measures all qubits
  */
-const qmeasures = () => P((from, to) => {
-    runCircuit(from); // memoized circuit run. Only runs once per time range.
-    return [{ from, to, value: circuit.measureAll() }];
-});
+const qmeasures = (divisions: number = 16) =>
+    mini('1').fast(divisions)
+        .and(() => P((from, to) => {
+            runCircuit(from); // memoized circuit run. Only runs once per time range.
+            return [{ from, to, value: circuit.measureAll() }];
+        }));
 
 /** Alias for qmeasures.
  */
