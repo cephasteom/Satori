@@ -648,16 +648,13 @@ const count = (condition: Pattern<any>) => {
 
 // base function for handling Math[operation] patterns
 const operate = (operator: string) => (...args: (number|Pattern<any>)[]) => cycle((from, to) => {
+    const p = args[args.length - 1];
     // @ts-ignore
-    if(!args.length) return [{from, to, value: Math[operator]()}]
-
-    const p = args[args.length - 1] as Pattern<any>;
-    return p.query(from, to).map(hap => ({
-        from: hap.from,
-        to: hap.to,
-        // @ts-ignore
-        value: Math[operator](hap.value, ...args)
-    }))
+    const calc = (...values: (number|Pattern<any>)[]) => Math[operator](...values.map(v => unwrap(v, from, to)));
+    
+    return p instanceof Pattern 
+        ? p.query(from, to).map(hap => ({...hap, value: calc(hap.value, ...args)}))     
+        : [{from, to, value: calc(...args)}];
 });
 
 /**
