@@ -615,10 +615,12 @@ const cache = (...args: any[]) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     
     return P((from, to) => pattern.query(from, to).map((hap) => {
+        console.log(hap)
         const {from, to} = hap;
         const cycles = args.length > 1 ? unwrap(args[0], from, to) : 1;
         const clear = args.length > 2 ? unwrap(args[1], from, to) : false;
         const i = from % cycles;
+        console.log(from, cycles, i)
 
         state[i] === undefined && (state[i] = hap.value);
         clear && (state = {});
