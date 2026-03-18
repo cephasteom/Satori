@@ -7,6 +7,7 @@ import { complex, round, pow, abs } from 'mathjs'
 import { parse, evalNode } from './mini';
 import { circuit, runCircuit } from './Qubit';
 import { cyclesPerSecond, transposeOctave, unwrapArray } from './utils';
+import { setupInputListener, syncLoopState } from './MidiInput';
 import pkg from 'noisejs';
 // @ts-ignore
 const { Noise } = pkg;
@@ -876,6 +877,57 @@ const qphases = () => P((from, to) => {
  */
 const qphs = qphases
 
+/**
+ * Listen to a MIDI input device, record notes as haps, and loop them.
+ * Recorded notes persist across code evaluations until cleared.
+ * @param inputDevice - MIDI input device name or index
+ * @param inputChannel - MIDI channel to listen on (1–16)
+ * @param cycles - loop length in cycles
+ * @param record - pattern/value that enables recording when truthy (1 = record, 0 = ignore)
+ * @param clear - pattern/value that clears the loop buffer when truthy
+ * @example loopmidinotes('My Keyboard', 1, 2, every(4).toggle(), every(16))
+ */
+const loopmidinotes = (
+    inputDevice: string,
+    inputChannel: number,
+    cycles: Pattern<any> | number,
+    record: Pattern<any> | number,
+    clear: Pattern<any> | number
+) => {
+    const key = `${inputDevice}:${inputChannel}`;
+    setupInputListener(inputDevice, inputChannel);
+
+    return P<number>((from, to) => {
+        const loopLen = unwrap(cycles, from, to);
+        const isRecording = !!unwrap(record, from, to);
+        const shouldClear = !!unwrap(clear, from, to);
+
+        const state = syncLoopState(key, isRecording, loopLen, shouldClear);
+
+        if (state.notes.length === 0) return [];
+
+        // Position within the current loop iteration
+        const loopPos    = from % loopLen;
+        const loopPosEnd = to   % loopLen;
+        const wraps      = loopPosEnd < loopPos; // tick straddles a loop boundary
+
+        // Absolute base of this loop iteration
+        const loopBase = from - loopPos;
+
+        return state.notes
+            .filter(note => wraps
+                ? (note.from >= loopPos || note.from < loopPosEnd)
+                : (note.from >= loopPos && note.from < loopPosEnd)
+            )
+            .map(note => ({
+                from: loopBase + note.from,
+                // if note-off landed before note-on (crossed boundary), clamp to loop end
+                to:   loopBase + (note.to > note.from ? note.to : loopLen),
+                value: note.n,
+            }));
+    });
+};
+
 export const methods = {
     t, c,
     fn,
@@ -897,7 +949,8 @@ export const methods = {
         [name]: operate(name)
     }), {}),
     print,
-    qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases
+    qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases,
+    loopmidinotes,
 };
 
 // declare a type for Pattern methods, for use in the Pattern interface

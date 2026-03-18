@@ -1,5 +1,6 @@
 import { getTransport, immediate, Loop } from 'tone'
 import { evaluate, compile } from "./compile";
+import { setCurrentCycle } from './MidiInput';
 
 const latency = 0.1; // seconds to schedule ahead
 
@@ -15,6 +16,7 @@ export class Satori {
         this.loop = new Loop(time => {
             const from = this.t;
             const to = this.t + (1 / this.divisions);
+            setCurrentCycle(from);
             
             // compile code between from and to
             const { global, streams } = compile(from, to);
