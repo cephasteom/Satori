@@ -146,7 +146,7 @@ header {
 .editor {
     padding: var(--spacer);
     overflow: scroll;
-    min-width: calc(50% - var(--spacer) * 2);
+    width: 100%;
 }
 
 .help,
