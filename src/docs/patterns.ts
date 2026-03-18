@@ -28,6 +28,13 @@ s0.set({
     e: seq(1,seq(1,1,1,1),1,1)
 })
 \`\`\``)}
+    <li>
+        <h4>JS Math</h4>
+        <p>The JS Math object provides basic mathematical operations as Pattern methods. These can be used as a chained method or as standalone functions where the first argument is the value to operate on.</p>
+        ${marked(`\`\`\`typescript
+sine(0,10).floor() // rounds down to nearest integer
+floor(sine(0,10)) // same as above, but with value as first argument instead of last
+\`\`\``)}
     ${Object.entries(patternMethods).map(([name, info]) => `
         <li>
             <h4>${name}</h4>
