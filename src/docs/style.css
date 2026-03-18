@@ -27,7 +27,6 @@
     &:focus {
         outline: none;
         color: var(--theme-1)!important;
-
     }
 }
 

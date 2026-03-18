@@ -18,7 +18,7 @@ export function handler(event: Event, time: number) {
     // If no MIDI param, ignore
     if(midi === undefined) return
 
-    const device = WebMidi.getOutputByName(midi);
+    const device = WebMidi.getOutputByName(midi) ?? WebMidi.outputs[midi]
     
     // If invalid MIDI device, error
     if(!device) return satori.postMessage({ 
