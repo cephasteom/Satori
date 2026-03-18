@@ -70,6 +70,8 @@ export const utilities = {
         channel.postMessage({ type: 'info', message: 'reverb, delay, dist, hpf, lpf' } );
     },
     midi: () => {
+        channel.postMessage({ type: 'success', message: 'MIDI ins ->\n' });
+        channel.postMessage({ type: 'info', message: WebMidi.inputs.map(i => i.name).join(', ') } );
         channel.postMessage({ type: 'success', message: 'MIDI outs ->\n' });
         channel.postMessage({ type: 'info', message: WebMidi.outputs.map(i => i.name).join(', ') } );
     },

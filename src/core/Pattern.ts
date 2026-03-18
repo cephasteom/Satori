@@ -9,6 +9,7 @@ import { circuit, runCircuit } from './Qubit';
 import { cyclesPerSecond, transposeOctave, unwrapArray } from './utils';
 import { setupInputListener, syncLoopState } from './MidiInput';
 import pkg from 'noisejs';
+import { WebMidi } from 'webmidi';
 // @ts-ignore
 const { Noise } = pkg;
 const noiseGenerator = new Noise(Math.random());
@@ -878,26 +879,43 @@ const qphases = () => P((from, to) => {
 const qphs = qphases
 
 /**
- * Listen to a MIDI input device, record notes as haps, and loop them.
+ * Listen to a MIDI input device, on a channel. 
+ * Record notes and loop them.
  * Recorded notes persist across code evaluations until cleared.
- * @param inputDevice - MIDI input device name or index
- * @param inputChannel - MIDI channel to listen on (1–16)
- * @param cycles - loop length in cycles
- * @param record - pattern/value that enables recording when truthy (1 = record, 0 = ignore)
- * @param clear - pattern/value that clears the loop buffer when truthy
- * @example loopmidinotes('My Keyboard', 1, 2, every(4).toggle(), every(16))
+ * @param device - MIDI input device name or index
+ * @param channel - MIDI channel to listen on (1–16)
+ * @param args - additional arguments for loop control -
+ * cycles: number or pattern - length of the loop in cycles. Default is 1.
+ * record: boolean or pattern - whether to record incoming notes. Default is true.
+ * clear: boolean or pattern - whether to clear recorded notes. Default is false.
+ * @example const loop = loopmidiin(
+1, // device name or index
+1, // midi channel 
+{ // additional arguments 
+  cycles: 1, // loop length in cycles, default is 1
+  record: 1, // whether to record incoming notes, default is true
+  clear: every(4).toggle() // whether to clear recorded notes, default is false
+});
+
+s0._({
+  n: loop,
+  inst: 0,
+  dur: ctms(1/16),
+  e: '1*16'
+})
  */
-const loopmidinotes = (
-    inputDevice: string,
-    inputChannel: number,
-    cycles: Pattern<any> | number,
-    record: Pattern<any> | number,
-    clear: Pattern<any> | number
+const loopmidiin = (
+    device: string|number,
+    channel: number,
+    args: {cycles: Pattern<any> | number, record: Pattern<any> | number, clear: Pattern<any> | number}
 ) => {
-    const key = `${inputDevice}:${inputChannel}`;
-    setupInputListener(inputDevice, inputChannel);
+    const inputName = WebMidi.inputs[+device]?.name ?? device;
+    const key = `${inputName}:${channel}`;
+    setupInputListener(inputName, channel);
 
     return P<number>((from, to) => {
+        const {cycles = 1, record = true, clear = false} = args;
+        
         const loopLen = unwrap(cycles, from, to);
         const isRecording = !!unwrap(record, from, to);
         const shouldClear = !!unwrap(clear, from, to);
@@ -950,7 +968,7 @@ export const methods = {
     }), {}),
     print,
     qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases,
-    loopmidinotes,
+    loopmidiin,
 };
 
 // declare a type for Pattern methods, for use in the Pattern interface

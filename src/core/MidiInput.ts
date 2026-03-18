@@ -10,8 +10,36 @@ type LoopState = {
     listenerAttached: boolean;
 };
 
+const STORAGE_KEY = 'satori:midiloop';
+
+function saveToStorage() {
+    const data: Record<string, RecordedNote[]> = {};
+    loopStates.forEach((state, key) => { data[key] = state.notes; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function loadFromStorage(): Record<string, RecordedNote[]> {
+    try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
+    } catch {
+        return {};
+    }
+}
+
 // Persistent note registry — survives code re-evaluations
 const loopStates: Map<string, LoopState> = new Map();
+
+// Restore saved notes on startup
+const saved = loadFromStorage();
+Object.entries(saved).forEach(([key, notes]) => {
+    loopStates.set(key, {
+        notes,
+        activeNotes: new Map(),
+        isRecording: false,
+        loopLen: 1,
+        listenerAttached: false,
+    });
+});
 
 // Current scheduler cycle position — updated by Satori each tick
 export let currentCycle = 0;
@@ -49,6 +77,7 @@ export function syncLoopState(
     if (shouldClear) {
         state.notes = [];
         state.activeNotes.clear();
+        saveToStorage();
     }
 
     return state;
@@ -89,6 +118,7 @@ export function setupInputListener(deviceName: string, channel: number) {
 
             const to = currentCycle % s.loopLen;
             s.notes.push({ from, to, n, amp });
+            saveToStorage();
         }, { channels: [channel] });
 
         state.listenerAttached = true;
