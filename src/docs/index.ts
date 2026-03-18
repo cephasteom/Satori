@@ -42,15 +42,15 @@ const render = (searchResults: Record<string, Record<string, any>> = {}) => {
                 `
                 : `
                     <nav>
-                        <button class="active"><h3>Quick Start</h3></button>
-                        <button><h3>Stream</h3></button>
-                        <button><h3>Pattern</h3></button>
-                        <button><h3>Mini</h3></button>
-                        <button><h3>Instruments</h3></button>
-                        <button><h3>Effects</h3></button>
-                        <button><h3>MIDI</h3></button>
-                        <button><h3>Samples</h3></button>
-                        <button><h3>Quantum</h3></button>
+                        <button class="active">Quick Start</button>
+                        <button>Stream</button>
+                        <button>Pattern</button>
+                        <button>Mini</button>
+                        <button>Instruments</button>
+                        <button>Effects</button>
+                        <button>MIDI</button>
+                        <button>Samples</button>
+                        <button>Quantum</button>
                     </nav>
 
                     ${Object.entries({

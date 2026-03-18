@@ -13,20 +13,25 @@
 
 #docs nav {
     width: 80%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 #docs button {
     background: transparent;
     border: none;
     padding: 0;
-    margin-right: 0.5rem;
     cursor: pointer;
+    color: var(--theme-3);
+
+    &:focus {
+        outline: none;
+        color: var(--theme-1)!important;
+
+    }
 }
 
-#docs button > h3 {
-    margin-top: 0;
-}
-
-#docs .active > h3 {
+#docs .active {
     color: var(--theme-1)!important;
 }
 
