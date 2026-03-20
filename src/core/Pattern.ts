@@ -907,18 +907,24 @@ s0._({
 const loopmidiin = (
     device: string|number,
     channel: number,
-    args: {cycles: Pattern<any> | number, record: Pattern<any> | number, clear: Pattern<any> | number}
+    args: {
+        cycles: Pattern<any> | number, 
+        record: Pattern<any> | number, 
+        clear: Pattern<any> | number,
+        quantize: number | null
+    }
 ) => {
     const inputName = WebMidi.inputs[+device]?.name ?? device;
     const key = `${inputName}:${channel}`;
     setupInputListener(inputName, channel);
 
     return P<number>((from, to) => {
-        const {cycles = 1, record = true, clear = false} = args;
+        const {cycles = 1, record = true, clear = false, quantize = null} = args;
         
         const loopLen = unwrap(cycles, from, to);
         const isRecording = !!unwrap(record, from, to);
         const shouldClear = !!unwrap(clear, from, to);
+        const quantizeValue = unwrap(quantize, from, to);
 
         const state = syncLoopState(key, isRecording, loopLen, shouldClear);
 
@@ -931,6 +937,7 @@ const loopmidiin = (
 
         // Absolute base of this loop iteration
         const loopBase = from - loopPos;
+        const q = (value: number) => quantizeValue ? Math.round(value / quantizeValue) * quantizeValue : value;
 
         return state.notes
             .filter(note => wraps
@@ -938,9 +945,9 @@ const loopmidiin = (
                 : (note.from >= loopPos && note.from < loopPosEnd)
             )
             .map(note => ({
-                from: loopBase + note.from,
+                from: loopBase + q(note.from),
                 // if note-off landed before note-on (crossed boundary), clamp to loop end
-                to:   loopBase + (note.to > note.from ? note.to : loopLen),
+                to:   loopBase + q(note.to > note.from ? note.to : loopLen),
                 value: note.n,
             }));
     });
