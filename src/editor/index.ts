@@ -43,11 +43,25 @@ export const init = async (element: string = '#editor') => {
      */
     editor.textarea.addEventListener('keydown', (e) => {
         localStorage.setItem("satori.code", editor.value);
+        const meta = e.metaKey || e.ctrlKey; // Cmd on Mac, Ctrl on Windows/Linux
 
         if (e.key === 'Enter' && (e.ctrlKey || e.altKey)) {
             e.preventDefault();
             window.dispatchEvent(new CustomEvent("evaluateCode", { detail: { code: editor.value } }));
             return false;
+        }
+
+        // Cmd+Left: jump to first non-whitespace character, then start of line
+        if (meta && e.key === 'ArrowLeft') {
+            e.preventDefault();
+            const { selectionStart } = editor.textarea;
+            const lineStart = editor.value.lastIndexOf('\n', selectionStart - 1) + 1;
+            const firstChar = lineStart + editor.value.slice(lineStart).search(/\S/);
+            
+            // if already at first char, go to true line start
+            const target = selectionStart === firstChar ? lineStart : firstChar;
+            editor.textarea.setSelectionRange(target, target);
+            return;
         }
     });
 
