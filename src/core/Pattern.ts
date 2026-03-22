@@ -937,7 +937,9 @@ const loopmidiin = (
 
         // Absolute base of this loop iteration
         const loopBase = from - loopPos;
-        const q = (value: number) => quantizeValue ? Math.round(value / quantizeValue) * quantizeValue : value;
+        const q = (value: number) => quantizeValue 
+            ? Math.round(value / quantizeValue) * quantizeValue 
+            : value;
 
         return state.notes
             .filter(note => wraps
