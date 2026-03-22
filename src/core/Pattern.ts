@@ -570,11 +570,12 @@ const ie = ifelse
  * @ignore - internal use only
  */
 const fallsOnFrom = (pattern: Pattern<any>) => 
-    P((from, to) => pattern.query(from, to).map(hap => ({
-        from: hap.from,
-        to: hap.to,
-        value: hap.from === from ? hap.value : 0
-    })));
+    P((from, to) => pattern.query(from, to)
+        .map(hap => ({
+            ...hap,
+            // if hap.from is within the requested from-to range, return hap.value, else 0
+            value: hap.from >= from && hap.from < to ? hap.value : 0
+        })));
 
 /**
  * Return a 1 every n cycles, else 0.
@@ -937,9 +938,7 @@ const loopmidiin = (
 
         // Absolute base of this loop iteration
         const loopBase = from - loopPos;
-        const q = (value: number) => quantizeValue 
-            ? Math.round(value / quantizeValue) * quantizeValue 
-            : value;
+        const q = (value: number) => quantizeValue ? Math.round(value / quantizeValue) * quantizeValue : value;
 
         return state.notes
             .filter(note => wraps
