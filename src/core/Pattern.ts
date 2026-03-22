@@ -631,6 +631,29 @@ const cache = (...args: any[]) => {
 }
 
 /**
+ * Sample and hold a pattern at n divisions per cycle.
+ * Samples the pattern once per division and holds the value until the next.
+ * @param divisions - number of divisions per cycle
+ * @example random().hold(16) // 16 stable random values per cycle
+ * @example coin().hold(8) // 8 stable coin tosses per cycle
+ */
+const hold = (divisions: number | Pattern<number>, pattern: Pattern<any>) =>
+    P((from, to) => {
+        const cycleFrom = Math.floor(from);
+        const cycleTo = Math.ceil(to);
+        const divs = unwrap(divisions, from, to);
+        return Array.from({ length: (cycleTo - cycleFrom) * divs }, (_, i) => {
+            const f = cycleFrom + i / divs;
+            const mid = f + 1 / (divs * 2);
+            return { 
+                from: f, 
+                to: f + 1 / divs, 
+                value: unwrap(pattern, mid, mid + 1e-9) 
+            };
+        });
+    });
+
+/**
  * Increment a counter each time a condition is met.
  * @param condition - pattern to evaluate
  * @example coin().count() // increments the count each time coin() returns 1
@@ -963,7 +986,7 @@ export const methods = {
     saw, range, ramp, sine, cosine, tri, pulse, square, sq, noise,
     mtr, scale, clamp, fixed,
     stack, inversion,
-    mini,
+    mini, hold,
     interp, degrade, expand, toggle, cache, count,
     choose, coin, rarely, sometimes, often, every, fallsOnFrom,
     ifelse, ie, and, or, xor, not,
