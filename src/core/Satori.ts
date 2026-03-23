@@ -1,8 +1,8 @@
-import { getTransport, immediate, Loop } from 'tone'
+import { getDraw, getTransport, immediate, Loop } from 'tone'
 import { evaluate, compile } from "./compile";
 import { setCurrentCycle } from './MidiInput';
 
-const latency = 0.1; // seconds to schedule ahead
+const latency = 0; // seconds to schedule ahead
 
 export class Satori {
     cps: number = 0.5;
@@ -16,7 +16,12 @@ export class Satori {
         this.loop = new Loop(time => {
             const from = this.t;
             const to = this.t + (1 / this.divisions);
-            setCurrentCycle(from);
+            
+            // update current cycle for use in Pattern queries
+            getDraw().schedule(() => {
+                // Runs on the next animation frame closest to `time`
+                setCurrentCycle(from);
+            }, time);
             
             // compile code between from and to
             const { global, streams } = compile(from, to);

@@ -929,7 +929,7 @@ s0._({
 })
  */
 const loopmidiin = (
-    device: string|number,
+    device: string|number|Pattern<any>,
     channel: number,
     args: {
         cycles: Pattern<any> | number, 
@@ -938,7 +938,8 @@ const loopmidiin = (
         quantize: number | null
     }
 ) => {
-    const inputName = WebMidi.inputs[+device]?.name ?? device;
+    const deviceValue = unwrap(device, 0, 0);
+    const inputName = WebMidi.inputs[+deviceValue]?.name ?? deviceValue;
     const key = `${inputName}:${channel}`;
     setupInputListener(inputName, channel);
 
@@ -960,20 +961,25 @@ const loopmidiin = (
         const wraps      = loopPosEnd < loopPos; // tick straddles a loop boundary
 
         // Absolute base of this loop iteration
-        const loopBase = from - loopPos;
-        const q = (value: number) => quantizeValue ? Math.round(value / quantizeValue) * quantizeValue : value;
+        const currentCycle = from - loopPos;
+        // quantize value, as in 16 for 16ths, or 8 for 8ths. If null, no quantization is applied.
+        const q = (value: number) => quantizeValue ? Math.round(value * quantizeValue) / quantizeValue : value;
 
-        return state.notes
-            .filter(note => wraps
-                ? (note.from >= loopPos || note.from < loopPosEnd)
-                : (note.from >= loopPos && note.from < loopPosEnd)
-            )
+        const result =  state.notes
+            .filter(note => {
+                const noteStart = q(note.from);
+                return wraps
+                    ? (noteStart >= loopPos || noteStart < loopPosEnd)
+                    : (noteStart >= loopPos && noteStart < loopPosEnd)
+            })
             .map(note => ({
-                from: loopBase + q(note.from),
+                from: currentCycle + q(note.from),
                 // if note-off landed before note-on (crossed boundary), clamp to loop end
-                to:   loopBase + q(note.to > note.from ? note.to : loopLen),
+                to: currentCycle + q(note.to > note.from ? note.to : loopLen),
                 value: note.n,
             }));
+
+        return result;
     });
 };
 

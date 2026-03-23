@@ -1,4 +1,5 @@
 import { WebMidi } from 'webmidi';
+// import { getTransport } from "tone";
 
 type RecordedNote = { from: number; to: number; n: number; amp: number };
 
@@ -25,6 +26,18 @@ function loadFromStorage(): Record<string, RecordedNote[]> {
         return {};
     }
 }
+
+// export function toneTimeToPosition(toneTime: string): number {
+//     const [bars, quarters, sixteenths] = toneTime.split(':').map(Number);
+//     const beats = 1 / 4 * quarters;
+//     const divisions = Math.floor(sixteenths) / 16;
+//     return bars + beats + divisions;
+// }
+
+// export function getPosition() : number {
+//     const toneTime = getTransport().position as string;
+//     return toneTimeToPosition(toneTime);
+// }
 
 // Persistent note registry — survives code re-evaluations
 const loopStates: Map<string, LoopState> = new Map();

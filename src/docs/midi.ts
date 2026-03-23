@@ -3,7 +3,7 @@ To send MIDI Note and Control Change messages from a stream, set the \`midi\` pa
 
 \`\`\`js
 s0.set({ 
-    midi: 'My MIDI Device', // name of MIDI output
+    midi: '!My MIDI Device', // name of MIDI output - escape with ! to avoid pattern matching
     midichan: 1, // sends to all channels if not specified (optional)
     mididelay: 100, // delay in ms for syncing with audio (optional)
     n: 60, // MIDI note number
