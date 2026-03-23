@@ -547,7 +547,7 @@ const ifelse = (
 ) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const ifPattern = args.length > 1 ? args[0] : wrap(1); // default to 1 if no thenPattern provided
-    const elsePattern = args.length > 2 ? args[1] : wrap(0); // default to 0 if no elsePattern provided
+    const elsePattern = args.length > 2 ? args[1] : pattern; // default to 0 if no elsePattern provided
 
     return P((from, to) => {
         return wrap(unwrap(pattern, from, to) 
@@ -696,7 +696,7 @@ const operators = Object.getOwnPropertyNames(Math)
 export function unwrap<T>(value: Pattern<T>|any, from: number, to: number) {
     value = typeof value === "string" ? mini(value as string) : value;
     return value instanceof Pattern 
-        ? value.query(from, to)[0].value
+        ? value.query(from, to)[0]?.value 
         : value;
 }
 

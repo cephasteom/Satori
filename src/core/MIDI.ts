@@ -51,7 +51,11 @@ export function handler(event: Event, time: number) {
     if(event.type !== 'e') return;
     
     // trigger notes
-    device.playNote(n, {...options, time: `+${timestamp}`});
+    device.playNote(
+        // remove null, undefined, and NaN values from n
+        [n].flat().filter(n => n !== null && n !== undefined && !Number.isNaN(n)).map(n => +n),
+        {...options, time: `+${timestamp}`}
+    );
 
     // handle cut
     [cut || []].flat()
