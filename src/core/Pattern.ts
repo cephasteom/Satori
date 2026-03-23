@@ -930,7 +930,7 @@ s0._({
  */
 const loopmidiin = (
     device: string|number|Pattern<any>,
-    channel: number,
+    channel: number|Pattern<any>,
     args: {
         cycles: Pattern<any> | number, 
         record: Pattern<any> | number, 
@@ -939,9 +939,10 @@ const loopmidiin = (
     }
 ) => {
     const deviceValue = unwrap(device, 0, 0);
+    const channelValue = unwrap(channel, 0, 0);
     const inputName = WebMidi.inputs[+deviceValue]?.name ?? deviceValue;
-    const key = `${inputName}:${channel}`;
-    setupInputListener(inputName, channel);
+    const key = `${inputName}:${channelValue}`;
+    setupInputListener(inputName, channelValue);
 
     return P<number>((from, to) => {
         const {cycles = 1, record = true, clear = false, quantize = null} = args;
