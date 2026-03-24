@@ -13,6 +13,7 @@ import midi from './midi';
 import { search } from './utils';
 import samples from './samples';
 import quantum from './quantum';
+import superSatori from './supersatori';
 import './style.css';
 
 hljs.registerLanguage('typescript', typescript);
@@ -51,6 +52,7 @@ const render = (searchResults: Record<string, Record<string, any>> = {}) => {
                         <button>MIDI</button>
                         <button>Samples</button>
                         <button>Quantum</button>
+                        <button>SuperSatori</button>
                     </nav>
 
                     ${Object.entries({
@@ -63,6 +65,7 @@ const render = (searchResults: Record<string, Record<string, any>> = {}) => {
                         ['midi']: marked(midi),
                         ['samples']: marked(samples),
                         ['quantum']: marked(quantum),
+                        ['supersatori']: marked(superSatori),
                     }).map(([id, content]) => `
                         <article id="docs__${id}">
                             ${content}

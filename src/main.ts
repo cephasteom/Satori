@@ -1,6 +1,7 @@
 import { Satori } from './core/Satori';
 import { init as initOto } from './oto';
 import { handler as midiHandler } from './core/MIDI';
+import { init as initWs } from './core/WebSocket';
 
 import { init as initDocs } from './docs';
 import { init as initEditor } from './editor';
@@ -15,8 +16,14 @@ initDocs();
 initEditor();
 initConsole();
 
+// get ?engine= URL parameter
+const urlParams = new URLSearchParams(window.location.search);
+const engineParam = urlParams.get('engine');
+
+const engineHandler = engineParam === 'supersatori' ? initWs() : initOto();
+
 // Create a new Satori instance and pass in handlers
-const satori = new Satori(initOto(), midiHandler);
+const satori = new Satori(midiHandler, engineHandler);
 
 // Handle hide/show of help components
 const toggleComponent = (id: string, displayStyle: string = 'block') => {
