@@ -1,4 +1,3 @@
-// 'C4'.add(12) doesn't work, 'C4*2'.add(12) does
 import { Satori } from './core/Satori';
 import { init as initOto } from './oto';
 import { handler as midiHandler } from './core/MIDI';
@@ -38,16 +37,36 @@ const toggleComponent = (id: string, displayStyle: string = 'block') => {
             : 'flex';
 }
 
+// save active components to localStorage so they persist across reloads
+const saveActiveComponent = (name: string) => {
+    const activeComponents = localStorage.getItem('satori.activeComponents')?.split(',') || [];
+    const index = activeComponents.indexOf(name);
+    index > -1
+        ? activeComponents.splice(index, 1)
+        : activeComponents.push(name);
+    localStorage.setItem('satori.activeComponents', activeComponents.join(','));
+}
+
 const toggleButtonActive = (index: number) => {
     const button = document.querySelectorAll('.sidebar button')[index];
     if(button) button.classList.toggle('active');
 }
 
 const components = ['console', 'docs', 'circuit'];
+const activeComponents = localStorage.getItem('satori.activeComponents')?.split(',') || ['console'];
+
+activeComponents.forEach(component => {
+    if(components.includes(component)) {
+        toggleComponent(component);
+        toggleButtonActive(components.indexOf(component));
+    }
+});
+
 document.querySelectorAll('.sidebar button').forEach((button, index) => {
     button.addEventListener('click', () => {
         toggleComponent(components[index]);
         toggleButtonActive(index);
+        saveActiveComponent(components[index]);
     });
 });
 
@@ -58,6 +77,7 @@ window.addEventListener('keydown', (e) => {
         const index = parseInt(e.key) - 1;
         toggleComponent(components[index]);
         toggleButtonActive(index);
+        saveActiveComponent(components[index]);
     }
 
     // Play / Stop controls
