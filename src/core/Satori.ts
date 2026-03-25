@@ -40,7 +40,7 @@ export class Satori {
             streams
                 .filter((hap) => !hap.params.mute)
                 .forEach((hap) => handlers.forEach(handler => handler(
-                    hap, 
+                    {...hap, cps: this.cps}, 
                     time // time from transport
                     // add delta value from start of this tick, scaled by cps at that time
                     + (hap.time - from) / (cpsEvents.find(({time}: any) => time >= hap.time)?.value || this.cps) 
