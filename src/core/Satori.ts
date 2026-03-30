@@ -16,6 +16,9 @@ export class Satori {
         this.loop = new Loop(time => {
             const from = this.t;
             const to = this.t + (1 / this.divisions);
+
+            // if the first tick, send a sync event to the engine
+            if(from === 0) handlers.forEach(handler => handler({type: 'sync'}, time));
             
             // update current cycle for use in Pattern queries
             getDraw().schedule(() => {

@@ -7,20 +7,19 @@ import { init as initDocs } from './docs';
 import { init as initEditor } from './editor';
 import { init as initConsole } from './console';
 
-// suppressed as breaking websocket
-// ('serviceWorker' in navigator && import.meta.env.PROD) && window.addEventListener('load', () => 
-//     navigator.serviceWorker.register('/service-worker.js'));
-
 // initialize UI components
 initDocs();
 initEditor();
 initConsole();
 
-// get ?engine= URL parameter
+// select engine to use based on URL param, default to Oto (browser based synth engine)
+// SuperSatori (SuperCollider synth engine) can be used by adding ?engine=supersatori to the URL
 const urlParams = new URLSearchParams(window.location.search);
 const engineParam = urlParams.get('engine');
 
-const engineHandler = engineParam === 'supersatori' ? initWs() : initOto();
+const engineHandler = engineParam === 'supersatori' 
+    ? initWs() 
+    : initOto();
 
 // Create a new Satori instance and pass in handlers
 const satori = new Satori(midiHandler, engineHandler);

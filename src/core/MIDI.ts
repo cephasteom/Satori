@@ -12,7 +12,7 @@ WebMidi.enable().then(() => satori.postMessage({ type: 'info', message: 'MIDI en
 let streams: Record<string, { device: Output, channels?: number[] }> = {};
 
 export function handler(event: Event, time: number) {
-    const { params } = event;
+    const { params = {} } = event;
     const { midi, midichan, mididelay = 0, amp = 0.5, n = 60, dur = 500, cut = [] } = params;
     
     // If no MIDI param, ignore

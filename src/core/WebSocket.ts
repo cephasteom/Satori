@@ -1,4 +1,3 @@
-import { getDraw } from "tone";
 import { formatParamKey } from "../oto/utils";
 
 declare type Event = {id: string, params: Record<string, any>, time: number, type: string};
@@ -27,21 +26,19 @@ export function handler(event: Event, time: number) {
 }
 
 export function handleEvent(event: Event, time: number) {
-    const formattedEvent = {
+    ws.send(JSON.stringify({
         ...event,
-        params: Object.entries(event.params).reduce((obj, [key, val]) => ({
-            ...obj,
-            // remove the _ prefix from all param keys as that's what the instruments expect
-            [formatParamKey(key)]: val
-        }), {})
-    }
-    // send event to SuperSatori via WebSocket
-    getDraw().schedule(() => ws.send(JSON.stringify(formattedEvent)), time);
+        params: Object.entries(event.params)
+            .reduce((obj, [key, val]) => ({
+                ...obj,
+                // remove the _ prefix from all param keys as that's what the instruments expect
+                [formatParamKey(key)]: val
+            }), {})
+    }))
 }
 
 export function handleMutation(event: Event, time: number) {
-
-    const formattedMutation = {
+    ws.send(JSON.stringify({
         ...event,
         params: Object.entries(event.params)
             // only mutate params that are prefixed with '_'
@@ -51,7 +48,5 @@ export function handleMutation(event: Event, time: number) {
                 ...obj,
                 [formatParamKey(key)]: val
             }), {})
-    }
-    // send mutation to SuperSatori via WebSocket
-    getDraw().schedule(() => ws.send(JSON.stringify(formattedMutation)), time);
+    }))
 }
