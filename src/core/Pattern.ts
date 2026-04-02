@@ -173,6 +173,29 @@ const ctms = (cycles: number|string|Pattern<number>) =>
     cts(cycles).mul(1000);
 
 /**
+ * MIDI note number to frequency.
+ * @param midi - MIDI note number or pattern of MIDI note numbers
+ * @returns 
+ */
+const mtof = (midi: number|string|Pattern<number>) =>
+    P((from, to) => ([{
+        from, to,
+        value: 440 * 2 ** ((unwrap(midi, from, to) - 69) / 12)
+    }]));
+
+/**
+ * Frequency to MIDI note number.
+ * @param freq - frequency or pattern of frequencies
+ * @returns 
+ */
+const ftom = (freq: number|string|Pattern<number>) =>
+    P((from, to) => ([{
+        from, to,
+        value: 69 + 12 * Math.log2(unwrap(freq, from, to) / 440)
+    }]));
+
+
+/**
  * Add a value or pattern.
  * @param value - value or pattern to add.
  * @example seq(1,2,3).add(2) // 3,4,5
@@ -998,6 +1021,7 @@ export const methods = {
     choose, coin, rarely, sometimes, often, every, fallsOnFrom,
     ifelse, ie, and, or, xor, not,
     cts, ctms, cps,
+    mtof, ftom,
     lt, gt, eq, neq,
     at, includes,
     ...operators.reduce((obj, name) => ({

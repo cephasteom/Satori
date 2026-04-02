@@ -11,18 +11,19 @@ export function init() {
     
     ws.onopen = () => satori.postMessage({ type: 'success', message: 'Connected to SuperSatori' })
     ws.onerror = e => satori.postMessage({ type: 'error', message: 'SuperSatori error', details: e })
-    ws.onclose = () => satori.postMessage({ type: 'warn', message: 'SuperSatori disconnected' })
+    ws.onclose = () => satori.postMessage({ type: 'error', message: 'SuperSatori disconnected' })
     ws.onmessage = (message) => {
         const data = JSON.parse(message.data);
         const synthdefs = Object.entries(data.synthdefs || {})
             // @ts-ignore
             .map(([name, def = {}]) => `${name}: ${Object.keys(def).join(', ')}`)
 
-        console.log(synthdefs)
-
-        console.log('SuperSatori message', data);
-        satori.postMessage({ type: 'success', message: 'SuperSatori synths -> \n' })
-        synthdefs.forEach(synthdef => satori.postMessage({ type: 'info', message: synthdef }))
+        switch (data.type) {
+            case 'synthdefs':
+                satori.postMessage({ type: 'success', message: 'SuperSatori synths -> \n' })
+                synthdefs.forEach(synthdef => satori.postMessage({ type: 'info', message: synthdef }))
+                break;
+        }
     }
 
     return handler
