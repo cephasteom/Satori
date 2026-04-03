@@ -30,7 +30,6 @@ export function init() {
 }
 
 export function handler(event: Event, time: number) {
-    console.log(event)
     // if no WebSocket connection, ignore
     if(ws.readyState !== WebSocket.OPEN) return
     switch (event.type) {
