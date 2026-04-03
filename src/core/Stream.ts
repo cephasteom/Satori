@@ -53,6 +53,12 @@ export class Stream {
         return haps
             // only keep event haps with a value, and where the from time falls within the range
             .filter((hap: Hap<any>) => !!hap.value && hap.from >= from && hap.from < to)
+            // only keep one hap for each hap.from time, to avoid duplicate events
+            .reduce((acc: Hap<any>[], curr) => {
+                if (acc.length === 0) return [curr];
+                if (acc.some(hap => hap.from === curr.from)) return acc;
+                return [...acc, curr];
+            }, [])
             // iterate over haps and build param sets
             .map((hap: Hap<any>) => ({
                 id: this.id,
@@ -76,8 +82,11 @@ export class Stream {
                         .map(({value}) => value)
                     ])
                     // if there's only one closest hap, return its value directly
-                    .map(([key, value]) => [key, Array.isArray(value) && value.length === 1 
-                            ? value[0] : value])
+                    .map(([key, value]) => 
+                        [key, Array.isArray(value) && value.length === 1 
+                            ? value[0] 
+                            : value]
+                    )
                 )
             }));
     }

@@ -989,7 +989,7 @@ const loopmidiin = (
         // quantize value, as in 16 for 16ths, or 8 for 8ths. If null, no quantization is applied.
         const q = (value: number) => quantizeValue ? Math.round(value * quantizeValue) / quantizeValue : value;
 
-        const result =  state.notes
+        const result = state.notes
             .filter(note => {
                 const noteStart = q(note.from);
                 return wraps
