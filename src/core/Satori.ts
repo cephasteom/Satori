@@ -2,7 +2,7 @@ import { getDraw, getTransport, immediate, Loop } from 'tone'
 import { evaluate, compile } from "./compile";
 import { setCurrentCycle } from './MidiInput';
 
-const latency = 0.1; // seconds to schedule ahead
+const latency = 0; // seconds to schedule ahead
 
 export class Satori {
     cps: number = 0.5;

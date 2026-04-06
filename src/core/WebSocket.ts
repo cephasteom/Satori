@@ -1,3 +1,4 @@
+import { getContext, immediate, now } from "tone";
 import { formatParamKey } from "../oto/utils";
 
 declare type Event = {id: string, params: Record<string, any>, time: number, type: string};
@@ -41,6 +42,8 @@ export function handler(event: Event, time: number) {
 export function handleEvent(event: Event, time: number) {
     ws.send(JSON.stringify({
         ...event,
+        delta: time - now(),
+        unixtime: Date.now() - (getContext().rawContext.currentTime * 1000),
         params: Object.entries(event.params)
             .reduce((obj, [key, val]) => ({
                 ...obj,
@@ -53,6 +56,8 @@ export function handleEvent(event: Event, time: number) {
 export function handleMutation(event: Event, time: number) {
     ws.send(JSON.stringify({
         ...event,
+        delta: time - now(),
+        unixtime: Date.now() - (getContext().rawContext.currentTime * 1000),
         params: Object.entries(event.params)
             // only mutate params that are prefixed with '_'
             .filter(([key, _]) => key.startsWith('_'))
