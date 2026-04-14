@@ -479,6 +479,8 @@ const interp = withValue((v, w, from, to) => v + (w - v) * ((from + to) / 2 % 1)
  */
 const degrade = withValue((v, w) => Math.random() < v ? 0 : w);
 
+
+
 // base function for probability based Patterns
 const weightedCoin = (
     probability: number|Pattern<any> = 0.5,
@@ -675,6 +677,29 @@ const hold = (divisions: number | Pattern<number>, pattern: Pattern<any>) =>
             };
         });
     });
+
+/**
+ * Hold the last value of a pattern until a condition is met, then update the value.
+ * @param condition - pattern to evaluate for updating the value
+ * @example 'C E G'.holdUntil(coin()) // holds the current chord until coin() returns 1, then updates to the next chord in the sequence
+ */
+const holdUntil = (condition: Pattern<any>, pattern: Pattern<any>) => {
+    let lastValue: any = null;
+
+    return P((from, to) => {
+        const shouldUpdate = unwrap(condition, from, to);
+        const haps = pattern.query(from, to);
+        
+        if (shouldUpdate && haps.length > 0) {
+            lastValue = haps[haps.length - 1].value; // update to the most recent value
+        }
+        
+        return [{
+            from, to,
+            value: lastValue
+        }];
+    });
+}
 
 /**
  * Increment a counter each time a condition is met.
@@ -1016,7 +1041,7 @@ export const methods = {
     saw, range, ramp, sine, cosine, tri, pulse, square, sq, noise,
     mtr, scale, clamp, fixed,
     stack, inversion,
-    mini, hold,
+    mini, hold, holdUntil,
     interp, degrade, expand, toggle, cache, count,
     choose, coin, rarely, sometimes, often, every, fallsOnFrom,
     ifelse, ie, and, or, xor, not,

@@ -1,4 +1,4 @@
-import { getContext, immediate, now } from "tone";
+import { immediate } from "tone";
 import { formatParamKey } from "../oto/utils";
 
 declare type Event = {id: string, params: Record<string, any>, time: number, type: string};
