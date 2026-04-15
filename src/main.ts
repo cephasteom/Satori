@@ -17,12 +17,12 @@ initConsole();
 const urlParams = new URLSearchParams(window.location.search);
 const engineParam = urlParams.get('engine');
 
-const engineHandler = engineParam === 'supersatori' 
-    ? initWs() 
-    : initOto();
+const handlers = engineParam === 'supersatori' 
+    ? [initWs()]
+    : [initOto(), midiHandler];
 
 // Create a new Satori instance and pass in handlers
-const satori = new Satori(midiHandler, engineHandler);
+const satori = new Satori(...handlers);
 
 // Handle hide/show of help components
 const toggleComponent = (id: string, displayStyle: string = 'block') => {
