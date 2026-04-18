@@ -15,7 +15,7 @@ To run this project locally, as a complete application:
 ```js
 import { Satori } from './core/Satori';
 
-// Create a new scheduler instance and pass in handlers
+// Create a new scheduler instance and pass in event handlers
 const satori = new Satori(...);
 // evaluate some Satori code
 satori.evaluate('...') 
@@ -67,7 +67,7 @@ console.log(p2.coin().fast(8).ifelse(
 ))
 ```
 
-## To use the standlaone code editor
+## To use the standalone code editor
 ```js
 import { init } from './editor'
 

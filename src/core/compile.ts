@@ -89,6 +89,8 @@ export const compile = (from: number, to: number) => {
     // build circuits, applying dynamic parameters
     qubits.forEach(qubit => qubit.build(from, to));
 
+    // TODO: broadcast circuit here
+
     return {
         // at the global level, we are only interested in events (at least for now)
         global: global.query(from, to).events,
