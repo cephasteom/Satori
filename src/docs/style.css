@@ -16,19 +16,31 @@
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
 }
 #docs button {
     background: transparent;
     border: none;
     padding: 0;
+    padding-right: 1rem;
     cursor: pointer;
     color: var(--theme-3);
+    text-transform: uppercase;
+    font-family: var(--font-1);
+    font-size: 1.25rem;
+    line-height: .5;
+    letter-spacing: .2rem;
+    border-right: 1px solid var(--theme-3);
+
+    &:last-of-type {
+        border-right: none;
+    }
 
     &:focus {
         outline: none;
         color: var(--theme-1)!important;
     }
+
 }
 
 #docs .active {
