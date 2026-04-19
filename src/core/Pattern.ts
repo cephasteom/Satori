@@ -1041,9 +1041,9 @@ const loopmidiin = (
   inst: 'synth', 
   cut: 0,
   n: retrieve(
-    'test', 
-    'foo | bar',
-    t().mul(16).mod(4)
+    'test', // key of the data to retrieve from the store
+    'foo | bar', // optional additional argument(s) to retrieve nested data. 
+    t().mul(16).mod(4) // for example, use the current time as an index
   ).add(60),
   e: '1*16'
 })
@@ -1052,7 +1052,7 @@ store('test', {
   foo: [1,2,3,4],
   bar: [4,5,6,7]
 })
- */
+*/
 const retrieve = (key: string, ...rest: any[]) => {
     const data = retrieveData(key) || [];
     return P((from, to) => {
