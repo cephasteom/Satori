@@ -1,6 +1,7 @@
 import { getTransport } from 'tone';
 import { scales } from './scales';
 import { WebMidi } from 'webmidi';
+import { clear as clearStore, keys, store } from './data';
 
 const channel = new BroadcastChannel('satori');
 
@@ -78,5 +79,21 @@ export const utilities = {
     samples: () => {
         channel.postMessage({ type: 'success', message: 'Sample banks ->\n' });
         channel.postMessage({ type: 'samples', message: samplesMessage } );
-    }
+    },
+    store,
+    stored: () => {
+        const ks = keys();
+        if(ks.length === 0) {
+            channel.postMessage({ type: 'info', message: 'No stored data.' } );
+            return;
+        }
+
+        channel.postMessage({ type: 'success', message: 'Data keys ->\n' });
+        channel.postMessage({ type: 'info', message: ks.join(', ') } ); 
+    },
+    clearStore: () => {
+        clearStore();
+        channel.postMessage({ type: 'success', message: 'Clearing stored data...' });
+    },
+
 }

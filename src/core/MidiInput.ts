@@ -11,7 +11,7 @@ type LoopState = {
     listenerAttached: boolean;
 };
 
-const STORAGE_KEY = 'satori:midiloop';
+const STORAGE_KEY = 'satori.midiloop';
 
 function saveToStorage() {
     const data: Record<string, RecordedNote[]> = {};

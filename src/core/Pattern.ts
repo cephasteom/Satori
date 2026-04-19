@@ -10,6 +10,7 @@ import { cyclesPerSecond, transposeOctave, unwrapArray } from './utils';
 import { setupInputListener, syncLoopState } from './MidiInput';
 import pkg from 'noisejs';
 import { WebMidi } from 'webmidi';
+import { retrieve as retrieveData } from './data';
 // @ts-ignore
 const { Noise } = pkg;
 const noiseGenerator = new Noise(Math.random());
@@ -1032,6 +1033,19 @@ const loopmidiin = (
     });
 };
 
+/**
+ * Retrieve data from the store
+ * @param key - key of the data to retrieve
+ * @example s0.set({
+ *   n: retrieve('notes').at(t()) // retrieves the 'notes' array from the store and takes the element at the current time index
+ * })
+ */
+const retrieve = (key: string) => P((from, to) => {
+    const value = retrieveData(key) || [];
+    console.log(`Retrieving key "${key}":`, value);
+    return [{ from, to, value }];
+});
+
 export const methods = {
     t, c,
     fn,
@@ -1055,7 +1069,7 @@ export const methods = {
     }), {}),
     print,
     qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases,
-    loopmidiin,
+    loopmidiin, retrieve
 };
 
 // declare a type for Pattern methods, for use in the Pattern interface

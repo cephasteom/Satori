@@ -11,7 +11,9 @@ To run this project locally, as a complete application:
 * `npm run dev` for hot file reloading
 * or `npm run build` and `npm run preview` to use bundled package
 
-## To use Satori in your own applications
+## Using modules
+
+### To use Satori in your own applications
 ```js
 import { Satori } from './core/Satori';
 
@@ -42,7 +44,7 @@ const satori = new Satori(
 );
 ```
 
-## To use standalone synth engine (Oto)
+### To use standalone synth engine (Oto)
 You can use the synth engine directly, without the need to write Satori code. Simply initialise Oto, then send your own events via the handler.
 ```js
 import { init } from './oto';
@@ -52,7 +54,7 @@ const otoHandler = init()
 otoHandler({ id: 'custom', params: {...}, time: 3.5, type: 'e' })
 ```
 
-## To use standalone patterning language
+### To use standalone patterning language
 ```js
 import { Pattern, methods } from './core/Pattern'
 
@@ -67,7 +69,7 @@ console.log(p2.coin().fast(8).ifelse(
 ))
 ```
 
-## To use the standalone code editor
+### To use the standalone code editor
 ```js
 import { init } from './editor'
 
@@ -78,7 +80,7 @@ window.addEventListener("evaluateCode", (e) => console.log(e.detail.code));
 
 Will load the editor in the element provided by the id. Default is `#editor`. Listen out for the `evaluateCode` event to handle the editor output.
 
-## To use the standalone console
+### To use the standalone console
 ```js
 import { init } from './console';
 
@@ -89,6 +91,30 @@ channel.postMessage({ type: 'info', message: 'a message' } );
 ```
 
 Initialise the console, passing in the element in which it should render. Default is `#console`. Send messages to the console using the BroadcastChannel interface. Types are `info`, `success`, and `error`.
+
+## SuperSatori
+The internal synth engine Oto is convenient, but its use of RNBO results in a fairly convoluted workflow for adding new synths. Satori also has a Supercollider backend, which sounds great, and is more easily extendable. See [https://github.com/cephasteom/supersatori](https://github.com/cephasteom/supersatori) for installation and setup.
+
+Reload Satori, appending `?engine=supersatori` to the url. If successful, you should see `Supersatori connected` printed to the console.
+
+## External control via websockets
+Incoming and outgoing traffic can be handled by websockets. Use cases:
+* You want to send code to Satori from an external source
+* You want to send datasets into Satori from an external source
+* You want to listen for code changes in Satori and consume them elsewhere
+
+Reload Satori, appending `?ws=true&wsPort=<port>` to the url. This instantiates a web socket server on `http://localhost:<port>`. The port parameter is optional and defaults to 5000. 
+
+On evaluate it will broadcast:
+```json
+{
+    code: "...",
+    qasm: "...",
+    qiskit: "..."
+}
+```
+
+See `src/core/WebSocket.ts` for handing of messages in.
 
 ## Acknowledgements
 * This series of blog posts by Froos helped me finally crack time: [garten.salat.dev](https://garten.salat.dev/idlecycles/).

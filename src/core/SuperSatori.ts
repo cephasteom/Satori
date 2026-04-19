@@ -11,7 +11,7 @@ export function init() {
     ws = new WebSocket('ws://localhost:8080')
     
     ws.onopen = () => satori.postMessage({ type: 'success', message: 'Connected to SuperSatori' })
-    ws.onerror = e => satori.postMessage({ type: 'error', message: 'SuperSatori error', details: e })
+    ws.onerror = () => satori.postMessage({ type: 'error', message: 'SuperSatori error' })
     ws.onclose = () => satori.postMessage({ type: 'error', message: 'SuperSatori disconnected' })
     ws.onmessage = (message) => {
         const data = JSON.parse(message.data);

@@ -61,6 +61,13 @@ export function evaluate(code: string) {
 
         // render circuit in the UI
         renderCircuit();
+
+        // broadcast the new state of the world for anyone who wants to consume it (like the editor for live code updates, or a visualizer)
+        window.postMessage({ type: 'stateUpdate', state: {
+            code,
+            qasm: circuit.exportToQASM(),
+            qiskit: circuit.exportToQiskit(),
+        }}, '*');
         
     } catch (e: any) {
         // if we have a last successfully evaluated code, re-evaluate it
@@ -88,8 +95,6 @@ export const compile = (from: number, to: number) => {
     
     // build circuits, applying dynamic parameters
     qubits.forEach(qubit => qubit.build(from, to));
-
-    // TODO: broadcast circuit here
 
     return {
         // at the global level, we are only interested in events (at least for now)
