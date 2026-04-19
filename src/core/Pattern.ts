@@ -1036,15 +1036,42 @@ const loopmidiin = (
 /**
  * Retrieve data from the store
  * @param key - key of the data to retrieve
+ * @param rest - optional additional arguments to retrieve nested data. 
  * @example s0.set({
- *   n: retrieve('notes').at(t()) // retrieves the 'notes' array from the store and takes the element at the current time index
- * })
+  inst: 'synth', 
+  cut: 0,
+  n: retrieve(
+    'test', 
+    'foo | bar',
+    t().mul(16).mod(4)
+  ).add(60),
+  e: '1*16'
+})
+
+store('test', {
+  foo: [1,2,3,4],
+  bar: [4,5,6,7]
+})
  */
-const retrieve = (key: string) => P((from, to) => {
-    const value = retrieveData(key) || [];
-    console.log(`Retrieving key "${key}":`, value);
-    return [{ from, to, value }];
-});
+const retrieve = (key: string, ...rest: any[]) => {
+    const data = retrieveData(key) || [];
+    return P((from, to) => {
+        // unwrap any patterns in the rest of the arguments
+        const args = rest.map(arg => unwrap(arg, from, to));
+        // use the args as indexes and/or keys to retrieve nested data, if the retrieved data is an array or object
+        const value = args.reduce((acc, arg) => {
+            if (Array.isArray(acc) && typeof arg === 'number') {
+                return acc[arg % acc.length]; // wrap around if index is out of bounds
+            } else if (acc && typeof acc === 'object' && arg in acc) {
+                return acc[arg];
+            } else {
+                return undefined; // if the path is invalid, return undefined
+            }
+        }, data);
+
+        return [{ from, to, value }];
+    });
+};
 
 export const methods = {
     t, c,
