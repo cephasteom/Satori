@@ -116,6 +116,8 @@ On evaluate it will broadcast:
 
 See `src/core/WebSocket.ts` for handing of messages in.
 
+Run `node src/tests/websockets.cjs` to test the round trip.
+
 ## Acknowledgements
 * This series of blog posts by Froos helped me finally crack time: [garten.salat.dev](https://garten.salat.dev/idlecycles/).
 * Code editor built with: [Prism](https://github.com/jonpyt/prism-code-editor/?tab=readme-ov-file).
