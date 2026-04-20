@@ -63,11 +63,13 @@ export function evaluate(code: string) {
         renderCircuit();
 
         // broadcast the new state of the world for anyone who wants to consume it (like the editor for live code updates, or a visualizer)
-        window.postMessage({ type: 'stateUpdate', state: {
-            code,
-            qasm: circuit.exportToQASM(),
-            qiskit: circuit.exportToQiskit(),
-        }}, '*');
+        window.dispatchEvent(new CustomEvent('stateUpdate', {
+            detail: {
+                code,
+                qasm: circuit.exportToQASM(),
+                qiskit: circuit.exportToQiskit(),
+            }
+        }));
         
     } catch (e: any) {
         // if we have a last successfully evaluated code, re-evaluate it

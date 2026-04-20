@@ -29,16 +29,8 @@ export function init(port: number = 5000) {
     }
         
     // listen out for stateUpdate events on the window and broadcast them over the WebSocket connection for anyone who wants to consume them 
-    window.addEventListener('message', (event) => {
-        if(
-            event.data?.type === 'stateUpdate' 
-            && ws.readyState === WebSocket.OPEN
-        ) {
-            console.log('Broadcasting state update over WebSocket', event.data.state);
-            ws.send(JSON.stringify({
-                type: 'stateUpdate',
-                state: event.data.state,
-            }))
-        }
-    })
+    window.addEventListener('stateUpdate', (e: CustomEvent) => {
+        if(ws.readyState !== WebSocket.OPEN) return
+        ws.send(JSON.stringify({ type: 'stateUpdate', state: e.detail }))
+    });
 }
