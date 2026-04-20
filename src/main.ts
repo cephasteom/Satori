@@ -18,7 +18,7 @@ initConsole();
 const urlParams = new URLSearchParams(window.location.search);
 const engine = urlParams.get('engine');
 const ws = urlParams.get('ws');
-const wsPort = parseInt(urlParams.get('wsPort') || '5000');
+const wsPort = parseInt(urlParams.get('wsPort') || '5001');
 
 // handlers process events and are fired on every tick of the scheduler
 const handlers = engine === 'supersatori' 

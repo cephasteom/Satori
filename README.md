@@ -103,7 +103,7 @@ Incoming and outgoing traffic can be handled by websockets. Use cases:
 * You want to send datasets into Satori from an external source
 * You want to listen for code changes in Satori and consume them elsewhere
 
-Reload Satori, appending `?ws=true&wsPort=<port>` to the url. This instantiates a web socket server on `http://localhost:<port>`. The port parameter is optional and defaults to 5000. 
+Reload Satori, appending `?ws=true&wsPort=<port>` to the url. This instantiates a web socket server on `http://localhost:<port>`. The port parameter is optional and defaults to 5001. 
 
 On evaluate it will broadcast:
 ```json

@@ -33,6 +33,7 @@
     "prism-code-editor": "^4.1.0",
     "quantum-circuit": "^0.9.245",
     "tone": "^15.1.22",
-    "webmidi": "^3.1.14"
+    "webmidi": "^3.1.14",
+    "ws": "^8.20.0"
   }
 }

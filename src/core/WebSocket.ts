@@ -5,7 +5,7 @@ const satori = new BroadcastChannel('satori');
 
 let ws: WebSocket;
 
-export function init(port: number = 5000) {
+export function init(port: number = 5001) {
     // open WebSocket connection
     ws = new WebSocket('ws://localhost:' + port)
 
