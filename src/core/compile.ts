@@ -2,6 +2,7 @@ import { Stream, type Event } from './Stream';
 import { Qubit, circuit, renderCircuit } from './Qubit';
 import { methods } from './Pattern';
 import { utilities } from './utils';
+import { parseShorthand } from './parse';
 
 let lastCode: string = ''; // last successfully evaluated code
 
@@ -52,7 +53,7 @@ export function evaluate(code: string) {
         window.postMessage({ type: 'clearCache' }, '*');
 
         // Evaluate the user code within the defined scope
-        new Function(...Object.keys(scope), `${code}`)(...Object.values(scope));
+        new Function(...Object.keys(scope), `${parseShorthand(code)}`)(...Object.values(scope));
         // Store the last successfully evaluated code
         lastCode = code;
 
