@@ -1140,6 +1140,27 @@ const diagonal = (...args: any[]) => P((from, to) => {
     });
 });
 
+/** 
+ * Assuming an array whose length is a perfect square, treat it as a grid and return values from x1,y1 to x2,y2. If x2 or y2 are out of bounds, they will wrap around to the beginning of the row or column.
+ * @param args - x1, y1, x2, y2
+ * @example ca(4).region(0,0,2,2) // returns the top-left 2x2 region of the 4x4 Game of Life grid
+ */
+const region = (...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    const [x1, y1, x2, y2] = args.slice(0, -1).map(a => unwrap(a, from, to));
+    return pattern.query(from, to).map(hap => {
+        const arr = [hap.value].flat();
+        const size = Math.sqrt(arr.length);
+        const regionValues = [];
+        for (let y = y1; y !== y2; y = (y + 1) % size) {
+            for (let x = x1; x !== x2; x = (x + 1) % size) {
+                regionValues.push(arr[y * size + x]);
+            }
+        }
+        return { ...hap, value: regionValues };
+    });
+});
+
 /**
  * Assuming an array of values, return the number of values that are above a certain threshold, as a normalised value between 0 and 1.
  * @param threshold - value to compare against. Default is 1.
@@ -1152,7 +1173,6 @@ const density = (...args: any[]) => P((from, to) => {
     return pattern.query(from, to).map(hap => {
         const arr = [hap.value].flat();
         const count = arr.filter(v => v >= threshold).length;
-        console.log(arr, count, threshold)
         return { ...hap, value: count / arr.length };
     });
 });
@@ -1181,7 +1201,7 @@ export const methods = {
     print,
     qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases,
     loopmidiin, retrieve,
-    ca, row, col, diagonal, density
+    ca, row, col, diagonal, region, density
 };
 
 // declare a type for Pattern methods, for use in the Pattern interface
