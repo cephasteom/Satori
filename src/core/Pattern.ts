@@ -793,10 +793,39 @@ const inversion = (...args: any[]) => {
  */
 const at = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
-    const indexes = args.slice(0, -1).map(a => unwrap(a, from, to)).flat(); // remove pattern
+    const indexes = args.slice(0, -1).map(a => [unwrap(a, from, to)].flat()).flat(); // remove pattern
     return pattern.query(from, to).filter((_, i, arr) => 
         indexes.includes(i % arr.length));
 }); 
+
+/**
+ * Assuming an array, return the indexes of the elements that match the given value.
+ * @param value - value to find indexes of
+ * @example 'C E G'.indexesOf('E') // returns [1]
+ * @example 'C E G'.indexesOf('D') // returns []
+ */
+const indexesOf = (...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    const checkValues = args.slice(0, -1).map(a => unwrap(a, from, to)).flat(); // remove pattern
+    return pattern.query(from, to).map(hap => ({
+        ...hap,
+        value: unwrapArray([hap.value].flat()).reduce((indexes: number[], v: any, i: number) => 
+            checkValues.includes(v) ? [...indexes, i] : indexes
+        , [])
+    }));
+});
+
+/**
+ * Combine patterns into one array of values
+ * @params patterns - patterns to combine. 
+ * @example combine('C E G') // returns ['C', 'E', 'G']
+ * @wxample 'C E G'.combine('D F A') // returns ['C', 'D', 'E', 'F', 'G', 'A']
+ */
+const combine = (...args: any[]) => P((from, to) => {
+    const patterns = args.map(a => unwrap(a, from, to)).flat();
+    const values = patterns.map(p => p instanceof Pattern ? p.query(from, to).map(hap => hap.value) : p);
+    return stack(...values.flat()).query(from, to);
+});
 
 /**
  * Assuming an array, return 1 if includes the given value, else 0.
@@ -1293,7 +1322,7 @@ export const methods = {
     cts, ctms, cps,
     mtof, ftom,
     lt, gt, eq, neq,
-    at, includes,
+    at, combine, includes, indexesOf,
     ...operators.reduce((obj, name) => ({
         ...obj,
         [name]: operate(name)

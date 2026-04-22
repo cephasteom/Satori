@@ -52,10 +52,12 @@ export function evaluate(code: string) {
         // fire resetCache event to clear any memoized functions
         window.postMessage({ type: 'clearCache' }, '*');
 
+        const parsed = parseShorthand(code);
         // Evaluate the user code within the defined scope
-        new Function(...Object.keys(scope), `${parseShorthand(code)}`)(...Object.values(scope));
+        new Function(...Object.keys(scope), `${parsed}`)(...Object.values(scope));
         // Store the last successfully evaluated code
         lastCode = code;
+
 
         // run the circuit based on its current configuration
         circuit.run();
@@ -75,6 +77,7 @@ export function evaluate(code: string) {
     } catch (e: any) {
         // if we have a last successfully evaluated code, re-evaluate it
         lastCode && evaluate(lastCode);
+        console.log('error!')
         // and broadcast the error for anyone who wants to consume it
         channel.postMessage({ type: 'error', message: e.message } );
     }

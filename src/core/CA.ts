@@ -3,7 +3,7 @@ import { memoize } from "./utils";
 let gameOfLifes: { [key: number]: number[] } = {};
 // on clearCache event, reset gameOfLifes
 window.addEventListener('message', (e) => 
-        e.data.type === 'clearCache' && (gameOfLifes = {}))
+    e.data.type === 'clearCache' && (gameOfLifes = {}))
 
 const createEmptyGrid = (size: number) => new Array(size * size).fill(0);
 
