@@ -1077,12 +1077,17 @@ const retrieve = (key: string, ...rest: any[]) => {
 /**
  * Run cellular automata on a pattern. Just handles Game of Life for now, but could be expanded to other rules.
  * @param size - size of the grid (size x size)
+ * @param min - minimum population as a proportion of the grid (0 to 1). Default is 0, meaning the grid can completely die out. Setting this to a higher value will ensure a minimum population is maintained.
  * @returns a 1D array representing the grid state, where each cell is either 0 (dead) or 1 (alive).
  * @example ca(4) // runs Game of Life on a 4x4 grid, with a random initial state. Returns an array of 16 values representing the grid state each cycle.
  * 
  */
-const ca = (size: Pattern<any> | number) => P((from, to) =>
-    [{ from, to, value: runGameOfLife(unwrap(size, from, to), from) }]);
+const ca = (size: Pattern<any> | number, min: Pattern<any> | number = 0) => P((from, to) =>
+    [{ from, to, value: runGameOfLife(
+        unwrap(size, from, to), 
+        unwrap(min, from, to), 
+        from
+    ) }]);
 
 /**
  * Assuming an array whose length is a perfect square, treat it as a grid and return all values in the given row.
@@ -1135,6 +1140,23 @@ const diagonal = (...args: any[]) => P((from, to) => {
     });
 });
 
+/**
+ * Assuming an array of values, return the number of values that are above a certain threshold, as a normalised value between 0 and 1.
+ * @param threshold - value to compare against. Default is 1.
+ * @example ca(16).density(0.5) // returns a normalised count of how many cells in the 4x4 Game of Life grid are above 0.5
+ * @example ca(4).row(0).density(0.5) // returns a normalised count of how many cells in the first row of the Game of Life grid are above 0.5
+ */
+const density = (...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    const threshold = unwrap(args[0] || 1, from, to);
+    return pattern.query(from, to).map(hap => {
+        const arr = [hap.value].flat();
+        const count = arr.filter(v => v >= threshold).length;
+        console.log(arr, count, threshold)
+        return { ...hap, value: count / arr.length };
+    });
+});
+
 export const methods = {
     t, c,
     fn,
@@ -1159,7 +1181,7 @@ export const methods = {
     print,
     qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases,
     loopmidiin, retrieve,
-    ca, row, col, diagonal
+    ca, row, col, diagonal, density
 };
 
 // declare a type for Pattern methods, for use in the Pattern interface

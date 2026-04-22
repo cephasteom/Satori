@@ -1,6 +1,9 @@
 import { memoize } from "./utils";
 
-const gameOfLifes: { [key: number]: number[] } = {};
+let gameOfLifes: { [key: number]: number[] } = {};
+// on clearCache event, reset gameOfLifes
+window.addEventListener('message', (e) => 
+        e.data.type === 'clearCache' && (gameOfLifes = {}))
 
 const createEmptyGrid = (size: number) => new Array(size * size).fill(0);
 
@@ -29,7 +32,7 @@ const countAliveNeighbours = (grid: number[], size: number, x: number, y: number
     return count;
 }
 
-export const runGameOfLife = memoize((size: number = 16) => {
+export const runGameOfLife = memoize((size: number = 16, min: number = 0) => {
     const grid = gameOfLifes[size] || initGameOfLife(size);
     const newGrid = createEmptyGrid(size);
     for (let i = 0; i < size; i++) {
@@ -38,11 +41,11 @@ export const runGameOfLife = memoize((size: number = 16) => {
             const idx = i * size + j;
             newGrid[idx] = grid[idx] === 1
                 ? (aliveNeighbours === 2 || aliveNeighbours === 3 ? 1 : 0)
-                : (aliveNeighbours === 3 ? 1 : 0);
+                : (aliveNeighbours >= 3 ? 1 : 0); // consider changing this to === 3 to prevent overpopulation, but it seems to create more stable patterns with >=, so leaving for now. Could make this a parameter in the future.
         }
     }
 
-    const minPopulation = Math.ceil(size * size * 0.1);
+    const minPopulation = Math.ceil(size * size * min);
     const population = newGrid.filter(Boolean).length;
     if (population < minPopulation) {
         const deadCells: number[] = [];
