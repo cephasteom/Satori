@@ -21,6 +21,7 @@ export function parseShorthand(code: string): string {
 
     const streamPattern = /^(\s*)(s\d+|fx\d+|global)\s*$/;
     const keyPattern = /^(\s*)(\w+)\s*:(.*)/;
+    const isComment = (line: string) => line.trimStart().startsWith('//');
 
     while (i < lines.length) {
         const line = lines[i];
@@ -29,14 +30,33 @@ export function parseShorthand(code: string): string {
         if (streamMatch && i + 1 < lines.length) {
             const streamIndent = streamMatch[1];
             const streamName = streamMatch[2];
-            const nextKeyMatch = lines[i + 1].match(keyPattern);
+
+            // Look past any comment lines to find the first key
+            let nextKeyIdx = i + 1;
+            while (nextKeyIdx < lines.length && isComment(lines[nextKeyIdx])) {
+                nextKeyIdx++;
+            }
+            const nextKeyMatch = nextKeyIdx < lines.length ? lines[nextKeyIdx].match(keyPattern) : null;
 
             if (nextKeyMatch && nextKeyMatch[1].length > streamIndent.length) {
                 const keyIndent = nextKeyMatch[1];
-                const pairs: string[] = [];
+                type BlockItem = { kind: 'pair'; text: string } | { kind: 'comment'; text: string };
+                const blockItems: BlockItem[] = [];
                 i++;
 
+                // Preserve comment lines before the first key
+                while (i < nextKeyIdx) {
+                    blockItems.push({ kind: 'comment', text: lines[i] });
+                    i++;
+                }
+
                 while (i < lines.length) {
+                    if (isComment(lines[i])) {
+                        blockItems.push({ kind: 'comment', text: lines[i] });
+                        i++;
+                        continue;
+                    }
+
                     const km = lines[i].match(keyPattern);
 
                     if (km && km[1] === keyIndent) {
@@ -53,14 +73,23 @@ export function parseShorthand(code: string): string {
                             }
                         }
 
-                        pairs.push(`${keyIndent}${km[2]}: ${valueLines.join('\n')}`);
+                        blockItems.push({ kind: 'pair', text: `${keyIndent}${km[2]}: ${valueLines.join('\n')}` });
                     } else {
                         break;
                     }
                 }
 
+                let lastPairIndex = -1;
+                for (let j = blockItems.length - 1; j >= 0; j--) {
+                    if (blockItems[j].kind === 'pair') { lastPairIndex = j; break; }
+                }
+
+                const rendered = blockItems.map((item, j) =>
+                    item.kind === 'comment' ? item.text : item.text + (j < lastPairIndex ? ',' : '')
+                );
+
                 result.push(`${streamIndent}${streamName}.set({`);
-                result.push(pairs.join(',\n'));
+                result.push(rendered.join('\n'));
                 result.push(`${streamIndent}})`);
                 continue;
             }
