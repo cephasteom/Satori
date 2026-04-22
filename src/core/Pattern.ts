@@ -704,16 +704,16 @@ const holdUntil = (condition: Pattern<any>, pattern: Pattern<any>) => {
 }
 
 /**
- * Increment a counter each time a condition is met.
+ * Increment a counter each time a condition is met, if no condition is provided, increments every time it is called.
  * @param condition - pattern to evaluate
  * @example coin().count() // increments the count each time coin() returns 1
  * @example count(coin()) // same as above
  */
-const count = (condition: Pattern<any>) => {
+const count = (condition?: Pattern<any>) => {
     let counter = 0;
 
     return P((from, to) => {
-        const triggered = unwrap(condition, from, to);
+        const triggered = condition ? unwrap(condition, from, to) : true;
         triggered && (counter += 1);
         return [{
             from, to,
@@ -1077,11 +1077,63 @@ const retrieve = (key: string, ...rest: any[]) => {
 /**
  * Run cellular automata on a pattern. Just handles Game of Life for now, but could be expanded to other rules.
  * @param size - size of the grid (size x size)
+ * @returns a 1D array representing the grid state, where each cell is either 0 (dead) or 1 (alive).
+ * @example ca(4) // runs Game of Life on a 4x4 grid, with a random initial state. Returns an array of 16 values representing the grid state each cycle.
+ * 
  */
-const ca = (size: Pattern<any> | number) => P((from, to) => {
-    const cells = runGameOfLife(unwrap(size, from, to), from);
-    return [{ from, to, value: cells }];
-})
+const ca = (size: Pattern<any> | number) => P((from, to) =>
+    [{ from, to, value: runGameOfLife(unwrap(size, from, to), from) }]);
+
+/**
+ * Assuming an array whose length is a perfect square, treat it as a grid and return all values in the given row.
+ * @param row - row index (0-based)
+ * @example ca(4).row(0) // returns the first row of the 4x4 Game of Life grid
+ * @example ca(4).row(count()) // returns a different row each event, cycling through the rows as count() increments
+ */
+const row = (...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    const row = unwrap(args[0], from, to);
+    return pattern.query(from, to).map(hap => {
+        const arr = [hap.value].flat();
+        const size = Math.sqrt(arr.length);
+        const r = Math.floor(row) % size;
+        return { ...hap, value: arr.slice(r * size, (r + 1) * size) };
+    });
+});
+
+/**
+ * Assuming an array whose length is a perfect square, treat it as a grid and return all values in the given column.
+ * @param col - column index (0-based)
+ * @example ca(4).col(0) // returns the first column of the 4x4 Game of Life grid
+ * @example ca(4).col(count()) // returns a different column each event, cycling through the columns as count() increments
+ */
+const col = (...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    const col = unwrap(args[0], from, to);
+    return pattern.query(from, to).map(hap => {
+        const arr = [hap.value].flat();
+        const size = Math.sqrt(arr.length);
+        const c = Math.floor(col) % size;
+        return { ...hap, value: Array.from({ length: size }, (_, i) => arr[c + i * size]) };
+    });
+});
+
+/**
+ * Assuming an array whose length is a perfect square, treat it as a grid and return all values at the given diagonal
+ * top-left = 0 to bottom-right = size-1. bottom-left = -size to top-right = size*2-1
+ * @param args 
+ * @returns 
+ */
+const diagonal = (...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    const n = unwrap(args[0], from, to);
+    return pattern.query(from, to).map(hap => {
+        const arr = [hap.value].flat();
+        const size = Math.sqrt(arr.length);
+        const d = ((Math.floor(n) % (size * 2 - 1)) + (size * 2 - 1)) % (size * 2 - 1) - (size - 1);
+        return { ...hap, value: arr.filter((_, i) => (i % size) - Math.floor(i / size) === d) };
+    });
+});
 
 export const methods = {
     t, c,
@@ -1107,7 +1159,7 @@ export const methods = {
     print,
     qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases,
     loopmidiin, retrieve,
-    ca
+    ca, row, col, diagonal
 };
 
 // declare a type for Pattern methods, for use in the Pattern interface
