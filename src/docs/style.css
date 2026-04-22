@@ -22,19 +22,13 @@
     background: transparent;
     border: none;
     padding: 0;
-    padding-right: 1rem;
     cursor: pointer;
     color: var(--theme-3);
     text-transform: uppercase;
     font-family: var(--font-1);
     font-size: 1.25rem;
     line-height: .5;
-    letter-spacing: .2rem;
-    border-right: 1px solid var(--theme-3);
-
-    &:last-of-type {
-        border-right: none;
-    }
+    letter-spacing: 15%;
 
     &:focus {
         outline: none;
