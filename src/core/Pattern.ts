@@ -1161,6 +1161,30 @@ const region = (...args: any[]) => P((from, to) => {
     });
 });
 
+/** 
+ * Assuming an array whose length is a perfect square, treat it as a grid and return values of the 8 neighbouring cells for the cell at the given index. Neighbours are returned in the order: top-left, top, top-right, left, right, bottom-left, bottom, bottom-right. If a neighbour is out of bounds, it will wrap around to the opposite side of the grid.
+ * @param x, y - x and y coordinates of the cell, e.g. for a 4x4 grid: 0,0 is top-left, 3,3 is bottom-right
+ * @example ca(4).hood(0,0) // returns the 8 neighbors of the cell at coordinates 0,0 in the 4x4 Game of Life grid
+ */
+const hood = (...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    const [x, y] = args.slice(0, -1).map(a => unwrap(a, from, to));
+    return pattern.query(from, to).map(hap => {
+        const arr = [hap.value].flat();
+        const size = Math.sqrt(arr.length);
+        const neighbors = [];
+        for (let j = -1; j <= 1; j++) {
+            for (let i = -1; i <= 1; i++) {
+                if (i === 0 && j === 0) continue; // skip the cell itself
+                const nx = (x + i + size) % size;
+                const ny = (y + j + size) % size;
+                neighbors.push(arr[ny * size + nx]);
+            }
+        }
+        return { ...hap, value: neighbors };
+    });
+});
+
 /**
  * Assuming an array of values, return the number of values that are above a certain threshold, as a normalised value between 0 and 1.
  * @param threshold - value to compare against. Default is 1.
@@ -1201,7 +1225,7 @@ export const methods = {
     print,
     qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases,
     loopmidiin, retrieve,
-    ca, row, col, diagonal, region, density
+    ca, row, col, diagonal, region, hood, density
 };
 
 // declare a type for Pattern methods, for use in the Pattern interface
