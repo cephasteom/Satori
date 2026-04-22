@@ -514,7 +514,7 @@ const sometimes = coin
  * @example rarely()
  * @example rarely('A', 'B') // returns 'A' when condition is true, else 'B'
  * @example (60).add(rarely(5)) // adds 5 to 60 occasionally
- * @exaample (60).add((5).rarely()) // same as above
+ * @example (60).add((5).rarely()) // same as above
  */
 
 const rarely = (...args: any[]) => weightedCoin(0.125, ...args);
@@ -1186,6 +1186,35 @@ const hood = (...args: any[]) => P((from, to) => {
 });
 
 /**
+ * Assuming an array whose length is a perfect square, treat it as a grid and return values in concentric rings from the centre outwards. The first ring (0) is the centre cell, the second ring (1) is the 8 neighbours, the third ring (2) is the 16 cells surrounding those, etc.
+ * @param i - index - wraps around if exceeds the maximum number of rings
+ * @example ca(4).ring(0) // returns the centre cell of the 4x4 Game of Life grid
+ * @example ca(4).ring(1) // returns the 8 neighbours of the centre cell in the 4x4 Game of Life grid
+ */
+const ring = (...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    const ringIndex = unwrap(args[0], from, to);
+    return pattern.query(from, to).map(hap => {
+        const arr = [hap.value].flat();
+        const size = Math.sqrt(arr.length);
+        const center = Math.floor(size / 2);
+        const maxRing = Math.ceil(size / 2);
+        const r = ((Math.floor(ringIndex) % maxRing) + maxRing) % maxRing; // wrap around and handle negative
+        const ringValues = [];
+        for (let y = center - r; y <= center + r; y++) {
+            for (let x = center - r; x <= center + r; x++) {
+                if (Math.max(Math.abs(x - center), Math.abs(y - center)) === r) { // only include cells on the current ring
+                    const nx = (x + size) % size;
+                    const ny = (y + size) % size;
+                    ringValues.push(arr[ny * size + nx]);
+                }
+            }
+        }
+        return { ...hap, value: ringValues };
+    });
+});
+
+/**
  * Assuming an array of values, return the number of values that are above a certain threshold, as a normalised value between 0 and 1.
  * @param threshold - value to compare against. Default is 1.
  * @example ca(16).density(0.5) // returns a normalised count of how many cells in the 4x4 Game of Life grid are above 0.5
@@ -1200,6 +1229,53 @@ const density = (...args: any[]) => P((from, to) => {
         return { ...hap, value: count / arr.length };
     });
 });
+
+/**
+ * changed - 1 if an item changed, 0 if remains the same. If recieves a single value, compares it to the previous value and returns a single value. If recieves an array, compares each item to the previous value at the same index and returns an array of 1s and 0s.
+ * @example choose(0,1,2).changed() // returns 1 when the value changes, 0 when it stays the same
+ * @example ca(3).row(0).changed() // returns an array of 3 values containing 1s and 0s
+ */
+const changed = (pattern: Pattern<any>) => {
+    let lastValue: any = null;
+    return P((from, to) => pattern.query(from, to).map(hap => {
+        const value = hap.value;
+        const changed = Array.isArray(value) 
+            ? value.map((v, i) => v !== (lastValue?.[i]) ? 1 : 0)
+            : value !== lastValue ? 1 : 0;
+        lastValue = value;
+        return { ...hap, value: changed };
+    }));
+}
+
+/**
+ * born - like changed, but return 1 only when the value changes from falsy to truthy, else 0.
+ */
+const born = (pattern: Pattern<any>) => {
+    let lastValue: any = null;
+    return P((from, to) => pattern.query(from, to).map(hap => {
+        const value = hap.value;
+        const born = Array.isArray(value) 
+            ? value.map((v, i) => v && !lastValue?.[i] ? 1 : 0)
+            : value && !lastValue ? 1 : 0;
+        lastValue = value;
+        return { ...hap, value: born };
+    }));
+}
+
+/**
+ * died - like changed, but return 1 only when the value changes from truthy to falsy, else 0.
+ */
+const died = (pattern: Pattern<any>) => {
+    let lastValue: any = null;
+    return P((from, to) => pattern.query(from, to).map(hap => {
+        const value = hap.value;
+        const died = Array.isArray(value) 
+            ? value.map((v, i) => !v && lastValue?.[i] ? 1 : 0)
+            : !value && lastValue ? 1 : 0;
+        lastValue = value;
+        return { ...hap, value: died };
+    }));
+}
 
 export const methods = {
     t, c,
@@ -1225,7 +1301,8 @@ export const methods = {
     print,
     qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases,
     loopmidiin, retrieve,
-    ca, row, col, diagonal, region, hood, density
+    ca, row, col, diagonal, region, hood, ring, density,
+    changed, born, died
 };
 
 // declare a type for Pattern methods, for use in the Pattern interface
