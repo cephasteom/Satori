@@ -1,9 +1,9 @@
-import { complex, round, pow, abs } from 'mathjs'
 /**
  * Pattern module - core building block of Satori.
  * Credit: adapted from https://garten.salat.dev/idlecycles/, by Froos.
  * These posts outline how TidalCycles was ported to Strudel. Invaluable reading.
- */
+*/
+import { complex, round, pow, abs } from 'mathjs'
 import { parse, evalNode } from './mini';
 import { circuit, runCircuit } from './Qubit';
 import { cyclesPerSecond, transposeOctave, unwrapArray } from './utils';
@@ -11,6 +11,7 @@ import { setupInputListener, syncLoopState } from './MidiInput';
 import pkg from 'noisejs';
 import { WebMidi } from 'webmidi';
 import { retrieve as retrieveData } from './data';
+import { runGameOfLife } from './CA';
 // @ts-ignore
 const { Noise } = pkg;
 const noiseGenerator = new Noise(Math.random());
@@ -1073,6 +1074,15 @@ const retrieve = (key: string, ...rest: any[]) => {
     });
 };
 
+/**
+ * Run cellular automata on a pattern. Just handles Game of Life for now, but could be expanded to other rules.
+ * @param size - size of the grid (size x size)
+ */
+const ca = (size: Pattern<any> | number) => P((from, to) => {
+    const cells = runGameOfLife(unwrap(size, from, to), from);
+    return [{ from, to, value: cells }];
+})
+
 export const methods = {
     t, c,
     fn,
@@ -1096,7 +1106,8 @@ export const methods = {
     }), {}),
     print,
     qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases,
-    loopmidiin, retrieve
+    loopmidiin, retrieve,
+    ca
 };
 
 // declare a type for Pattern methods, for use in the Pattern interface
