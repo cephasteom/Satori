@@ -465,7 +465,10 @@ const noise = (min: number = 0, max: number = 1, q: number = 48) =>
  * @param values
  * @example stack(0, sine(), square()) // layers a sine wave and square wave over a constant 0 value.
  */
-const stack = (...values: any[]) => cycle((from, to) => values.map((value) => ({ from, to, value })));
+const stack = (...values: any[]) => P((from, to) => ([{
+    from, to,
+    value: values.map(v => unwrap(v, from, to)).flat()
+}]));
 
 /**
  * Interpolate values.
@@ -786,7 +789,7 @@ const inversion = (...args: any[]) => {
 }
 
 /**
- * Assuming a stack, take the element at the given index.
+ * Assuming an array, take the element at the given index.
  * @param index - index of the element to take. 
  * @example 'Dmi'.at(2) // returns A
  * @example 'Dmi'.at([0,2]) // returns D and A
@@ -794,8 +797,11 @@ const inversion = (...args: any[]) => {
 const at = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const indexes = args.slice(0, -1).map(a => [unwrap(a, from, to)].flat()).flat(); // remove pattern
-    return pattern.query(from, to).filter((_, i, arr) => 
-        indexes.includes(i % arr.length));
+    return pattern.query(from, to).map(hap => ({
+        ...hap,
+        value: unwrapArray([hap.value].flat()).filter((_: any, i: number) => 
+            indexes.includes(i))
+    }));
 }); 
 
 /**
@@ -824,7 +830,10 @@ const indexesOf = (...args: any[]) => P((from, to) => {
 const combine = (...args: any[]) => P((from, to) => {
     const patterns = args.map(a => unwrap(a, from, to)).flat();
     const values = patterns.map(p => p instanceof Pattern ? p.query(from, to).map(hap => hap.value) : p);
-    return stack(...values.flat()).query(from, to);
+    return [{
+        from, to,
+        value: values.flat()
+    }];
 });
 
 /**
@@ -835,10 +844,10 @@ const combine = (...args: any[]) => P((from, to) => {
  */
 const includes = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
-    const checkValues = args.slice(0, -1).map(a => unwrap(a, from, to)).flat(); // remove pattern
+    const values = args.slice(0, -1).map(a => unwrap(a, from, to)).flat(); // remove pattern
     return pattern.query(from, to).map(hap => ({
         ...hap,
-        value: checkValues.some(v => 
+        value: values.some(v => 
             unwrapArray([hap.value].flat()).includes(v)
         ) ? 1 : 0
     }));
@@ -1250,8 +1259,9 @@ const ring = (...args: any[]) => P((from, to) => {
  * @example ca(4).row(0).density(0.5) // returns a normalised count of how many cells in the first row of the Game of Life grid are above 0.5
  */
 const density = (...args: any[]) => P((from, to) => {
+    const hasThreshold = args.length > 1;
     const pattern = args[args.length - 1] as Pattern<any>;
-    const threshold = unwrap(args[0] || 1, from, to);
+    const threshold = hasThreshold ? unwrap(args[0], from, to) : 1;
     return pattern.query(from, to).map(hap => {
         const arr = [hap.value].flat();
         const count = arr.filter(v => v >= threshold).length;
