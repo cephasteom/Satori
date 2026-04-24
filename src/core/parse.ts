@@ -2,26 +2,32 @@
  * Allow a shorthand syntax for defining stream updates, e.g.:
  * 
  * s0
- *   x: H q0
- *   y: CNOT q0, q1
+ *   n 'Ddor.. 
+ *   e '1*4'
+ * 
+ * is equivalent to:
+ *
+ * s0
+ *   n: 'Ddor.. 
+ *   e: '1*4'
  * 
  * is equivalent to:
  * 
  * s0.set({
- *   x: H q0,
- *   y: CNOT q0, q1
+ *  n: 'Ddor..',
+ *  e: '1*4'
  * })
  * @param code 
  * @returns 
  */
 export function parseShorthand(code: string): string {
-    const lines = code.split('\n');
+    const isComment = (line: string) => line.trimStart().startsWith('//');
+    const lines = code.split('\n').filter(line => !isComment(line));
     const result: string[] = [];
     let i = 0;
 
     const streamPattern = /^(\s*)(s\d+|fx\d+|global)\s*$/;
-    const keyPattern = /^(\s*)(\w+)\s*:(.*)/;
-    const isComment = (line: string) => line.trimStart().startsWith('//');
+    const keyPattern = /^(\s*)(\w+)(?:\s*:\s*|\s+)(.*)/;
 
     while (i < lines.length) {
         const line = lines[i];
@@ -30,33 +36,14 @@ export function parseShorthand(code: string): string {
         if (streamMatch && i + 1 < lines.length) {
             const streamIndent = streamMatch[1];
             const streamName = streamMatch[2];
-
-            // Look past any comment lines to find the first key
-            let nextKeyIdx = i + 1;
-            while (nextKeyIdx < lines.length && isComment(lines[nextKeyIdx])) {
-                nextKeyIdx++;
-            }
-            const nextKeyMatch = nextKeyIdx < lines.length ? lines[nextKeyIdx].match(keyPattern) : null;
+            const nextKeyMatch = lines[i + 1].match(keyPattern);
 
             if (nextKeyMatch && nextKeyMatch[1].length > streamIndent.length) {
                 const keyIndent = nextKeyMatch[1];
-                type BlockItem = { kind: 'pair'; text: string } | { kind: 'comment'; text: string };
-                const blockItems: BlockItem[] = [];
+                const pairs: string[] = [];
                 i++;
 
-                // Preserve comment lines before the first key
-                while (i < nextKeyIdx) {
-                    blockItems.push({ kind: 'comment', text: lines[i] });
-                    i++;
-                }
-
                 while (i < lines.length) {
-                    if (isComment(lines[i])) {
-                        blockItems.push({ kind: 'comment', text: lines[i] });
-                        i++;
-                        continue;
-                    }
-
                     const km = lines[i].match(keyPattern);
 
                     if (km && km[1] === keyIndent) {
@@ -73,23 +60,14 @@ export function parseShorthand(code: string): string {
                             }
                         }
 
-                        blockItems.push({ kind: 'pair', text: `${keyIndent}${km[2]}: ${valueLines.join('\n')}` });
+                        pairs.push(`${keyIndent}${km[2]}: ${valueLines.join('\n')}`);
                     } else {
                         break;
                     }
                 }
 
-                let lastPairIndex = -1;
-                for (let j = blockItems.length - 1; j >= 0; j--) {
-                    if (blockItems[j].kind === 'pair') { lastPairIndex = j; break; }
-                }
-
-                const rendered = blockItems.map((item, j) =>
-                    item.kind === 'comment' ? item.text : item.text + (j < lastPairIndex ? ',' : '')
-                );
-
                 result.push(`${streamIndent}${streamName}.set({`);
-                result.push(rendered.join('\n'));
+                result.push(pairs.map((p, j) => p + (j < pairs.length - 1 ? ',' : '')).join('\n'));
                 result.push(`${streamIndent}})`);
                 continue;
             }
