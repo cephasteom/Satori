@@ -3,6 +3,8 @@ import './ui';
 import './editor-theme.css';
 import { init as initEditor } from '../src/editor';
 
+import { getTransport } from 'tone'
+
 import { Satori } from '../src/core/Satori';
 import { init as initOto } from '../src/oto';
 import { init as initSuperSatori } from '../src/core/SuperSatori';
@@ -29,23 +31,52 @@ ws && initWebSocket(wsPort);
 // Create a new Satori instance and pass in handlers
 const satori = new Satori(...handlers);
 
+const runBtn = document.getElementById('run-btn') as HTMLButtonElement;
+let isRunning = false;
+
+const transportTime = document.getElementById('transport-time');
+const updateTime = () => {
+    const transport = getTransport();
+    const time = transport.seconds;
+    const bars = Math.floor(time / 4) + 1;
+    const beats = Math.floor((time % 4) / 1);
+    const sixteenths = Math.floor(((time % 4) % 1) / 0.25 * 4);
+    if(transportTime) transportTime.innerHTML = `${bars}:${beats}:${sixteenths}`;
+    isRunning 
+     ? requestAnimationFrame(updateTime)
+     : (transportTime.innerHTML = `0:0:0`);
+}
+
+const play = () => {
+    if(isRunning) return;
+    satori.play();
+    isRunning = true;
+    updateTime();
+    runBtn.innerHTML = '■&nbsp;STOP';
+}
+
+const stop = () => {
+    satori.stop();
+    isRunning = false;
+    runBtn.innerHTML = '▶&nbsp;RUN';
+}
+
+
 window.addEventListener('keydown', (e) => {
     // Play / Stop controls
-    if((e.altKey || e.ctrlKey) && e.key === 'Enter') satori.play();
+    if((e.altKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        play();
+    }
     if((e.altKey || e.ctrlKey) && e.code === 'Period') {
         e.preventDefault();
-        satori.stop();
+        stop();
     }
 });
 
-let isRunning = false;
-document.getElementById('run-btn')?.addEventListener('click', () => {
-    if(isRunning) {
-        isRunning = false;
-        return satori.stop();
-    }
+runBtn?.addEventListener('click', () => {
+    if(isRunning) return stop();
     // send a triggerEvaluate event to the global scope, which the editor listens out for to trigger code evaluation
     window.dispatchEvent(new CustomEvent("triggerEvaluate"));
-    satori.play();
-    isRunning = true;
+    play();
 });

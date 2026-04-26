@@ -38,6 +38,8 @@
   --theme-1: var(--cyan);
   --theme-2: var(--amber);
   --theme-3: var(--red);
+  --theme-4: #FF8419;
+  --theme-5: #D42525;
   --white: #ffffff;
   --black: #000000;
   --black-lighter: #0D0D0D;

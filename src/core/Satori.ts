@@ -52,6 +52,7 @@ export class Satori {
 
             // update time pointer for next tick
             this.t = to;
+
         }, `${this.divisions}n`).start(0);
     }
     
