@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Satori - pqca</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+
+  <header class="header">
+    <div class="logo">
+      <span class="logo">
+        <img src="logo.svg" alt="satori logo" class="logo-icon">
+      </span>
+      <span class="logo-sub">pqca</span>
+    </div>
+    <nav class="nav">
+      <a class="nav-link" href="https://github.com" target="_blank" rel="noopener">
+        ⌥&nbsp;GITHUB
+      </a>
+      <a class="nav-link" href="#" id="about-btn">
+        ◉&nbsp;ABOUT
+      </a>
+    </nav>
+  </header>
+
+  <div class="app-body">
+
+    <aside class="sidebar">
+      <div class="sidebar-label">
+        <span>PRESETS</span>
+      </div>
+      <div class="preset-list">
+        <button class="preset-btn active" data-preset="1">01</button>
+        <button class="preset-btn" data-preset="2">02</button>
+        <button class="preset-btn" data-preset="3">03</button>
+        <button class="preset-btn" data-preset="4">04</button>
+        <button class="preset-btn" data-preset="5">05</button>
+        <button class="preset-btn" data-preset="6">06</button>
+        <button class="preset-btn" data-preset="7">07</button>
+        <button class="preset-btn" data-preset="8">08</button>
+        <button class="preset-btn" data-preset="9">09</button>
+        <button class="preset-btn" data-preset="10">10</button>
+      </div>
+      <div class="sidebar-closed" id="sidebar-closed">
+        <div class="sidebar-label">CLOSED</div>
+        <div class="closed-list" id="closed-list"></div>
+      </div>
+    </aside>
+
+    <div class="main">
+
+      <div class="transport">
+        <div class="transport-controls">
+          <button class="transport-btn" id="run-btn">▶&nbsp;RUN</button>
+        </div>
+        <div class="transport-info">
+          <span class="transport-time" id="transport-time">00:00.000</span>
+        </div>
+        <!-- <div class="transport-meter">
+          <span class="meter-label">OUT</span>
+          <div class="meter-track">
+            <div class="meter-seg" data-i="1"></div>
+            <div class="meter-seg" data-i="2"></div>
+            <div class="meter-seg" data-i="3"></div>
+            <div class="meter-seg" data-i="4"></div>
+            <div class="meter-seg" data-i="5"></div>
+            <div class="meter-seg" data-i="6"></div>
+            <div class="meter-seg" data-i="7"></div>
+            <div class="meter-seg" data-i="8"></div>
+            <div class="meter-seg" data-i="9"></div>
+            <div class="meter-seg" data-i="10"></div>
+          </div>
+        </div> -->
+      </div>
+
+      <div class="workspace">
+
+        <div class="left-panel">
+
+          <div class="editor-panel">
+            <div class="panel-titlebar">
+              <span class="panel-title">EDITOR</span>
+              <div class="panel-dots">
+                <span class="dot dot-red"></span>
+                <span class="dot dot-amber"></span>
+                <span class="dot dot-green"></span>
+              </div>
+            </div>
+            <textarea class="editor-area" id="editor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off">// satori pqca — live coder
+// press RUN to evaluate
+
+const osc = new Oscillator({
+  freq: 440,
+  type: 'sine',
+  amp: 0.5
+})
+
+osc.connect(out)
+osc.start()</textarea>
+          </div>
+
+          <div class="resize-handle resize-handle--row" id="row-resize"></div>
+
+          <div class="console-panel">
+            <div class="panel-titlebar">
+              <span class="panel-title">CONSOLE</span>
+              <div class="panel-dots">
+                <span class="dot dot-red"></span>
+                <span class="dot dot-amber"></span>
+                <span class="dot dot-green"></span>
+              </div>
+            </div>
+            <div class="console-area" id="console">
+              <div class="console-line"><span class="prompt">›</span><span>context initialised</span></div>
+              <div class="console-line dim"><span class="prompt">›</span><span>audio suspended — awaiting gesture</span></div>
+              <div class="console-line"><span class="prompt">›</span><span class="blink">_</span></div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="resize-handle resize-handle--col" id="col-resize"></div>
+
+        <div class="canvas-panel">
+          <div class="panel-titlebar">
+            <span class="panel-title">CANVAS</span>
+            <div class="panel-dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-amber"></span>
+              <span class="dot dot-green"></span>
+            </div>
+          </div>
+          <canvas class="canvas-area" id="viz-canvas"></canvas>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-titlebar">
+        <span class="panel-title">ABOUT SATORI PQCA</span>
+        <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt
+          ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+          ullamco laboris nisi ut aliquip ex ea commodo consequat.
+        </p>
+        <p>
+          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+          nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
+          deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error.
+        </p>
+        <p>
+          Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia
+          consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro
+          quisquam est, qui dolorem ipsum quia dolor sit amet.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

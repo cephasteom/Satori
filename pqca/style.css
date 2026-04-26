@@ -1,0 +1,811 @@
+/* ─── reset ───────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── tokens ──────────────────────────────────────────────── */
+
+:root {
+  --bg:           #0d0d0d;
+  --bg-panel:     #0a0a0a;
+  --bg-inset:     #080808;
+
+  --green:        #2fd6d6;
+  --green-dim:    rgba(47, 214, 214, 0.75);
+  --green-glow:   rgba(47, 214, 214, 0.5);
+
+  --border:       var(--green-glow);
+  --border-mid:   var(--green-dim);
+  --border-hi:    var(--green);
+
+  
+  --text:         #c5d2d2;
+  --text-dim:     var(--green-dim);
+  --text-muted:   var(--green-glow);
+
+  --cyan:         aqua;
+  --amber:        #FFC300;
+  --red:          #FF7383;
+
+  --spacer: 1.5rem;
+
+  --header-h:     65.24px;
+  --sidebar-w:    100px;
+  --transport-h:  calc(30px + (var(--spacer)));
+  --console-h:    190px;
+
+
+  --font: 'Courier New', 'Lucida Console', monospace;
+  --font-sz: 1rem;
+
+  /* type scale — all sizes derived from --font-sz */
+  --text-xs:  calc(var(--font-sz) * 0.69);  /* ~9px  — labels, captions   */
+  --text-sm:  calc(var(--font-sz) * 0.85);  /* ~11px — UI chrome, buttons  */
+  --text-lg:  calc(var(--font-sz) * 1.15);  /* ~15px — logo name           */
+  --text-xl:  calc(var(--font-sz) * 1.38);  /* ~18px — logo mark           */
+}
+
+/* ─── base ────────────────────────────────────────────────── */
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overflow-x: scroll;
+}
+
+body {
+  display: grid;
+  grid-template-rows: var(--header-h) 1fr;
+  height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--font-sz);
+  line-height: 1.5;
+  min-width: 600px;
+}
+
+/* scanlines overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.04) 2px,
+    rgba(0, 0, 0, 0.04) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+button {
+  border-radius: 2px;
+}
+
+/* ─── header ──────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacer);
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 100;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacer) / 2);
+}
+
+.logo-icon {
+  width: 10rem;
+}
+
+.logo-sub {
+  color: var(--text-dim);
+  font-size: var(--text-xs);
+  letter-spacing: 0.25em;
+  text-transform: lowercase;
+  position: relative;
+  top: 4.5px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: calc(var(--spacer) / 4) calc(var(--spacer) / 2);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  color: var(--text-dim);
+  font-family: var(--font);
+  font-size: var(--text-sm);
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.1s, border-color 0.1s, background 0.1s;
+  white-space: nowrap;
+  transform: translateY(2px);
+}
+
+.nav-link:hover {
+  color: var(--green);
+  border-color: var(--border-mid);
+  background: rgba(47, 214, 214, 0.05);
+}
+
+.nav-link:focus-visible {
+  outline: none;
+  color: var(--green);
+  border-color: var(--border-mid);
+  background: rgba(47, 214, 214, 0.04);
+}
+
+/* ─── app body ────────────────────────────────────────────── */
+
+.app-body {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ─── sidebar ─────────────────────────────────────────────── */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-label {
+  padding: calc(var(--spacer) / 2);
+  font-size: var(--text-xs);
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.sidebar-label span {
+  display: inline-block;
+  transform: translateY(1px);
+}
+
+.preset-list {
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--spacer) / 2);
+  gap: calc(var(--spacer) / 8);
+}
+
+.preset-btn {
+  width: 100%;
+  padding: calc(var(--spacer) / 4) 0;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: var(--text-sm);
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  text-align: center;
+  transition: color 0.1s, border-color 0.1s, background 0.1s;
+  position: relative;
+}
+
+.preset-btn::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 0;
+  background: var(--green);
+  transition: height 0.1s;
+}
+
+.preset-btn:hover {
+  color: var(--text);
+  border-color: var(--border-mid);
+  background: rgba(255,255,255,0.02);
+}
+
+.preset-btn:hover::before {
+  height: 60%;
+}
+
+.preset-btn:focus-visible {
+  outline: none;
+  color: var(--green);
+  border-color: var(--border-mid);
+  background: rgba(47, 214, 214, 0.04);
+}
+
+.preset-btn:focus-visible::before {
+  height: 60%;
+}
+
+.preset-btn.active {
+  color: var(--green);
+  border-color: var(--border-mid);
+  background: rgba(47, 214, 214, 0.06);
+  text-shadow: 0 0 8px var(--green-glow);
+}
+
+.preset-btn.active::before {
+  height: 70%;
+  box-shadow: 0 0 6px var(--green);
+}
+
+.sidebar-closed {
+  display: none;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sidebar-closed.has-items {
+  display: block;
+}
+
+.closed-list {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 8px;
+  gap: 3px;
+}
+
+.restore-btn {
+  width: 100%;
+  padding: calc(var(--spacer) / 4);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: var(--text-sm);
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.1s;
+  position: relative;
+}
+
+.restore-btn::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 70%;
+  background: var(--red);
+  opacity: 0.5;
+}
+
+.restore-btn:hover {
+  color: var(--red);
+  border-color: #3a1520;
+  background: rgba(255, 115, 131, 0.06);
+}
+
+.restore-btn:hover::before {
+  opacity: 1;
+  box-shadow: 0 0 6px rgba(255, 115, 131, 0.4);
+}
+
+.restore-btn:focus-visible {
+  outline: none;
+  color: var(--green);
+  border-color: var(--border-mid);
+  background: rgba(47, 214, 214, 0.04);
+}
+
+/* ─── main ────────────────────────────────────────────────── */
+
+.main {
+  display: grid;
+  grid-template-rows: var(--transport-h) 1fr;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ─── transport ───────────────────────────────────────────── */
+
+.transport {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 calc(var(--spacer) / 2);
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.transport-controls {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.transport-btn {
+  padding: 6px 18px;
+  background: transparent;
+  border: 1px solid var(--border-mid);
+  color: var(--text-dim);
+  font-family: var(--font);
+  font-size: var(--text-sm);
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: all 0.1s;
+  min-width: 6.25rem;
+}
+
+.transport-btn:not(.is-running):hover,
+.transport-btn:not(.is-running):focus-visible {
+  color: var(--green);
+  border-color: var(--green);
+  background: rgba(47, 214, 214, 0.08);
+  box-shadow: 0 0 12px rgba(47, 214, 214, 0.12);
+  outline: none;
+}
+
+.transport-btn.is-running {
+  color: var(--green);
+  border-color: var(--border-mid);
+}
+
+.transport-btn.is-running:hover,
+.transport-btn.is-running:focus-visible {
+  color: var(--red);
+  border-color: var(--red);
+  background: rgba(255, 115, 131, 0.08);
+  box-shadow: 0 0 12px rgba(255, 115, 131, 0.12);
+  outline: none;
+}
+
+.transport-info {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
+}
+
+.transport-time {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+
+.transport-meter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 240px;
+}
+
+.meter-label {
+  font-size: var(--text-xs);
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.meter-track {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+}
+
+.meter-seg {
+  flex: 1;
+  height: 12px;
+  background: var(--border);
+  transition: background 0.1s;
+}
+
+/* ─── workspace ───────────────────────────────────────────── */
+
+.workspace {
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ─── left panel ──────────────────────────────────────────── */
+
+.left-panel {
+  flex: 1 1 50%;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ─── shared panel chrome ─────────────────────────────────── */
+
+.editor-panel,
+.console-panel,
+.canvas-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.panel-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--spacer) / 2);
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.panel-title {
+  font-size: var(--text-xs);
+  letter-spacing: 0.25em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  transform: translateY(1px);
+}
+
+.panel-hint {
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.panel-dots {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.dot-red    {
+  background: var(--red);
+  cursor: pointer;
+  transition: box-shadow 0.1s;
+}
+
+.dot-red:hover {
+  box-shadow: 0 0 6px var(--red);
+}
+
+.dot-amber  {
+  background: var(--amber);
+  cursor: pointer;
+  transition: box-shadow 0.1s;
+}
+
+.dot-amber:hover {
+  box-shadow: 0 0 6px var(--amber);
+}
+
+.dot-green  {
+  background: var(--cyan);
+  cursor: pointer;
+  transition: box-shadow 0.1s;
+}
+
+.dot-green:hover {
+  box-shadow: 0 0 6px var(--cyan);
+}
+
+/* ─── editor ──────────────────────────────────────────────── */
+
+.editor-panel {
+  flex: 1;
+  min-height: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.editor-area {
+  flex: 1;
+  width: 100%;
+  padding: calc(var(--spacer) / 2);
+  background: var(--bg);
+  border: none;
+  outline: none;
+  color: #8fbcbc;
+  font-family: var(--font);
+  font-size: var(--font-sz);
+  line-height: 1.7;
+  resize: none;
+  overflow-y: auto;
+  overflow-x: auto;
+  tab-size: 2;
+  caret-color: var(--green);
+}
+
+.editor-area::selection {
+  background: rgba(47, 214, 214, 0.18);
+}
+
+/* ─── console ─────────────────────────────────────────────── */
+
+.console-panel {
+  flex: 0 0 var(--console-h);
+  min-height: 0;
+  background: var(--bg-inset);
+}
+
+.console-area {
+  flex: 1;
+  padding: calc(var(--spacer) / 2);
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-size: var(--font-sz);
+  line-height: 2;
+}
+
+.console-line {
+  display: flex;
+  gap: 10px;
+  color: var(--text-dim);
+}
+
+.console-line.dim {
+  color: var(--text-muted);
+}
+
+.console-line .prompt {
+  color: var(--green);
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+/* ─── canvas panel ────────────────────────────────────────── */
+
+.canvas-panel {
+  flex: 1 1 50%;
+  min-width: 160px;
+  background: var(--bg-inset);
+}
+
+.canvas-area {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: var(--bg-inset);
+}
+
+/* ─── resize handles ─────────────────────────────────────── */
+
+.resize-handle {
+  flex-shrink: 0;
+  background: var(--border);
+  transition: background 0.15s;
+  position: relative;
+  z-index: 10;
+}
+
+.resize-handle:hover,
+.resize-handle.is-dragging {
+  background: var(--border-mid);
+}
+
+.resize-handle.is-dragging {
+  background: var(--green-dim);
+}
+
+.resize-handle--col {
+  width: 4px;
+  cursor: ew-resize;
+}
+
+.resize-handle--row {
+  height: 4px;
+  cursor: ns-resize;
+}
+
+/* hide col handle in any special layout state */
+.workspace--left-collapsed  > .resize-handle--col,
+.workspace--right-collapsed > .resize-handle--col,
+.workspace--left-empty      > .resize-handle--col,
+.workspace--right-empty     > .resize-handle--col {
+  display: none;
+}
+
+/* hide row handle when either adjacent panel is minimised or removed */
+.editor-panel.panel--minimised ~ .resize-handle--row,
+.editor-panel.panel--removed   ~ .resize-handle--row {
+  display: none;
+}
+
+.resize-handle--row:has(+ .console-panel.panel--minimised),
+.resize-handle--row:has(+ .console-panel.panel--removed) {
+  display: none;
+}
+
+/* ─── blink cursor ────────────────────────────────────────── */
+
+.blink {
+  animation: blink 1.1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ─── modal ───────────────────────────────────────────────── */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal {
+  width: 500px;
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-mid);
+  box-shadow:
+    0 0 0 1px var(--border),
+    0 0 40px rgba(47, 214, 214, 0.08),
+    0 24px 64px rgba(0, 0, 0, 0.6);
+}
+
+.modal-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.modal-close {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: var(--font-sz);
+  cursor: pointer;
+  padding: 2px 7px;
+  transition: all 0.1s;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: var(--red);
+  border-color: var(--red);
+}
+
+.modal-close:focus-visible {
+  outline: none;
+  color: var(--green);
+  border-color: var(--border-mid);
+  background: rgba(47, 214, 214, 0.04);
+}
+
+.modal-body {
+  padding: 22px 20px;
+  overflow-y: auto;
+  color: var(--text-dim);
+  font-size: var(--font-sz);
+  line-height: 1.9;
+}
+
+.modal-body p + p {
+  margin-top: 14px;
+}
+
+/* ─── scrollbars ──────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-mid);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--green-dim);
+}
+
+/* ─── fullscreen panel ────────────────────────────────────────── */
+
+.panel--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+}
+
+/* ─── minimised panel ─────────────────────────────────────────── */
+
+.panel--minimised > *:not(.panel-titlebar) {
+  display: none;
+}
+
+.panel--minimised {
+  flex: 0 0 auto !important;
+}
+
+/* when editor is minimised, console expands to fill the left column */
+.editor-panel.panel--minimised ~ .console-panel:not(.panel--minimised) {
+  flex: 1;
+}
+
+/* ─── removed panel ───────────────────────────────────────────── */
+
+.panel--removed {
+  display: none;
+}
+
+/* ─── workspace column collapse ───────────────────────────────── */
+
+/* both left panels minimised — left collapses to header strip */
+.workspace--left-collapsed .left-panel {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+/* canvas minimised — canvas collapses to header strip */
+.workspace--right-collapsed .canvas-panel {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+/* both left panels removed — left column and handle disappear */
+.workspace--left-empty .left-panel,
+.workspace--left-empty .resize-handle--col {
+  display: none;
+}
+
+/* canvas removed — right column and handle disappear */
+.workspace--right-empty .canvas-panel,
+.workspace--right-empty .resize-handle--col {
+  display: none;
+}
