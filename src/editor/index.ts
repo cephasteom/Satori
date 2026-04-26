@@ -14,7 +14,6 @@ import 'prism-code-editor/languages/clike';
 import 'prism-code-editor/layout.css';
 import 'prism-code-editor/guides.css';
 import 'prism-code-editor/invisibles.css';
-import './theme.css';
 import 'prism-code-editor/search.css';
 
 import { preset } from "./preset";

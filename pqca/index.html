@@ -90,17 +90,9 @@
                 <span class="dot dot-green"></span>
               </div>
             </div>
-            <textarea class="editor-area" id="editor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off">// satori pqca — live coder
-// press RUN to evaluate
-
-const osc = new Oscillator({
-  freq: 440,
-  type: 'sine',
-  amp: 0.5
-})
-
-osc.connect(out)
-osc.start()</textarea>
+            <section class="editor-area">
+              <div id="editor"></div>
+            </section>
           </div>
 
           <div class="resize-handle resize-handle--row" id="row-resize"></div>

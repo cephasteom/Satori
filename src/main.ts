@@ -6,6 +6,7 @@ import { init as initWebSocket } from './core/WebSocket';
 
 import { init as initDocs } from './docs';
 import { init as initEditor } from './editor';
+import './editor/theme.css';
 import { init as initConsole } from './console';
 
 // initialize UI components
