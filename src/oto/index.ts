@@ -9,7 +9,6 @@ export function init() {
     window.addEventListener('keydown', startAudio)
     window.addEventListener('click', startAudio)
     window.addEventListener('touchstart', startAudio)
-
     return handler
 }
 

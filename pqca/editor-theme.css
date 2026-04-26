@@ -46,7 +46,8 @@
   --grey-lighter: #363636; 
   --grey-light: #969696;
 
-  overflow: unset;
+  overflow: unset!important;
+  isolation: auto!important;
 }
 
 .match-highlight {

@@ -58,7 +58,6 @@ export function evaluate(code: string) {
         // Store the last successfully evaluated code
         lastCode = code;
 
-
         // run the circuit based on its current configuration
         circuit.run();
 

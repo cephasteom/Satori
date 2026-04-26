@@ -38,6 +38,13 @@ export const init = async (element: string = '#editor') => {
     );
 
     /**
+     * Fire evaluateCode event
+     */
+    const evaluateCode = () => {
+        window.dispatchEvent(new CustomEvent("evaluateCode", { detail: { code: editor.value } }));
+    }
+
+    /**
      * If a user presses Shift+Enter, fire a custom 'evaluateCode' event
      */
     editor.textarea.addEventListener('keydown', (e) => {
@@ -46,7 +53,7 @@ export const init = async (element: string = '#editor') => {
 
         if (e.key === 'Enter' && (e.ctrlKey || e.altKey)) {
             e.preventDefault();
-            window.dispatchEvent(new CustomEvent("evaluateCode", { detail: { code: editor.value } }));
+            evaluateCode();
             return false;
         }
 
@@ -109,4 +116,8 @@ export const init = async (element: string = '#editor') => {
         }
 
     });
+
+    // listen out for custom 'triggerEvaluate' events from the global scope, and pass the code to the handler
+    window.addEventListener("triggerEvaluate", evaluateCode);
+        
 }
