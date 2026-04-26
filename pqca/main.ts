@@ -34,21 +34,22 @@ const satori = new Satori(...handlers);
 const runBtn = document.getElementById('run-btn') as HTMLButtonElement;
 let isRunning = false;
 
-const transportTime = document.getElementById('transport-time');
+const transportTime = document.getElementById('transport-time') as HTMLDivElement;
+let startTime: number = 0;
 const updateTime = () => {
-    const transport = getTransport();
-    const time = transport.seconds;
-    const bars = Math.floor(time / 4) + 1;
-    const beats = Math.floor((time % 4) / 1);
-    const sixteenths = Math.floor(((time % 4) % 1) / 0.25 * 4);
-    if(transportTime) transportTime.innerHTML = `${bars}:${beats}:${sixteenths}`;
+    const elapsed = Date.now() - startTime;
+    const minutes = Math.floor(elapsed / 60000);
+    const seconds = Math.floor((elapsed % 60000) / 1000);
+    const milliseconds = Math.floor((elapsed % 1000) / 10);
+    if(transportTime) transportTime.innerHTML = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(2, '0')}`;
     isRunning 
      ? requestAnimationFrame(updateTime)
-     : (transportTime.innerHTML = `0:0:0`);
+     : (transportTime.innerHTML = `00:00:00`);
 }
 
 const play = () => {
     if(isRunning) return;
+    startTime = Date.now();
     satori.play();
     isRunning = true;
     updateTime();
