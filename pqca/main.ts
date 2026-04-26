@@ -2,8 +2,7 @@ import './ui';
 // @ts-ignore
 import './editor-theme.css';
 import { init as initEditor } from '../src/editor';
-
-import { getTransport } from 'tone'
+import { init as initConsole } from '../src/console';
 
 import { Satori } from '../src/core/Satori';
 import { init as initOto } from '../src/oto';
@@ -12,6 +11,7 @@ import { handler as midiHandler } from '../src/core/MIDI';
 import { init as initWebSocket } from '../src/core/WebSocket';
 
 initEditor();
+initConsole();
 
 // select engine to use based on URL param, default to Oto (browser based synth engine)
 // SuperSatori (SuperCollider synth engine) can be used by adding ?engine=supersatori to the URL

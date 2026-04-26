@@ -1,6 +1,6 @@
 .prism-code-editor {
   caret-color: #aeafad;
-  font-family: Consolas, Monaco, Andale Mono, Ubuntu Mono, monospace;
+  font-family: var(--font);
   color-scheme: dark;
 
   --editor__bg: #1e1e1e;

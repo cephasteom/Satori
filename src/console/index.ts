@@ -1,5 +1,4 @@
 import { version } from '../../package.json';
-import './style.css'
 
 const channel = new BroadcastChannel('satori');
 channel.addEventListener('message', (e) => log(e.data.type, e.data.message));

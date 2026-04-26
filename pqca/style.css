@@ -35,7 +35,7 @@
   --header-h:     65.24px;
   --sidebar-w:    100px;
   --transport-h:  calc(30px + (var(--spacer)));
-  --console-h:    190px;
+  --console-h:    40%;
 
 
   --font: 'Courier New', 'Lucida Console', monospace;
@@ -567,22 +567,17 @@ button {
   overflow-x: hidden;
   font-size: var(--font-sz);
   line-height: 2;
+  color: white;
 }
 
-.console-line {
-  display: flex;
-  gap: 10px;
-  color: var(--text-dim);
+.console-area a {
+  color: var(--red);
+  text-decoration: none;
 }
 
-.console-line.dim {
-  color: var(--text-muted);
-}
-
-.console-line .prompt {
+.console-area code {
+  font-family: var(--font);
   color: var(--green);
-  flex-shrink: 0;
-  opacity: 0.7;
 }
 
 /* ─── canvas panel ────────────────────────────────────────── */

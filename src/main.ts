@@ -8,6 +8,7 @@ import { init as initDocs } from './docs';
 import { init as initEditor } from './editor';
 import './editor/theme.css';
 import { init as initConsole } from './console';
+import './console/style.css';
 
 // initialize UI components
 initDocs();
