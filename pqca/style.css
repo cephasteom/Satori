@@ -562,7 +562,6 @@ button {
 
 .console-area {
   flex: 1;
-  padding: calc(var(--spacer) / 2);
   overflow-y: auto;
   overflow-x: hidden;
   font-size: var(--font-sz);
@@ -578,6 +577,22 @@ button {
 .console-area code {
   font-family: var(--font);
   color: var(--green);
+}
+
+.console__messages {
+    height: 100%;
+    overflow-y: scroll;
+    padding: calc(var(--spacer) / 2);
+}
+
+.console__message--success {
+    color: var(--cyan);
+}
+.console__message--info {
+    color: white;
+}
+.console__message--pattern-print {
+    color: var(--cyan);
 }
 
 /* ─── canvas panel ────────────────────────────────────────── */
