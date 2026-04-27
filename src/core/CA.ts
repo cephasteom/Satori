@@ -96,6 +96,12 @@ const gosperGliderGun = (size: number): number[] => {
   return placePattern(size, coords);
 };
 
+const DIRECTIONS = [
+    [-1,-1], [-1,0], [-1,1],
+    [0, -1],         [0, 1],
+    [1, -1], [1, 0], [1, 1]
+] as const;
+
 // --- Utilities ---
 
 interface PlaceOptions {
@@ -127,7 +133,7 @@ const placePattern = (
   return grid;
 };
 
-let gameOfLifes: { [key: number]: number[] } = {};
+let gameOfLifes: { [key: number]: number[] | Uint8Array } = {};
 
 // on clearCache event, reset gameOfLifes
 window.addEventListener('message', (e) => 
@@ -161,14 +167,9 @@ const initGameOfLife = (size: number, startState: number = 0) => {
     }
 }
 
-const countAliveNeighbours = (grid: number[], size: number, x: number, y: number) => {
-    const directions = [
-        [-1,-1], [-1,0], [-1,1],
-        [0, -1],         [0, 1],
-        [1, -1], [1, 0], [1, 1]
-    ];
+const countAliveNeighbours = (grid: number[] | Uint8Array, size: number, x: number, y: number) => {
     let count = 0;
-    for (const [dx, dy] of directions) {
+    for (const [dx, dy] of DIRECTIONS) {
         const nx = (x + dx + size) % size;
         const ny = (y + dy + size) % size;
         count += grid[nx * size + ny];
@@ -177,35 +178,41 @@ const countAliveNeighbours = (grid: number[], size: number, x: number, y: number
 }
 
 export const runGameOfLife = memoize((
-    size: number = 16, 
+    size: number = 16,
     min: number = 0,
     startState: number = 0
 ) => {
+    size = Math.round(size);
     const grid = gameOfLifes[size] || initGameOfLife(size, startState);
-    const newGrid = createEmptyGrid(size);
+    const newGrid = new Uint8Array(size * size);
+    let population = 0;
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
             const aliveNeighbours = countAliveNeighbours(grid, size, i, j);
             const idx = i * size + j;
-            newGrid[idx] = grid[idx] === 1
+            const alive = grid[idx] === 1
                 ? (aliveNeighbours === 2 || aliveNeighbours === 3 ? 1 : 0)
-                : (aliveNeighbours === 3 ? 1 : 0); // consider changing this to === 3 to prevent overpopulation, but it seems to create more stable patterns with >=, so leaving for now. Could make this a parameter in the future.
+                : (aliveNeighbours === 3 ? 1 : 0);
+            newGrid[idx] = alive;
+            population += alive;
         }
     }
 
     const minPopulation = Math.ceil(size * size * min);
-    let population = newGrid.filter(Boolean).length;
     if (population < minPopulation) {
         const deadCells: number[] = [];
         for (let i = 0; i < size * size; i++)
             if (newGrid[i] === 0) deadCells.push(i);
 
-        for (let k = population; k < minPopulation; k++) {
-            const idx = deadCells.splice(Math.floor(Math.random() * deadCells.length), 1)[0];
-            newGrid[idx] = 1;
+        // partial Fisher-Yates: shuffle only as many slots as we need
+        const needed = minPopulation - population;
+        for (let k = 0; k < needed; k++) {
+            const r = k + Math.floor(Math.random() * (deadCells.length - k));
+            [deadCells[k], deadCells[r]] = [deadCells[r], deadCells[k]];
+            newGrid[deadCells[k]] = 1;
         }
     }
 
     gameOfLifes[size] = newGrid;
-    return newGrid;
+    return Array.from(newGrid);
 });
