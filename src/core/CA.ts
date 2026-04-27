@@ -1,4 +1,3 @@
-import { start } from "tone";
 import { memoize } from "./utils";
 
 // --- Still lifes ---
@@ -138,7 +137,7 @@ const createEmptyGrid = (size: number) => new Array(size * size).fill(0);
 const randomState = (size: number, sparsity: number = 0.8) => createEmptyGrid(size).map(() => Math.random() > sparsity ? 1 : 0);
 
 const initGameOfLife = (size: number, startState: number = 0) => {
-    const preset = startState % 12; // wrap around if startState is greater than number of presets
+    const preset = startState % 18; // wrap around if startState is greater than number of presets
     switch (preset) {
         case 0: return randomState(size, .75);
         case 1: return randomState(size, .5);
@@ -152,6 +151,12 @@ const initGameOfLife = (size: number, startState: number = 0) => {
         case 9: return acorn(size);
         case 10: return diehard(size);
         case 11: return gosperGliderGun(size);
+        case 12: return block();
+        case 13: return beehive();
+        case 14: return loaf();
+        case 15: return blinker();
+        case 16: return toad();
+        case 17: return beacon();
         default: return randomState(size);
     }
 }
