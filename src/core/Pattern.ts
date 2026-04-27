@@ -1116,6 +1116,7 @@ const retrieve = (key: string, ...rest: any[]) => {
  * Run cellular automata on a pattern. Just handles Game of Life for now, but could be expanded to other rules.
  * @param size - size of the grid (size x size)
  * @param min - minimum population as a proportion of the grid (0 to 1). Default is 0, meaning the grid can completely die out. Setting this to a higher value will ensure a minimum population is maintained.
+ * @param startState - set intitial states using preset shapes (e.g. gliders, oscillators) or a custom pattern. Default is 0, meaning a random initial state.
  * @returns a 1D array representing the grid state, where each cell is either 0 (dead) or 1 (alive).
  * @example ca(4) // runs Game of Life on a 4x4 grid, with a random initial state. Returns an array of 16 values representing the grid state each cycle.
  * 

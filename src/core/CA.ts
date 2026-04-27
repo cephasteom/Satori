@@ -1,3 +1,4 @@
+import { start } from "tone";
 import { memoize } from "./utils";
 
 // --- Still lifes ---
@@ -137,7 +138,8 @@ const createEmptyGrid = (size: number) => new Array(size * size).fill(0);
 const randomState = (size: number, sparsity: number = 0.8) => createEmptyGrid(size).map(() => Math.random() > sparsity ? 1 : 0);
 
 const initGameOfLife = (size: number, startState: number = 0) => {
-    switch (startState) {
+    const preset = startState % 12; // wrap around if startState is greater than number of presets
+    switch (preset) {
         case 0: return randomState(size, .75);
         case 1: return randomState(size, .5);
         case 2: return placePattern(size, [[1,0],[1,1],[1,2]], { centerX: true, centerY: true });
@@ -162,11 +164,9 @@ const countAliveNeighbours = (grid: number[], size: number, x: number, y: number
     ];
     let count = 0;
     for (const [dx, dy] of directions) {
-        const nx = x + dx;
-        const ny = y + dy;
-        if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
-            count += grid[nx * size + ny];
-        }
+        const nx = (x + dx + size) % size;
+        const ny = (y + dy + size) % size;
+        count += grid[nx * size + ny];
     }
     return count;
 }
