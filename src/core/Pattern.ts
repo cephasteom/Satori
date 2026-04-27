@@ -1120,10 +1120,15 @@ const retrieve = (key: string, ...rest: any[]) => {
  * @example ca(4) // runs Game of Life on a 4x4 grid, with a random initial state. Returns an array of 16 values representing the grid state each cycle.
  * 
  */
-const ca = (size: Pattern<any> | number, min: Pattern<any> | number = 0) => P((from, to) =>
+const ca = (
+    size: Pattern<any> | number, 
+    min: Pattern<any> | number = 0,
+    startState: Pattern<any> | number = 0
+) => P((from, to) =>
     [{ from, to, value: runGameOfLife(
         unwrap(size, from, to), 
-        unwrap(min, from, to), 
+        unwrap(min, from, to) || 0, 
+        unwrap(startState, from, to) || 0,
         from
     ) }]);
 
