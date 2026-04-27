@@ -26,7 +26,7 @@ export function parseShorthand(code: string): string {
     const result: string[] = [];
     let i = 0;
 
-    const streamPattern = /^(\s*)(s\d+|fx\d+|global)\s*$/;
+    const streamPattern = /^(\s*)(s\d+|fx\d+|global|canvas)\s*$/;
     const keyPattern = /^(\s*)(\w+)(?:\s*:\s*|\s+)(.*)/;
 
     while (i < lines.length) {

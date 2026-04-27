@@ -9,6 +9,7 @@ import { init as initOto } from '../src/oto';
 import { init as initSuperSatori } from '../src/core/SuperSatori';
 import { handler as midiHandler } from '../src/core/MIDI';
 import { init as initWebSocket } from '../src/core/WebSocket';
+import { init as initCanvas } from '../src/canvas';
 
 initEditor();
 initConsole();
@@ -29,7 +30,7 @@ const handlers = engine === 'supersatori'
 ws && initWebSocket(wsPort);
 
 // Create a new Satori instance and pass in handlers
-const satori = new Satori(...handlers);
+const satori = new Satori(handlers, [initCanvas()]);
 
 const runBtn = document.getElementById('run-btn') as HTMLButtonElement;
 let isRunning = false;

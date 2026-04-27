@@ -31,7 +31,7 @@ const handlers = engine === 'supersatori'
 ws && initWebSocket(wsPort);
 
 // Create a new Satori instance and pass in handlers
-const satori = new Satori(...handlers);
+const satori = new Satori(handlers);
 
 // Handle hide/show of help components
 const toggleComponent = (id: string, displayStyle: string = 'block') => {

@@ -11,9 +11,10 @@ const global = new Stream('global');
 const streams = Array(16).fill(0).map((_, i) => new Stream('s' + i))
 const fxStreams = Array(4).fill(0).map((_, i) => new Stream('fx' + i))
 const qubits = Array(16).fill(0).map((_, i) => new Qubit(i));
+const canvas = new Stream('canvas');
 
 export const reset = () => {
-    [global, ...streams, ...fxStreams, ...qubits].forEach(c => c.__reset());
+    [global, ...streams, ...fxStreams, ...qubits, canvas].forEach(c => c.__reset());
     circuit.clear();
 }
 
@@ -38,6 +39,7 @@ const scope = {
     }), {}),
     ...methods,
     ...utilities,
+    canvas,
 }
 
 /**
@@ -52,9 +54,10 @@ export function evaluate(code: string) {
         // fire resetCache event to clear any memoized functions
         window.postMessage({ type: 'clearCache' }, '*');
 
-        const parsed = parseShorthand(code);
         // Evaluate the user code within the defined scope
+        const parsed = parseShorthand(code);
         new Function(...Object.keys(scope), `${parsed}`)(...Object.values(scope));
+        
         // Store the last successfully evaluated code
         lastCode = code;
 
@@ -113,5 +116,9 @@ export const compile = (from: number, to: number) => {
                 ...mutations
             ]
         }, [] as Event[]),
+        canvas: [
+            ...canvas.query(from, to).events,
+            ...canvas.query(from, to).mutations
+        ]
     }
 }
