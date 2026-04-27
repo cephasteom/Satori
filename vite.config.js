@@ -1,9 +1,9 @@
-import { dirname, resolve } from 'node:path'
+import { resolve } from 'node:path'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
   build: {
-    rolldownOptions: {
+    rollupOptions: {
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
         nested: resolve(import.meta.dirname, 'pqca/index.html'),
