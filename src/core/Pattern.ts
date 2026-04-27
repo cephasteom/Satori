@@ -1322,6 +1322,21 @@ const died = (pattern: Pattern<any>) => {
     }));
 }
 
+/**
+ * Asssuming an array, join together into a string with an optional separator.
+ * @param separator - string to join values with. Default is '' (no separator).
+ * @example 'C E G'.join() // returns 'CEG'
+ * @example 'C E G'.join(',') // returns 'C,E,G'
+ */
+const join = (...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    const separator = args.length > 1 ? unwrap(args[0], from, to) : '';
+    return pattern.query(from, to).map(hap => ({
+        ...hap,
+        value: [hap.value].flat().join(separator)
+    }));
+});
+
 export const methods = {
     t, c,
     fn,
@@ -1338,7 +1353,7 @@ export const methods = {
     cts, ctms, cps,
     mtof, ftom,
     lt, gt, eq, neq,
-    at, combine, includes, indexesOf,
+    at, combine, includes, indexesOf, join,
     ...operators.reduce((obj, name) => ({
         ...obj,
         [name]: operate(name)
