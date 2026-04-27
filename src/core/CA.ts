@@ -10,7 +10,7 @@ const createEmptyGrid = (size: number) => new Array(size * size).fill(0);
 const initGameOfLife = (size: number) => {
     const grid = createEmptyGrid(size);
     for (let i = 0; i < size * size; i++) {
-        grid[i] = Math.random() > 0.5 ? 1 : 0;
+        grid[i] = Math.random() > 0.1 ? 1 : 0;
     }
     return grid;
 }
