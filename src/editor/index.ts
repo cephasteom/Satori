@@ -117,7 +117,12 @@ export const init = async (element: string = '#editor') => {
 
     });
 
-    // listen out for custom 'triggerEvaluate' events from the global scope, and pass the code to the handler
+    // listen out for custom 'triggerEvaluate' events from the global scope
     window.addEventListener("triggerEvaluate", evaluateCode);
+
+    // listen out for custom 'setCode' events to set the code in the editor
+    window.addEventListener("setCode", (e: any) => {
+        editor.setOptions({ value: e.detail.code });
+    });
         
 }

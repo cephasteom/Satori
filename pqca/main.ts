@@ -1,10 +1,11 @@
 import './ui';
+import { Satori } from '../src/core/Satori';
+import { presets } from './presets';
 // @ts-ignore
 import './editor-theme.css';
 import { init as initEditor } from '../src/editor';
 import { init as initConsole } from '../src/console';
 
-import { Satori } from '../src/core/Satori';
 import { init as initOto } from '../src/oto';
 import { init as initSuperSatori } from '../src/core/SuperSatori';
 import { handler as midiHandler } from '../src/core/MIDI';
@@ -81,4 +82,15 @@ runBtn?.addEventListener('click', () => {
     // send a triggerEvaluate event to the global scope, which the editor listens out for to trigger code evaluation
     window.dispatchEvent(new CustomEvent("triggerEvaluate"));
     play();
+});
+
+// get all .preset-btn elements and console log their data-preset attribute on click
+document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const presetName = btn.getAttribute('data-preset') as string;
+        const preset = presets[+presetName];
+        if(!preset) return console.warn(`Preset ${presetName} not found`);
+        // send a setCode event to the global scope, which the editor listens out for to set the code in the editor
+        window.dispatchEvent(new CustomEvent("setCode", { detail: { code: preset } }));
+    })
 });
