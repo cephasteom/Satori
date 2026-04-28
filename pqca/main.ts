@@ -34,6 +34,7 @@ ws && initWebSocket(wsPort);
 const satori = new Satori(handlers, [initCanvas()]);
 
 const runBtn = document.getElementById('run-btn') as HTMLButtonElement;
+const stopBtn = document.getElementById('stop-btn') as HTMLButtonElement;
 let isRunning = false;
 
 const transportTime = document.getElementById('transport-time') as HTMLDivElement;
@@ -55,13 +56,15 @@ const play = () => {
     satori.play();
     isRunning = true;
     updateTime();
-    runBtn.innerHTML = '■&nbsp;STOP';
+    runBtn.classList.add('is-running');
+    stopBtn.classList.add('is-running');
 }
 
 const stop = () => {
     satori.stop();
     isRunning = false;
-    runBtn.innerHTML = '▶&nbsp;RUN';
+    runBtn.classList.remove('is-running');
+    stopBtn.classList.remove('is-running');
 }
 
 
@@ -78,11 +81,11 @@ window.addEventListener('keydown', (e) => {
 });
 
 runBtn?.addEventListener('click', () => {
-    if(isRunning) return stop();
-    // send a triggerEvaluate event to the global scope, which the editor listens out for to trigger code evaluation
     window.dispatchEvent(new CustomEvent("triggerEvaluate"));
     play();
 });
+
+stopBtn?.addEventListener('click', stop);
 
 // get all .preset-btn elements and console log their data-preset attribute on click
 document.querySelectorAll('.preset-btn').forEach(btn => {
