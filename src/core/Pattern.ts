@@ -81,6 +81,22 @@ const slow = (factor: number|Pattern<number>, pattern: Pattern<any>) =>
     });
 
 /**
+ * Shift a pattern in time by n cycles.
+ * @param n - number of cycles to shift. Can be a number or a Pattern.
+ * @example sine().rotate(0.5) // sine wave 0.5 cycles out of phase
+ * @example seq(1,0,1,0).rotate(0.25) // shift sequence by a quarter cycle
+ */
+const rotate = (n: number|Pattern<number>, pattern: Pattern<any>) =>
+    P((from, to) => {
+        const offset = unwrap(n, from, to);
+        return pattern.query(from + offset, to + offset).map(hap => ({
+            ...hap,
+            from: hap.from - offset,
+            to: hap.to - offset,
+        }));
+    });
+
+/**
  * Concat values, one per cycle.
  * @param values
  * @example cat('A', 'B', 'C') // A for 1 cycle, B for 1 cycle, C for 1 cycle.
@@ -1191,15 +1207,25 @@ const diagonal = (...args: any[]) => P((from, to) => {
  */
 const region = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
-    const [x1, y1, x2, y2] = args.slice(0, -1).map(a => unwrap(a, from, to));
     return pattern.query(from, to).map(hap => {
+        const raw = args.slice(0, -1).map(a => unwrap(a, hap.from, hap.to));
         const arr = [hap.value].flat();
-        const size = Math.sqrt(arr.length);
-        const regionValues = [];
-        for (let y = y1; y !== y2; y = (y + 1) % size) {
-            for (let x = x1; x !== x2; x = (x + 1) % size) {
-                regionValues.push(arr[y * size + x]);
-            }
+        const size = Math.round(Math.sqrt(arr.length));
+        const x1 = ((Math.floor(raw[0]) % size) + size) % size;
+        const y1 = ((Math.floor(raw[1]) % size) + size) % size;
+        const x2 = ((Math.floor(raw[2]) % size) + size) % size;
+        const y2 = ((Math.floor(raw[3]) % size) + size) % size;
+        const cols = ((x2 - x1) + size) % size;
+        const rows = ((y2 - y1) + size) % size;
+        const regionValues = new Array(rows * cols);
+        let idx = 0;
+        // split each row at the wrap boundary to avoid per-cell modulo
+        const c1 = Math.min(size - x1, cols);
+        const c2 = cols - c1;
+        for (let r = 0; r < rows; r++) {
+            const rowOffset = ((y1 + r) % size) * size;
+            for (let c = 0; c < c1; c++) regionValues[idx++] = arr[rowOffset + x1 + c];
+            for (let c = 0; c < c2; c++) regionValues[idx++] = arr[rowOffset + c];
         }
         return { ...hap, value: regionValues };
     });
@@ -1341,7 +1367,7 @@ export const methods = {
     t, c,
     fn,
     cat, set, seq,
-    fast, slow,
+    fast, slow, rotate,
     add, sub, mul, div, mod, step,
     saw, range, ramp, sine, cosine, tri, pulse, square, sq, noise,
     mtr, scale, clamp, fixed,
