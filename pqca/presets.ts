@@ -1,4 +1,4 @@
-const preset1 = `auto = ca({size: 15, reset: every(2)})
+const preset1 = `auto = ca({size: 15, reset: every(4)})
 rowd = n => auto.row(n).density()
 
 global

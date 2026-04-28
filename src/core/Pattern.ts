@@ -1140,7 +1140,7 @@ const retrieve = (key: string, ...rest: any[]) => {
  * 
  */
 const ca = (...args: (Pattern<any> | number)[]) => P((from, to) => {
-    let size: Pattern<any> | number;
+    let size: Pattern<any> | number = 0;
     let type: Pattern<any> | number = 0;
     let noise: Pattern<any> | number = 0;
     let preset: Pattern<any> | number = 0;
@@ -1151,14 +1151,15 @@ const ca = (...args: (Pattern<any> | number)[]) => P((from, to) => {
         : ([size, type = 0, noise = 0, preset = 0, reset = 0] = args as any);
 
     const ca = cellularAutomata[(unwrap(type, from, to) || 0) % cellularAutomata.length];
-
-    return [{ from, to, value: ca(
+    const value = ca(
         unwrap(size, from, to), 
-        unwrap(noise, from, to) || 0, 
+        unwrap(noise, from, to) || 0,
         unwrap(preset, from, to) || 0,
         unwrap(reset, from, to) || 0,
         from
-    ) }];
+    );
+
+    return [{ from, to, value }];
 })
 
 /**

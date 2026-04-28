@@ -216,7 +216,8 @@ const makeBSRule = (born: ReadonlySet<number>, survive: ReadonlySet<number>) => 
                 newGrid[deadCells[k]] = 1;
             }
         }
-        return cache[size] = newGrid;
+        cache[size] = newGrid;
+        return Array.from(newGrid);
     });
 };
 
@@ -282,7 +283,8 @@ export const runBriansBrain = memoize((
             newGrid[deadCells[k]] = 1;
         }
     }
-    return brainGrids[size] = newGrid;
+    brainGrids[size] = newGrid;
+    return Array.from(newGrid)
 });
 
 export const runGameOfLife = memoize((
@@ -324,7 +326,8 @@ export const runGameOfLife = memoize((
         }
     }
 
-    return gameOfLifes[size] = newGrid;
+    gameOfLifes[size] = newGrid;
+    return Array.from(newGrid);
 });
 
 export const cellularAutomata = [
