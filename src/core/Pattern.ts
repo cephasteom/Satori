@@ -1131,23 +1131,31 @@ const retrieve = (key: string, ...rest: any[]) => {
 /**
  * Run cellular automata on a pattern. Just handles Game of Life for now, but could be expanded to other rules.
  * @param size - size of the grid (size x size)
- * @param min - minimum population as a proportion of the grid (0 to 1). Default is 0, meaning the grid can completely die out. Setting this to a higher value will ensure a minimum population is maintained.
+ * @param noise - noise level as a proportion of the grid (0 to 1). Default is 0, meaning no noise is added. 
  * @param startState - set intitial states using preset shapes (e.g. gliders, oscillators) or a custom pattern. Default is 0, meaning a random initial state.
+ * @param reset - if true, resets the grid to the initial state.
  * @returns a 1D array representing the grid state, where each cell is either 0 (dead) or 1 (alive).
  * @example ca(4) // runs Game of Life on a 4x4 grid, with a random initial state. Returns an array of 16 values representing the grid state each cycle.
  * 
  */
-const ca = (
-    size: Pattern<any> | number, 
-    min: Pattern<any> | number = 0,
-    startState: Pattern<any> | number = 0
-) => P((from, to) =>
-    [{ from, to, value: runGameOfLife(
+const ca = (...args: (Pattern<any> | number)[]) => P((from, to) => {
+    let size: Pattern<any> | number;
+    let noise: Pattern<any> | number = 0;
+    let startState: Pattern<any> | number = 0;
+    let reset: Pattern<any> | number = 0;
+
+    typeof args[0] === 'object'
+        ? ({ size, noise = 0, startState = 0, reset = 0 } = args[0] as any)
+        : ([size, noise = 0, startState = 0, reset = 0] = args as any);
+
+    return [{ from, to, value: runGameOfLife(
         unwrap(size, from, to), 
-        unwrap(min, from, to) || 0, 
+        unwrap(noise, from, to) || 0, 
         unwrap(startState, from, to) || 0,
+        unwrap(reset, from, to) || 0,
         from
-    ) }]);
+    ) }];
+})
 
 /**
  * Assuming an array whose length is a perfect square, treat it as a grid and return all values in the given row.

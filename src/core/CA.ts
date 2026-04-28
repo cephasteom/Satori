@@ -180,8 +180,11 @@ const countAliveNeighbours = (grid: number[] | Uint8Array, size: number, x: numb
 export const runGameOfLife = memoize((
     size: number = 16,
     min: number = 0,
-    startState: number = 0
+    startState: number = 0,
+    reset: number = 0 // if true, resets the grid to the initial state
 ) => {
+    if (reset) return gameOfLifes[size] = initGameOfLife(size, startState);
+    
     size = Math.round(size);
     const grid = gameOfLifes[size] || initGameOfLife(size, startState);
     const newGrid = new Uint8Array(size * size);
@@ -213,6 +216,5 @@ export const runGameOfLife = memoize((
         }
     }
 
-    gameOfLifes[size] = newGrid;
-    return Array.from(newGrid);
+    return gameOfLifes[size] = newGrid;
 });
