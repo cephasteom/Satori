@@ -1,26 +1,38 @@
 import { getDraw } from "tone";
 
 let canvas: HTMLCanvasElement;
+let ctx: CanvasRenderingContext2D | null = null;
 
 function drawGrid(grid: number[]) {
-    if (!canvas) return;
+    if (!ctx || !canvas) return;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // get square root of grid length to determine grid dimensions
     const gridSize = Math.sqrt(grid.length);
     const cellSize = canvas.width / gridSize;
+    const imageData = ctx.createImageData(canvas.width, canvas.height);
+    const data = imageData.data;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < grid.length; i++) {
+        const col = i % gridSize;
+        const row = Math.floor(i / gridSize);
+        const alpha = Math.round(grid[i] * 255);
 
-    grid.forEach((value, index) => {
-        const x = (index % gridSize) * cellSize;
-        const y = Math.floor(index / gridSize) * cellSize;
+        const xStart = Math.round(col * cellSize);
+        const yStart = Math.round(row * cellSize);
+        const xEnd = Math.round((col + 1) * cellSize);
+        const yEnd = Math.round((row + 1) * cellSize);
 
-        ctx.fillStyle = `rgba(255, 255, 255, ${value})`;
-        ctx.fillRect(x, y, cellSize, cellSize);
-    });
+        for (let py = yStart; py < yEnd; py++) {
+            for (let px = xStart; px < xEnd; px++) {
+                const idx = (py * canvas.width + px) * 4;
+                data[idx]     = 255; // R
+                data[idx + 1] = 255; // G
+                data[idx + 2] = 255; // B
+                data[idx + 3] = alpha;
+            }
+        }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
 }
 
 export const handler = (event: any, time: number) => {
@@ -32,6 +44,8 @@ export const init = () => {
     canvas = document.querySelector('#satori-canvas') as HTMLCanvasElement;
     if (!canvas) return handler;
 
+    ctx = canvas.getContext('2d');
+
     const ro = new ResizeObserver(entries => {
         for (const entry of entries) {
             const { width, height } = entry.contentRect;
@@ -39,6 +53,7 @@ export const init = () => {
             if (canvas.width !== size || canvas.height !== size) {
                 canvas.width = size;
                 canvas.height = size;
+                ctx = canvas.getContext('2d'); // re-cache after resize clears the context
             }
         }
     });
