@@ -32,6 +32,41 @@ canvas
   e: s0.e
 `;
 
+const preset2 = `size = '16|8'.slow(1.5)
+auto = ca(size,every(2).ie(.15,0),10)
+  .cache(1,every('2|*4 1|*4'))
+harmony = 'Dmi%16|*2 Flyd%16|Ami%16'
+  .at(t().mul(size).mod(floor(size.div(4))))
+    
+streams.slice(0,4).map((stream,i) => 
+  stream
+    inst 0
+    cut 'all'
+    reverb .5
+    delay .125
+    n harmony.rotate(i).sub(i*12).add(12)
+    e '1'.fast(size.mul(2))
+      .and(auto.hood(i*3,i*3).join(' '))
+      .degrade(i.div(size/4))      
+)
+
+streams.slice(4,12).map((stream,i) => 
+  stream
+    inst 1
+    dur ctms(1)
+    bank 'cpu2'
+    i i
+    e '1'.fast(size)
+      .and(auto.hood(i*3+10,i*5+10).join(' '))
+      .degrade(i.div(size/4))      
+)
+
+canvas
+  grid auto
+  e '1*16'
+`
+
 export const presets: Record<number, string> = {
-    1: preset1
+  1: preset1,
+  2: preset2
 }
