@@ -1244,6 +1244,44 @@ const region = (...args: any[]) => P((from, to) => {
     });
 });
 
+/**
+ * Assuming an array whose length is a perfect square, treat it as a grid and return values of the specified tile.
+ * Tiles are indexed starting from the top-left, going row by row. For example, in a 4x4 grid, tile(2,2) would return the bottom-right 2x2 section.
+ * 
+ * @param size - size of the tile
+ * @param i - tile index, starting from top-left and going row by row. Wraps around if exceeds the number of tiles.
+ * @returns 
+ */
+const tile = (...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    const rawArgs = args.slice(0, -1);
+
+    return pattern.query(from, to).map(hap => {
+        const arr = Array.isArray(hap.value) ? hap.value : [hap.value];
+        const gridSize = Math.round(Math.sqrt(arr.length));
+
+        const tileSize  = rawArgs.length > 0 ? unwrap(rawArgs[0], from, to) : 2;
+        const tileIndex = rawArgs.length > 1 ? unwrap(rawArgs[1], from, to) : 0;
+
+        const tilesPerRow = Math.ceil(gridSize / tileSize);
+        const totalTiles  = tilesPerRow * tilesPerRow;
+        const i  = ((Math.floor(tileIndex) % totalTiles) + totalTiles) % totalTiles;
+        const tileX = (i % tilesPerRow) * tileSize;
+        const tileY = Math.floor(i / tilesPerRow) * tileSize;
+
+        const tileValues = new Array(tileSize * tileSize);
+        let idx = 0;
+        for (let y = 0; y < tileSize; y++) {
+            const rowBase = ((tileY + y) % gridSize) * gridSize;
+            for (let x = 0; x < tileSize; x++) {
+                tileValues[idx++] = arr[rowBase + ((tileX + x) % gridSize)];
+            }
+        }
+
+        return { ...hap, value: tileValues };
+    });
+});
+
 /** 
  * Assuming an array whose length is a perfect square, treat it as a grid and return values of the 8 neighbouring cells for the cell at the given index. Neighbours are returned in the order: top-left, top, top-right, left, right, bottom-left, bottom, bottom-right. If a neighbour is out of bounds, it will wrap around to the opposite side of the grid.
  * @param x, y - x and y coordinates of the cell, e.g. for a 4x4 grid: 0,0 is top-left, 3,3 is bottom-right
@@ -1400,7 +1438,7 @@ export const methods = {
     print,
     qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases,
     loopmidiin, retrieve,
-    ca, row, col, diagonal, region, hood, ring, density,
+    ca, row, col, diagonal, region, hood, ring, density, tile,
     changed, born, died
 };
 
