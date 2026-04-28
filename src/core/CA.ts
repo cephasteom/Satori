@@ -177,6 +177,114 @@ const countAliveNeighbours = (grid: number[] | Uint8Array, size: number, x: numb
     return count;
 }
 
+// --- Generic B/S rule factory ---
+
+const makeBSRule = (born: ReadonlySet<number>, survive: ReadonlySet<number>) => {
+    let cache: { [key: number]: number[] | Uint8Array } = {};
+    window.addEventListener('message', (e) =>
+        e.data.type === 'clearCache' && (cache = {}));
+
+    return memoize((
+        size: number = 16,
+        min: number = 0,
+        startState: number = 0,
+        reset: number = 0
+    ) => {
+        if (reset) return cache[size] = initGameOfLife(size, startState);
+        size = Math.round(size);
+        const grid = cache[size] || initGameOfLife(size, startState);
+        const newGrid = new Uint8Array(size * size);
+        let population = 0;
+        for (let i = 0; i < size; i++) {
+            for (let j = 0; j < size; j++) {
+                const n = countAliveNeighbours(grid, size, i, j);
+                const idx = i * size + j;
+                const alive = grid[idx] === 1 ? (survive.has(n) ? 1 : 0) : (born.has(n) ? 1 : 0);
+                newGrid[idx] = alive;
+                population += alive;
+            }
+        }
+        const minPopulation = Math.ceil(size * size * min);
+        if (population < minPopulation) {
+            const deadCells: number[] = [];
+            for (let i = 0; i < size * size; i++)
+                if (newGrid[i] === 0) deadCells.push(i);
+            const needed = minPopulation - population;
+            for (let k = 0; k < needed; k++) {
+                const r = k + Math.floor(Math.random() * (deadCells.length - k));
+                [deadCells[k], deadCells[r]] = [deadCells[r], deadCells[k]];
+                newGrid[deadCells[k]] = 1;
+            }
+        }
+        return cache[size] = newGrid;
+    });
+};
+
+// B36/S23 — like GoL but births at 6 neighbours too; produces self-replicating structures
+export const runHighLife = makeBSRule(new Set([3, 6]), new Set([2, 3]));
+
+// B3678/S34678 — dense, symmetric; live and dead regions are near-dual
+export const runDayAndNight = makeBSRule(new Set([3, 6, 7, 8]), new Set([3, 4, 6, 7, 8]));
+
+// B3/S12345 — births like GoL but wide survival; grows into winding mazes
+export const runMaze = makeBSRule(new Set([3]), new Set([1, 2, 3, 4, 5]));
+
+// B2/S — cells born with exactly 2 neighbours and immediately die; explosive chaos
+export const runSeeds = makeBSRule(new Set([2]), new Set([]));
+
+// B3/S45678 — slow accretion; dead cells never appear inside a live mass
+export const runCoral = makeBSRule(new Set([3]), new Set([4, 5, 6, 7, 8]));
+
+// --- Brian's Brain (3-state: 0=off, 1=on, 2=dying) ---
+// A cell turns on when off with exactly 2 on-neighbours; on cells always become dying; dying cells go off.
+
+let brainGrids: { [key: number]: number[] | Uint8Array } = {};
+window.addEventListener('message', (e) =>
+    e.data.type === 'clearCache' && (brainGrids = {}));
+
+export const runBriansBrain = memoize((
+    size: number = 16,
+    min: number = 0,
+    startState: number = 0,
+    reset: number = 0
+) => {
+    if (reset) return brainGrids[size] = initGameOfLife(size, startState);
+    size = Math.round(size);
+    const grid = brainGrids[size] || initGameOfLife(size, startState);
+    const newGrid = new Uint8Array(size * size);
+    let population = 0;
+    for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+            const idx = i * size + j;
+            const state = grid[idx];
+            // countAliveNeighbours counts cells === 1, so dying (2) cells don't influence births
+            let next: number;
+            if (state === 1) {
+                next = 2;
+            } else if (state === 2) {
+                next = 0;
+            } else {
+                next = countAliveNeighbours(grid, size, i, j) === 2 ? 1 : 0;
+            }
+            newGrid[idx] = next;
+            if (next === 1) population++;
+        }
+    }
+    const minPopulation = Math.ceil(size * size * min);
+    if (population < minPopulation) {
+        const deadCells: number[] = [];
+        for (let i = 0; i < size * size; i++)
+            if (newGrid[i] === 0) deadCells.push(i);
+        const needed = minPopulation - population;
+        for (let k = 0; k < needed; k++) {
+            const r = k + Math.floor(Math.random() * (deadCells.length - k));
+            [deadCells[k], deadCells[r]] = [deadCells[r], deadCells[k]];
+            newGrid[deadCells[k]] = 1;
+        }
+    }
+    return brainGrids[size] = newGrid;
+});
+
 export const runGameOfLife = memoize((
     size: number = 16,
     min: number = 0,
@@ -184,7 +292,7 @@ export const runGameOfLife = memoize((
     reset: number = 0 // if true, resets the grid to the initial state
 ) => {
     if (reset) return gameOfLifes[size] = initGameOfLife(size, startState);
-    
+
     size = Math.round(size);
     const grid = gameOfLifes[size] || initGameOfLife(size, startState);
     const newGrid = new Uint8Array(size * size);
@@ -218,3 +326,13 @@ export const runGameOfLife = memoize((
 
     return gameOfLifes[size] = newGrid;
 });
+
+export const cellularAutomata = [
+    runGameOfLife,
+    runHighLife,
+    runDayAndNight,
+    runMaze,
+    runSeeds,
+    runCoral,
+    runBriansBrain
+]

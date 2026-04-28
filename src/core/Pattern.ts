@@ -11,7 +11,7 @@ import { setupInputListener, syncLoopState } from './MidiInput';
 import pkg from 'noisejs';
 import { WebMidi } from 'webmidi';
 import { retrieve as retrieveData } from './data';
-import { runGameOfLife } from './CA';
+import { cellularAutomata } from './CA';
 // @ts-ignore
 const { Noise } = pkg;
 const noiseGenerator = new Noise(Math.random());
@@ -1131,8 +1131,9 @@ const retrieve = (key: string, ...rest: any[]) => {
 /**
  * Run cellular automata on a pattern. Just handles Game of Life for now, but could be expanded to other rules.
  * @param size - size of the grid (size x size)
+ * @param type - type of cellular automata to run. Default is 'gameoflife'.
  * @param noise - noise level as a proportion of the grid (0 to 1). Default is 0, meaning no noise is added. 
- * @param startState - set intitial states using preset shapes (e.g. gliders, oscillators) or a custom pattern. Default is 0, meaning a random initial state.
+ * @param preset - set intitial states using preset shapes (e.g. gliders, oscillators) or a custom pattern. Default is 0, meaning a random initial state.
  * @param reset - if true, resets the grid to the initial state.
  * @returns a 1D array representing the grid state, where each cell is either 0 (dead) or 1 (alive).
  * @example ca(4) // runs Game of Life on a 4x4 grid, with a random initial state. Returns an array of 16 values representing the grid state each cycle.
@@ -1140,18 +1141,21 @@ const retrieve = (key: string, ...rest: any[]) => {
  */
 const ca = (...args: (Pattern<any> | number)[]) => P((from, to) => {
     let size: Pattern<any> | number;
+    let type: Pattern<any> | number = 0;
     let noise: Pattern<any> | number = 0;
-    let startState: Pattern<any> | number = 0;
+    let preset: Pattern<any> | number = 0;
     let reset: Pattern<any> | number = 0;
 
     typeof args[0] === 'object'
-        ? ({ size, noise = 0, startState = 0, reset = 0 } = args[0] as any)
-        : ([size, noise = 0, startState = 0, reset = 0] = args as any);
+        ? ({ size, type = 0, noise = 0, preset = 0, reset = 0 } = args[0] as any)
+        : ([size, type = 0, noise = 0, preset = 0, reset = 0] = args as any);
 
-    return [{ from, to, value: runGameOfLife(
+    const ca = cellularAutomata[(unwrap(type, from, to) || 0) % cellularAutomata.length];
+
+    return [{ from, to, value: ca(
         unwrap(size, from, to), 
         unwrap(noise, from, to) || 0, 
-        unwrap(startState, from, to) || 0,
+        unwrap(preset, from, to) || 0,
         unwrap(reset, from, to) || 0,
         from
     ) }];

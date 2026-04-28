@@ -1,4 +1,4 @@
-const preset1 = `auto = ca(15,every(1).ie(.1,0),7)
+const preset1 = `auto = ca({size: 15, reset: every(2)})
 rowd = n => auto.row(n).density()
 
 global
@@ -10,7 +10,7 @@ s0
   cut 0
   lag ctms(.5)
   _n stack('45','52','Ami%6..?','Emi%4..?')
-    .at(auto.row(2).indexesOf(1))
+    .at(auto.row(5).indexesOf(1))
     .add('0|*4 5|*4')
   _modi rowd(0).mtr(.5,2)
   _harm rowd(1).mtr(.5,5).step(.5)
@@ -18,7 +18,7 @@ s0
   modd rowd(6).mul(100).step(1)
   moda 0
   strum ctms(1/16)
-  _pan rowd(4)
+  _pan rowd(10)
   reverb .5
   delay .125
   dtime rowd(5).mtr(1,8).step(1).div(8).ctms()
@@ -33,7 +33,7 @@ canvas
 `;
 
 const preset2 = `size = '16|8'.slow(1.5)
-auto = ca(size,every(2).ie(.15,0),10)
+auto = ca({size, noise: every(2).ie(.15,0), preset: 10})
   .cache(1,every('2|*4 1|*4'))
 harmony = 'Dmi%16|*2 Flyd%16|Ami%16'
   .at(t().mul(size).mod(floor(size.div(4))))
