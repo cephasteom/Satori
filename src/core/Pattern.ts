@@ -803,14 +803,15 @@ const mini = (value: string) => evalNode(parse(value), methods);
  */
 const inversion = (...args: any[]) => {
     const pattern = args[args.length - 1] as Pattern<any>;
-    return P((from, to) => pattern.query(from, to).map((hap, i, arr) => {
-        const chordLength = arr.length;
-        const note = hap.value
+    return P((from, to) => pattern.query(from, to).map((hap) => {
+        const notes = hap.value
+        const chordLength = notes.length;
         const inversion = Math.floor(unwrap(args[0] || 0, from, to))
-        const inverted = transposeOctave(
-            +note, 
-            Math.abs(inversion) % chordLength > i ? inversion > 0 ? 1 : -1 : 0
-        );
+        const inverted = notes.map((note: number, i: number) =>
+            transposeOctave(
+                +note, 
+                Math.abs(inversion) % chordLength > i ? inversion > 0 ? 1 : -1 : 0
+        ));
         
         return {...hap, value: inverted }
     }));

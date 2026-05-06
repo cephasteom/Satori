@@ -40,17 +40,20 @@ export function handler(event: Event, time: number) {
 }
 
 export function handleEvent(event: Event, time: number) {
-    const { n } = event.params;
+    const params = Object.entries(event.params)
+        .reduce((obj, [key, val]) => ({
+            ...obj,
+            // remove the _ prefix from all param keys as that's what the instruments expect
+            [formatParamKey(key)]: val
+        }), {} as Record<string, any>);
+    
+    const { n } = params;
     if(n === undefined || Array.isArray(n) && n.length === 0) return; // if no note param, ignore
+    
     ws.send(JSON.stringify({
         ...event,
         delta: time - immediate(),
-        params: Object.entries(event.params)
-            .reduce((obj, [key, val]) => ({
-                ...obj,
-                // remove the _ prefix from all param keys as that's what the instruments expect
-                [formatParamKey(key)]: val
-            }), {})
+        params
     }))
 }
 
