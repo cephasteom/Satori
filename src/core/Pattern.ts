@@ -754,7 +754,7 @@ const count = (condition?: Pattern<any>) => {
 }
 
 // base function for handling Math[operation] patterns
-const operate = (operator: string) => (...args: (number|Pattern<any>)[]) => cycle((from, to) => {
+const operate = (operator: string) => (...args: (number|Pattern<any>)[]) => P((from, to) => {
     const p = args[args.length - 1];
     // @ts-ignore
     const calc = (...values: (number|Pattern<any>)[]) => Math[operator](...values.map(v => unwrap(v, from, to)));
