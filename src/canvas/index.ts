@@ -37,7 +37,8 @@ function drawGrid(grid: number[]) {
 
 export const handler = (event: any, time: number) => {
     const grid: number[] = event.params.grid || [];
-    getDraw().schedule(() => drawGrid(grid), time);
+    const delay = event.params.delay || 0;
+    getDraw().schedule(() => drawGrid(grid), time + (delay / 1000));
 }
 
 export const init = () => {
