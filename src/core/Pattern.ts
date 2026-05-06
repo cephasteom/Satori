@@ -191,6 +191,18 @@ const ctms = (cycles: number|string|Pattern<number>) =>
     cts(cycles).mul(1000);
 
 /**
+ * Convert cycles to hertz. E.g. with a cps of 1 (1 second cycles), 
+ * cthz(1/4) would return 4, since a quarter cycle corresponds to a frequency of 4 cycles per second.
+ * With a cps of 2 (half second cycles), 
+ * cthz(1/4) would return 2, since a quarter cycle corresponds to a frequency of 2 cycles per second.
+ */
+const cthz = (cycles: number|string|Pattern<number>) =>
+    P((from, to) => {
+        const cpsValue = unwrap(cps(), from, to);
+        return [{ from, to, value: cpsValue / unwrap(cycles, from, to) }];
+    });
+
+/**
  * MIDI note number to frequency.
  * @param midi - MIDI note number or pattern of MIDI note numbers
  * @returns 
@@ -1427,7 +1439,7 @@ export const methods = {
     interp, degrade, expand, toggle, cache, count,
     choose, coin, rarely, sometimes, often, every, fallsOnFrom,
     ifelse, ie, and, or, xor, not,
-    cts, ctms, cps,
+    cts, ctms, cps, cthz,
     mtof, ftom,
     lt, gt, eq, neq,
     at, combine, includes, indexesOf, join,
