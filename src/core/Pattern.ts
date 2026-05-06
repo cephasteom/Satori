@@ -827,8 +827,8 @@ const at = (...args: any[]) => P((from, to) => {
     const indexes = args.slice(0, -1).map(a => [unwrap(a, from, to)].flat()).flat(); // remove pattern
     return pattern.query(from, to).map(hap => ({
         ...hap,
-        value: [...unwrapArray([hap.value].flat())
-            .filter((_: any, i: number) => indexes.includes(i))]
+        value: unwrapArray([hap.value].flat())
+            .filter((_: any, i: number) => indexes.includes(i))
     }));
 }); 
 

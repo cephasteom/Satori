@@ -40,6 +40,8 @@ export function handler(event: Event, time: number) {
 }
 
 export function handleEvent(event: Event, time: number) {
+    const { n } = event.params;
+    if(n === undefined || Array.isArray(n) && n.length === 0) return; // if no note param, ignore
     ws.send(JSON.stringify({
         ...event,
         delta: time - immediate(),
