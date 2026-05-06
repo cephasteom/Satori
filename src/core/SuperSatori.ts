@@ -47,8 +47,11 @@ export function handleEvent(event: Event, time: number) {
             [formatParamKey(key)]: val
         }), {} as Record<string, any>);
     
-    const { n } = params;
-    if(n === undefined || Array.isArray(n) && n.length === 0) return; // if no note param, ignore
+    const { n, freq } = params;
+    if(
+        (n === undefined || Array.isArray(n) && n.length === 0)
+        && (freq === undefined || Array.isArray(freq) && freq.length === 0)
+    ) return; // if no note param, ignore
     
     ws.send(JSON.stringify({
         ...event,

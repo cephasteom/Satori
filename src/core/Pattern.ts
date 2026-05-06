@@ -207,11 +207,11 @@ const cthz = (cycles: number|string|Pattern<number>) =>
  * @param midi - MIDI note number or pattern of MIDI note numbers
  * @returns 
  */
-const mtof = (midi: number|string|Pattern<number>) =>
-    P((from, to) => ([{
-        from, to,
-        value: 440 * 2 ** ((unwrap(midi, from, to) - 69) / 12)
-    }]));
+const mtof = (midi: number|string|Pattern<number>) => 
+    P((from, to) => wrap(midi).query(from, to).map(hap => ({
+        ...hap,
+        value: [unwrap(hap.value, from, to)].flat().map((m: number) => 440 * 2 ** ((m - 69) / 12))[0]
+    })));
 
 /**
  * Frequency to MIDI note number.
@@ -689,24 +689,25 @@ const cache = (...args: any[]) => {
 }
 
 /**
- * Sample and hold a pattern at n divisions per cycle.
- * Samples the pattern once per division and holds the value until the next.
- * @param divisions - number of divisions per cycle
- * @example random().hold(16) // 16 stable random values per cycle
- * @example coin().hold(8) // 8 stable coin tosses per cycle
+ * Sample and hold a pattern at n cycles per sample.
+ * Samples the pattern once per n cycles and holds the value for that duration.
+ * @param cycles - number of cycles per hold
+ * @example random().hold(2) // new random value every 2 cycles
+ * @example coin().hold(0.5) // new coin toss every half cycle (2 per cycle)
  */
-const hold = (divisions: number | Pattern<number>, pattern: Pattern<any>) =>
+const hold = (cycles: number | Pattern<number>, pattern: Pattern<any>) =>
     P((from, to) => {
-        const cycleFrom = Math.floor(from);
-        const cycleTo = Math.ceil(to);
-        const divs = unwrap(divisions, from, to);
-        return Array.from({ length: (cycleTo - cycleFrom) * divs }, (_, i) => {
-            const f = cycleFrom + i / divs;
-            const mid = f + 1 / (divs * 2);
-            return { 
-                from: f, 
-                to: f + 1 / divs, 
-                value: unwrap(pattern, mid, mid + 1e-9) 
+        const cycleLength = unwrap(cycles, from, to);
+        const blockFrom = Math.floor(from / cycleLength) * cycleLength;
+        const blockTo = Math.ceil(to / cycleLength) * cycleLength;
+        const numBlocks = Math.round((blockTo - blockFrom) / cycleLength);
+        return Array.from({ length: numBlocks }, (_, i) => {
+            const f = blockFrom + i * cycleLength;
+            const mid = f + cycleLength / 2;
+            return {
+                from: f,
+                to: f + cycleLength,
+                value: unwrap(pattern, mid, mid + 1e-9)
             };
         });
     });
