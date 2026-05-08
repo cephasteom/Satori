@@ -894,7 +894,7 @@ const indexesOf = (...args: any[]) => P((from, to) => {
 
 /**
  * Combine patterns into one array of values
- * @params patterns - patterns to combine. 
+ * @param patterns - patterns to combine. 
  * @example combine('C E G') // returns ['C', 'E', 'G']
  * @wxample 'C E G'.combine('D F A') // returns ['C', 'D', 'E', 'F', 'G', 'A']
  */
