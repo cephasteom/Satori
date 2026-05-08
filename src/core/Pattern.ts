@@ -123,6 +123,34 @@ const seq = (...values: any[]) => fast(values.length, cat(...values));
  */
 const choose = (...values: (any[])) => 
     cycle((from, to) => ([{ from, to, value: values[Math.floor(Math.random() * values.length)]}]))
+
+/**
+ * Reset a pattern's internal time when a condition is truthy.
+ * @param condition - pattern to evaluate. When truthy, resets the pattern's time origin.
+ * @example sine(0,1).reset(every(0.5)) // sine wave that restarts every half cycle
+ * @example saw(0,1).reset(coin()) // saw wave that randomly resets
+ */
+const reset = (condition: Pattern<any>, pattern: Pattern<any>) => {
+    let resetTime: number | null = null;
+
+    return P((from, to) => {
+        const shouldReset = unwrap(condition, from, to);
+
+        if (shouldReset || resetTime === null) {
+            resetTime = from;
+        }
+
+        const offset = from - resetTime;
+        const offsetFrom = offset;
+        const offsetTo = offset + (to - from);
+
+        return pattern.query(offsetFrom, offsetTo).map(hap => ({
+            ...hap,
+            from: hap.from + resetTime!,
+            to: hap.to + resetTime!,
+        }));
+    });
+};
  
 
 /**
@@ -643,6 +671,19 @@ const fallsOnFrom = (pattern: Pattern<any>) =>
  */
 // @ts-ignore
 const every = (n: number) => seq(1).slow(n).fallsOnFrom();
+
+/**
+ * Return a 1 at the earliest convenience, then 0s after that.
+ * @param pattern 
+ */
+const once = () => {
+    let triggered = false;
+    return P((from, to) => {
+        const value = triggered ? 0 : 1;
+        triggered = true;
+        return [{ from, to, value }];
+    });
+}
 
 /**
  * Toggle 1s and 0s when the condition is met.
@@ -1435,11 +1476,12 @@ export const methods = {
     fast, slow, rotate,
     add, sub, mul, div, mod, step,
     saw, range, ramp, sine, cosine, tri, pulse, square, sq, noise,
+    reset,
     mtr, scale, clamp, fixed,
     stack, inversion,
     mini, hold, holdUntil,
     interp, degrade, expand, toggle, cache, count,
-    choose, coin, rarely, sometimes, often, every, fallsOnFrom,
+    choose, coin, rarely, sometimes, often, every, fallsOnFrom, once,
     ifelse, ie, and, or, xor, not,
     cts, ctms, cps, cthz,
     mtof, ftom,
