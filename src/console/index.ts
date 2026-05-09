@@ -1,7 +1,10 @@
 import { version } from '../../package.json';
 
 const channel = new BroadcastChannel('satori');
-channel.addEventListener('message', (e) => log(e.data.type, e.data.message));
+channel.addEventListener('message', (e) => {
+    if(!e.data || !e.data.type || !e.data.message) return;
+    log(e.data.type, e.data.message);
+});
 let hasInitialized = false;
 
 let messages: {type: string, message: string}[] = [

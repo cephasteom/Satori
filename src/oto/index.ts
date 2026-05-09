@@ -1,4 +1,4 @@
-import { start } from 'tone';
+import { getContext, start } from 'tone';
 import { Channel, channels } from './Channel';
 import { formatParamKey } from './utils';
 
@@ -13,7 +13,8 @@ export function init() {
 }
 
 async function startAudio() {
-    await start()
+    await start();
+    getContext().lookAhead = 0.01; // reduce default lookahead for more responsive scheduling
     satori.postMessage({ type: 'info', message: 'Started audio' });
     window.removeEventListener('keydown', startAudio)
     window.removeEventListener('click', startAudio)

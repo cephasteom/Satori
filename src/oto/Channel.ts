@@ -1,4 +1,4 @@
-import { Gain, Split, Merge, getDestination, Limiter } from 'tone'
+import { Gain, Split, Merge, getDestination, Limiter, Meter } from 'tone'
 import Synth from './ct-synths/rnbo/Synth'
 import Sampler from './ct-synths/rnbo/Sampler2'
 import Granular from './ct-synths/rnbo/Granular2';
@@ -58,6 +58,9 @@ export class Channel {
 
     _busses: Gain[] // fx busses
     _fxBusses: Gain[]
+    _meter: Meter
+    _shouldMeter: boolean = false
+    _lastMeterTime: number = 0
     
     constructor(id: string, out: number = 0) {
         this.id = id
@@ -65,9 +68,12 @@ export class Channel {
         this._fader = new Gain(1)
         this._output = new Split({channels: 2})
         this._limiter = new Limiter(-10)
+        this._meter = new Meter({ smoothing: 0.25, normalRange: true })
         
-        this._limiter.connect(this._output)
+        this._limiter.connect(this._output) // delay signal to compensate for lookahead
+        this._limiter.connect(this._meter) // but tap signal pre-delay for metering to get accuate reading
         this._fader.connect(this._limiter)
+
 
         // create 4 internal bus nodes
         this._busses = Array.from({length: 4}, () => new Gain(0))
@@ -85,6 +91,15 @@ export class Channel {
         this.input.fan(this._fader, ...this._busses, ...this._fxBusses)
         
         this.routeOutput(out)
+
+        this.meterLevel = this.meterLevel.bind(this)
+
+        window.addEventListener('meter', (e) => {
+            const customEvent = e as CustomEvent<{id: string, shouldMeter: boolean}>
+            if (customEvent.detail.id !== this.id) return
+            this._shouldMeter = customEvent.detail.shouldMeter
+            requestAnimationFrame(this.meterLevel)
+        })
     }
 
     /**
@@ -174,6 +189,18 @@ export class Channel {
     initReverb() {
         this._reverb = new ReverbGen()
         this._handleInternalRouting()
+    }
+
+    /**
+     * Meter the output level of this channel, sending updates to the UI via BroadcastChannel
+     */
+    meterLevel(timestamp: number) {
+        if (!this._shouldMeter) return
+        if (timestamp - this._lastMeterTime >= 50) {
+            satori.postMessage({ type: 'meter', id: this.id, level: this._meter.getValue() })
+            this._lastMeterTime = timestamp
+        }
+        requestAnimationFrame(this.meterLevel)
     }
 
     /**

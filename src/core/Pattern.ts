@@ -12,6 +12,7 @@ import pkg from 'noisejs';
 import { WebMidi } from 'webmidi';
 import { retrieve as retrieveData } from './data';
 import { cellularAutomata } from './CA';
+import { getLevel } from './metering';
 // @ts-ignore
 const { Noise } = pkg;
 const noiseGenerator = new Noise(Math.random());
@@ -1184,6 +1185,14 @@ const retrieve = (key: string, ...rest: any[]) => {
 };
 
 /**
+ * Get the current audio level from a Stream.
+ */
+const meter = (id: Pattern<any>) => P((from, to) => {
+    const level = getLevel(unwrap(id, from, to));
+    return [{ from, to, value: level }];
+});
+
+/**
  * Run cellular automata on a pattern. Just handles Game of Life for now, but could be expanded to other rules.
  * @param size - size of the grid (size x size)
  * @param type - type of cellular automata to run. Default is 'gameoflife'.
@@ -1492,10 +1501,13 @@ export const methods = {
         [name]: operate(name)
     }), {}),
     print,
-    qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases,
     loopmidiin, retrieve,
+    meter,
+    // quantum methods
+    qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases,
+    // cellular automata methods
     ca, row, col, diagonal, region, hood, ring, density, tile,
-    changed, born, died
+    changed, born, died,
 };
 
 // declare a type for Pattern methods, for use in the Pattern interface
