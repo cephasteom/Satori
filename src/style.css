@@ -260,6 +260,30 @@ header {
     font-size: 1rem;
 }
 
+/* ─── scrollbars ──────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--grey-lighter);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--grey-light);
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--grey-lighter) transparent;
+}
+
 *:focus {
     outline: 1px dashed var(--theme-1);
     outline-offset: 4px;
