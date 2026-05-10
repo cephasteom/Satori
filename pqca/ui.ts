@@ -203,3 +203,16 @@ if (canvas?.parentElement) {
   resizeObserver.observe(canvas.parentElement);
 }
 resizeCanvas();
+
+updateWorkspaceLayout();
+
+// wire up console restore button rendered in HTML by default
+const restoreConsoleBtn = document.getElementById('restore-console');
+if (restoreConsoleBtn && consolePanel) {
+  restoreConsoleBtn.addEventListener('click', () => {
+    consolePanel.classList.remove('panel--removed');
+    restoreConsoleBtn.remove();
+    sidebarClosed?.classList.toggle('has-items', (closedList?.children.length ?? 0) > 0);
+    updateWorkspaceLayout();
+  });
+}

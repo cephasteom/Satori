@@ -45,9 +45,11 @@
         <button class="preset-btn" data-preset="9">09</button>
         <button class="preset-btn" data-preset="10">10</button>
       </div>
-      <div class="sidebar-closed" id="sidebar-closed">
+      <div class="sidebar-closed has-items" id="sidebar-closed">
         <div class="sidebar-label">CLOSED</div>
-        <div class="closed-list" id="closed-list"></div>
+        <div class="closed-list" id="closed-list">
+          <button class="restore-btn" id="restore-console">CONSOLE</button>
+        </div>
       </div>
     </aside>
 
@@ -83,7 +85,7 @@
 
           <div class="resize-handle resize-handle--row" id="row-resize"></div>
 
-          <div class="console-panel">
+          <div class="console-panel panel--removed">
             <div class="panel-titlebar">
               <span class="panel-title">CONSOLE</span>
               <div class="panel-dots">
