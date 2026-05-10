@@ -2,7 +2,7 @@
     background-color: var(--black-lighter);
     padding: var(--spacer);
     overflow: hidden;
-    word-break: break-all;
+    word-break: break-word;
 }
 
 #docs > div {
