@@ -21,6 +21,7 @@ hljs.registerLanguage('javascript', javascript);
 let article = 'docs__quick-start';
 
 const render = (searchResults: Record<string, Record<string, any>> = {}) => {
+    if (Object.keys(searchResults).length === 0) article = 'docs__quick-start';
     const docs = document.querySelector('#docs > div')
     docs && (docs.innerHTML = `
         <div>

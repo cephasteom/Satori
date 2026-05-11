@@ -903,6 +903,14 @@ button {
   padding-top: calc(var(--spacer) + 20.5px);
 }
 
+#docs article {
+  display: none;
+}
+
+#docs article:first-of-type {
+  display: block;
+}
+
 #docs > input#search {
   position: absolute;
   top: calc(var(--spacer) / 2);
