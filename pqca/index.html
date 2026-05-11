@@ -45,11 +45,9 @@
         <button class="preset-btn" data-preset="9">09</button>
         <button class="preset-btn" data-preset="10">10</button>
       </div>
-      <div class="sidebar-closed has-items" id="sidebar-closed">
+      <div class="sidebar-closed" id="sidebar-closed">
         <div class="sidebar-label">CLOSED</div>
-        <div class="closed-list" id="closed-list">
-          <button class="restore-btn" id="restore-console">CONSOLE</button>
-        </div>
+        <div class="closed-list" id="closed-list"></div>
       </div>
     </aside>
 
@@ -85,7 +83,7 @@
 
           <div class="resize-handle resize-handle--row" id="row-resize"></div>
 
-          <div class="console-panel panel--removed">
+          <div class="console-panel">
             <div class="panel-titlebar">
               <span class="panel-title">CONSOLE</span>
               <div class="panel-dots">
@@ -102,18 +100,36 @@
 
         <div class="resize-handle resize-handle--col" id="col-resize"></div>
 
-        <div class="canvas-panel">
-          <div class="panel-titlebar">
-            <span class="panel-title">CANVAS</span>
-            <div class="panel-dots">
-              <span class="dot dot-red"></span>
-              <span class="dot dot-amber"></span>
-              <span class="dot dot-green"></span>
+        <div class="right-panel">
+
+          <div class="canvas-panel">
+            <div class="panel-titlebar">
+              <span class="panel-title">CANVAS</span>
+              <div class="panel-dots">
+                <span class="dot dot-red"></span>
+                <span class="dot dot-amber"></span>
+                <span class="dot dot-green"></span>
+              </div>
+            </div>
+            <div class="canvas-wrapper">
+              <canvas class="canvas-area" id="satori-canvas"></canvas>
             </div>
           </div>
-          <div class="canvas-wrapper">
-            <canvas class="canvas-area" id="satori-canvas"></canvas>
+
+          <div class="resize-handle resize-handle--row" id="row-resize-right"></div>
+
+          <div class="docs-panel">
+            <div class="panel-titlebar">
+              <span class="panel-title">DOCS</span>
+              <div class="panel-dots">
+                <span class="dot dot-red"></span>
+                <span class="dot dot-amber"></span>
+                <span class="dot dot-green"></span>
+              </div>
+            </div>
+            <div id="docs" class="docs-area"></div>
           </div>
+
         </div>
 
       </div>

@@ -5,6 +5,7 @@ import { presets } from './presets';
 import './editor-theme.css';
 import { init as initEditor } from '../src/editor';
 import { init as initConsole } from '../src/console';
+import { init as initDocs } from '../src/docs';
 
 import { init as initOto } from '../src/oto';
 import { init as initSuperSatori } from '../src/core/SuperSatori';
@@ -14,6 +15,7 @@ import { init as initCanvas } from '../src/canvas';
 
 initEditor();
 initConsole();
+initDocs();
 
 // select engine to use based on URL param, default to Oto (browser based synth engine)
 // SuperSatori (SuperCollider synth engine) can be used by adding ?engine=supersatori to the URL

@@ -36,7 +36,7 @@ presetBtns.forEach((btn) => {
 
 document.querySelectorAll('.dot-green').forEach((dot) => {
   dot.addEventListener('click', () => {
-    const panel = dot.closest('.editor-panel, .console-panel, .canvas-panel');
+    const panel = dot.closest('.editor-panel, .console-panel, .canvas-panel, .docs-panel');
     if (panel) panel.classList.toggle('panel--fullscreen');
   });
 });
@@ -45,11 +45,38 @@ document.querySelectorAll('.dot-green').forEach((dot) => {
 
 const workspace: HTMLElement | null = document.querySelector('.workspace');
 const leftPanel: HTMLElement | null = document.querySelector('.left-panel');
+const rightPanel: HTMLElement | null = document.querySelector('.right-panel');
 const editorPanel: HTMLElement | null = document.querySelector('.editor-panel');
 const consolePanel: HTMLElement | null = document.querySelector('.console-panel');
 const canvasPanel: HTMLElement | null = document.querySelector('.canvas-panel');
+const docsPanel: HTMLElement | null = document.querySelector('.docs-panel');
 const closedList: HTMLElement | null = document.getElementById('closed-list');
 const sidebarClosed: HTMLElement | null = document.getElementById('sidebar-closed');
+
+const STORAGE_KEY = 'pqca.panelStates';
+
+type PanelState = 'default' | 'minimised' | 'removed';
+
+const panelRegistry: { el: HTMLElement | null; key: string; name: string; defaultState: PanelState }[] = [
+  { el: editorPanel,  key: 'editor',  name: 'EDITOR',  defaultState: 'default' },
+  { el: consolePanel, key: 'console', name: 'CONSOLE', defaultState: 'removed' },
+  { el: canvasPanel,  key: 'canvas',  name: 'CANVAS',  defaultState: 'default' },
+  { el: docsPanel,    key: 'docs',    name: 'DOCS',    defaultState: 'removed' },
+];
+
+function getPanelState(el: HTMLElement): PanelState {
+  if (el.classList.contains('panel--removed'))   return 'removed';
+  if (el.classList.contains('panel--minimised')) return 'minimised';
+  return 'default';
+}
+
+function savePanelStates() {
+  const state: Record<string, PanelState> = {};
+  for (const { el, key } of panelRegistry) {
+    if (el) state[key] = getPanelState(el);
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
 
 function updateWorkspaceLayout() {
   const editorMin   = editorPanel?.classList.contains('panel--minimised');
@@ -58,53 +85,79 @@ function updateWorkspaceLayout() {
   const consoleGone = consolePanel?.classList.contains('panel--removed');
   const canvasMin   = canvasPanel?.classList.contains('panel--minimised');
   const canvasGone  = canvasPanel?.classList.contains('panel--removed');
+  const docsMin     = docsPanel?.classList.contains('panel--minimised');
+  const docsGone    = docsPanel?.classList.contains('panel--removed');
 
   const leftEmpty  = editorGone  && consoleGone;
   const leftStrip  = !leftEmpty  && (editorMin  || editorGone)  && (consoleMin  || consoleGone);
-  const rightEmpty = canvasGone;
-  const rightStrip = !rightEmpty && canvasMin;
+  const rightEmpty = canvasGone  && docsGone;
+  const rightStrip = !rightEmpty && (canvasMin || canvasGone) && (docsMin || docsGone);
 
-  workspace?.classList.toggle('workspace--left-empty', leftEmpty);
-  workspace?.classList.toggle('workspace--left-collapsed', !leftEmpty && leftStrip);
-  workspace?.classList.toggle('workspace--right-empty', rightEmpty);
-  workspace?.classList.toggle('workspace--right-collapsed', rightStrip && !leftEmpty);
+  workspace?.classList.toggle('workspace--left-empty',     !!leftEmpty);
+  workspace?.classList.toggle('workspace--left-collapsed', !leftEmpty && !!leftStrip);
+  workspace?.classList.toggle('workspace--right-empty',    !!rightEmpty);
+  workspace?.classList.toggle('workspace--right-collapsed', !!rightStrip && !leftEmpty);
 
-  // clear inline resize so CSS layout classes (and full-width expansion) can take effect
-  if (leftEmpty  || leftStrip  || rightEmpty) leftPanel && (leftPanel.style.flex = '');
-  if (rightEmpty || rightStrip || leftEmpty) canvasPanel && (canvasPanel.style.flex = '');
+  if (leftEmpty  || leftStrip  || rightEmpty) leftPanel  && (leftPanel.style.flex  = '');
+  if (rightEmpty || rightStrip || leftEmpty)  rightPanel && (rightPanel.style.flex = '');
+}
+
+function addRestoreButton(panel: HTMLElement, name: string) {
+  const btn = document.createElement('button');
+  btn.className   = 'restore-btn';
+  btn.textContent = name;
+  btn.addEventListener('click', () => {
+    panel.classList.remove('panel--removed');
+    btn.remove();
+    sidebarClosed?.classList.toggle('has-items', (closedList?.children.length ?? 0) > 0);
+    savePanelStates();
+    updateWorkspaceLayout();
+  });
+  closedList?.appendChild(btn);
+}
+
+function applyPanelStates() {
+  let saved: Record<string, PanelState> = {};
+  try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch {}
+
+  if (closedList) closedList.innerHTML = '';
+
+  for (const { el, key, name, defaultState } of panelRegistry) {
+    if (!el) continue;
+    const state: PanelState = saved[key] ?? defaultState;
+    el.classList.remove('panel--removed', 'panel--minimised');
+    if (state === 'removed') {
+      el.classList.add('panel--removed');
+      addRestoreButton(el, name);
+    } else if (state === 'minimised') {
+      el.classList.add('panel--minimised');
+    }
+  }
+
+  sidebarClosed?.classList.toggle('has-items', (closedList?.children.length ?? 0) > 0);
+  updateWorkspaceLayout();
 }
 
 document.querySelectorAll('.dot-amber').forEach((dot) => {
   dot.addEventListener('click', () => {
-    const panel = dot.closest('.editor-panel, .console-panel, .canvas-panel');
+    const panel = dot.closest('.editor-panel, .console-panel, .canvas-panel, .docs-panel');
     if (!panel) return;
     panel.classList.toggle('panel--minimised');
+    savePanelStates();
     updateWorkspaceLayout();
   });
 });
 
 document.querySelectorAll('.dot-red').forEach((dot) => {
   dot.addEventListener('click', () => {
-    const panel = dot.closest('.editor-panel, .console-panel, .canvas-panel');
+    const panel = dot.closest('.editor-panel, .console-panel, .canvas-panel, .docs-panel') as HTMLElement | null;
     if (!panel) return;
-
     panel.classList.remove('panel--minimised', 'panel--fullscreen');
     panel.classList.add('panel--removed');
-
-    const name = panel?.querySelector('.panel-title')?.textContent?.trim() || ''
-    const btn  = document.createElement('button');
-    btn.className   = 'restore-btn';
-    btn.textContent = name;
-    btn.addEventListener('click', () => {
-      panel.classList.remove('panel--removed');
-      btn.remove();
-      // @ts-ignore
-      sidebarClosed?.classList.toggle('has-items', closedList.children.length > 0);
-      updateWorkspaceLayout();
-    });
-
-    closedList?.appendChild(btn);
+    const name = panel.querySelector('.panel-title')?.textContent?.trim() || '';
+    addRestoreButton(panel, name);
     sidebarClosed?.classList.add('has-items');
+    savePanelStates();
     updateWorkspaceLayout();
   });
 });
@@ -117,12 +170,12 @@ colHandle?.addEventListener('mousedown', (e) => {
   if (workspace?.className.split(' ').some((c) => c.startsWith('workspace--'))) return;
 
   e.preventDefault();
-  const startX  = e.clientX;
-  const startW  = leftPanel?.getBoundingClientRect().width || 0;
-  const minW    = 160;
+  const startX = e.clientX;
+  const startW = leftPanel?.getBoundingClientRect().width || 0;
+  const minW   = 160;
 
   colHandle.classList.add('is-dragging');
-  document.body.style.cursor    = 'ew-resize';
+  document.body.style.cursor     = 'ew-resize';
   document.body.style.userSelect = 'none';
 
   function onMove(e: MouseEvent) {
@@ -133,7 +186,7 @@ colHandle?.addEventListener('mousedown', (e) => {
 
   function onUp() {
     colHandle?.classList.remove('is-dragging');
-    document.body.style.cursor    = '';
+    document.body.style.cursor     = '';
     document.body.style.userSelect = '';
     document.removeEventListener('mousemove', onMove);
     document.removeEventListener('mouseup',   onUp);
@@ -156,12 +209,12 @@ rowHandle?.addEventListener('mousedown', (e) => {
   if (blocked) return;
 
   e.preventDefault();
-  const startY  = e.clientY;
-  const startH  = consolePanel?.getBoundingClientRect().height || 0;
-  const minH    = 48;
+  const startY = e.clientY;
+  const startH = consolePanel?.getBoundingClientRect().height || 0;
+  const minH   = 48;
 
-  rowHandle?.classList.add('is-dragging');
-  document.body.style.cursor    = 'ns-resize';
+  rowHandle.classList.add('is-dragging');
+  document.body.style.cursor     = 'ns-resize';
   document.body.style.userSelect = 'none';
 
   function onMove(e: MouseEvent) {
@@ -172,8 +225,48 @@ rowHandle?.addEventListener('mousedown', (e) => {
   }
 
   function onUp() {
-    rowHandle?.classList.remove('is-dragging');
-    document.body.style.cursor    = '';
+    rowHandle.classList.remove('is-dragging');
+    document.body.style.cursor     = '';
+    document.body.style.userSelect = '';
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup',   onUp);
+  }
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup',   onUp);
+});
+
+// ─── row resize (canvas ↕ docs) ──────────────────────────────
+
+const rowHandleRight = document.getElementById('row-resize-right');
+
+rowHandleRight?.addEventListener('mousedown', (e) => {
+  const blocked =
+    canvasPanel?.classList.contains('panel--minimised') ||
+    canvasPanel?.classList.contains('panel--removed')   ||
+    docsPanel?.classList.contains('panel--minimised')   ||
+    docsPanel?.classList.contains('panel--removed');
+  if (blocked) return;
+
+  e.preventDefault();
+  const startY = e.clientY;
+  const startH = docsPanel?.getBoundingClientRect().height || 0;
+  const minH   = 48;
+
+  rowHandleRight.classList.add('is-dragging');
+  document.body.style.cursor     = 'ns-resize';
+  document.body.style.userSelect = 'none';
+
+  function onMove(e: MouseEvent) {
+    const totalH = (rightPanel?.getBoundingClientRect().height || 0) - (rowHandleRight?.offsetHeight || 0);
+    const dy     = startY - e.clientY;
+    const newH   = Math.min(totalH - minH, Math.max(minH, startH + dy));
+    if (docsPanel) docsPanel.style.flex = `0 0 ${newH}px`;
+  }
+
+  function onUp() {
+    rowHandleRight.classList.remove('is-dragging');
+    document.body.style.cursor     = '';
     document.body.style.userSelect = '';
     document.removeEventListener('mousemove', onMove);
     document.removeEventListener('mouseup',   onUp);
@@ -199,20 +292,9 @@ function resizeCanvas() {
 }
 
 const resizeObserver = new ResizeObserver(resizeCanvas);
-if (canvas?.parentElement) {
-  resizeObserver.observe(canvas.parentElement);
-}
+if (canvas?.parentElement) resizeObserver.observe(canvas.parentElement);
 resizeCanvas();
 
-updateWorkspaceLayout();
+// ─── init ─────────────────────────────────────────────────────
 
-// wire up console restore button rendered in HTML by default
-const restoreConsoleBtn = document.getElementById('restore-console');
-if (restoreConsoleBtn && consolePanel) {
-  restoreConsoleBtn.addEventListener('click', () => {
-    consolePanel.classList.remove('panel--removed');
-    restoreConsoleBtn.remove();
-    sidebarClosed?.classList.toggle('has-items', (closedList?.children.length ?? 0) > 0);
-    updateWorkspaceLayout();
-  });
-}
+applyPanelStates();
