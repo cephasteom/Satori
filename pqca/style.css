@@ -807,6 +807,11 @@ button {
   margin-top: 14px;
 }
 
+.modal-body a {
+  color: var(--green);
+  /* text-decoration: none; */
+}
+
 /* ─── scrollbars ──────────────────────────────────────────── */
 
 ::-webkit-scrollbar {
