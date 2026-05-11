@@ -14,7 +14,6 @@ import { search } from './utils';
 import samples from './samples';
 import quantum from './quantum';
 import superSatori from './supersatori';
-import './style.css';
 
 hljs.registerLanguage('typescript', typescript);
 hljs.registerLanguage('javascript', javascript);

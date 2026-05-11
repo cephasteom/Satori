@@ -4,6 +4,7 @@ import { init as initSuperSatori } from './core/SuperSatori';
 import { handler as midiHandler } from './core/MIDI';
 import { init as initWebSocket } from './core/WebSocket';
 
+import './docs/style.css';
 import { init as initDocs } from './docs';
 import { init as initEditor } from './editor';
 import './editor/theme.css';
