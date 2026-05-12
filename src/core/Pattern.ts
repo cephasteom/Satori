@@ -253,6 +253,20 @@ const ftom = (freq: number|string|Pattern<number>) =>
         value: 69 + 12 * Math.log2(unwrap(freq, from, to) / 440)
     }]));
 
+/**
+ * MIDI to normalised range (0-1).
+ * Calculated by converting to frequency first then assuming normal range maps to 20 to 20000 Hz.
+ * @param midi - MIDI note number or pattern of MIDI note numbers
+ * @example mton(69) // 0.5, since MIDI 69 (A4) is 440 Hz, which is halfway between 20 and 20000 on a log scale
+ */
+const mton = (midi: number|string|Pattern<number>) => 
+    P((from, to) => wrap(midi).query(from, to).map(hap => ({
+        ...hap,
+        value: [unwrap(hap.value, from, to)].flat().map((m: number) => {
+            const freq = 440 * 2 ** ((m - 69) / 12);
+            return Math.log(freq / 20) / Math.log(20000 / 20);
+        })[0]
+    })));
 
 /**
  * Add a value or pattern.
@@ -705,6 +719,28 @@ const toggle = (condition: Pattern<any>) => {
     });
 }
 
+/**
+ * Return 1s after the on condition is met, and reset to 0 when the off condition is met.
+ * @param onCondition - pattern to evaluate for turning on (returning 1)
+ * @param offCondition - pattern to evaluate for turning off (returning 0)
+ * @example io(coin(), coin()) // turns on when the first coin() is 1, turns off when the second coin() is 1
+ */
+const io = (onCondition: Pattern<any>, offCondition: Pattern<any>) => {
+    let state = false;
+
+    return P((from, to) => {
+        const shouldTurnOn = unwrap(onCondition, from, to);
+        const shouldTurnOff = unwrap(offCondition, from, to);
+        
+        if (shouldTurnOn) state = true;
+        if (shouldTurnOff) state = false;
+        
+        return [{
+            from, to,
+            value: state ? 1 : 0
+        }];
+    });
+}
 /**
  * Fill a cache with n number of cycles worth of values from the preceding pattern
  * @param cycles - number of cycles to cache. Default is 1.
@@ -1489,11 +1525,11 @@ export const methods = {
     mtr, scale, clamp, fixed,
     stack, inversion,
     mini, hold, holdUntil,
-    interp, degrade, expand, toggle, cache, count,
+    interp, degrade, expand, toggle, io, cache, count,
     choose, coin, rarely, sometimes, often, every, fallsOnFrom, once,
     ifelse, ie, and, or, xor, not,
     cts, ctms, cps, cthz,
-    mtof, ftom,
+    mtof, ftom, mton,
     lt, gt, eq, neq,
     at, combine, includes, indexesOf, join,
     ...operators.reduce((obj, name) => ({
