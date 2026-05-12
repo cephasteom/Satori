@@ -142,7 +142,7 @@ window.addEventListener('message', (e) =>
 const createEmptyGrid = (size: number) => new Array(size * size).fill(0);
 const randomState = (size: number, sparsity: number = 0.8) => createEmptyGrid(size).map(() => Math.random() > sparsity ? 1 : 0);
 
-const initGameOfLife = (size: number, startState: number = 0) => {
+export const initGameOfLife = (size: number, startState: number = 0) => {
     const preset = startState % 18; // wrap around if startState is greater than number of presets
     switch (preset) {
         case 0: return randomState(size, .75);

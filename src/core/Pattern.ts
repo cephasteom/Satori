@@ -12,6 +12,7 @@ import pkg from 'noisejs';
 import { WebMidi } from 'webmidi';
 import { retrieve as retrieveData } from './data';
 import { cellularAutomata } from './CA';
+import { caWorkerClient } from './CAWorkerClient';
 import { getLevel } from './metering';
 // @ts-ignore
 const { Noise } = pkg;
@@ -1250,14 +1251,12 @@ const ca = (...args: (Pattern<any> | number)[]) => P((from, to) => {
         ? ({ size, type = 0, noise = 0, preset = 0, reset = 0 } = args[0] as any)
         : ([size, type = 0, noise = 0, preset = 0, reset = 0] = args as any);
 
-    const ca = cellularAutomata[(unwrap(type, from, to) || 0) % cellularAutomata.length];
-    const value = ca(
-        unwrap(size, from, to), 
-        unwrap(noise, from, to) || 0,
-        unwrap(preset, from, to) || 0,
-        unwrap(reset, from, to) || 0,
-        from
-    );
+    const caIndex = (unwrap(type, from, to) || 0) % cellularAutomata.length;
+    const caSize = Math.round(unwrap(size, from, to));
+    const caMin = unwrap(noise, from, to) || 0;
+    const caPreset = unwrap(preset, from, to) || 0;
+    const caReset = unwrap(reset, from, to) || 0;
+    const value = caWorkerClient.getFrame(caIndex, caSize, caMin, caPreset, caReset, from);
 
     return [{ from, to, value }];
 })
