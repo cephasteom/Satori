@@ -109,7 +109,7 @@ export const compile = (from: number, to: number) => {
         // at the global level, we are only interested in events (at least for now)
         global: global.query(from, to).events,
         // at the stream level, we want events and mutations
-        streams: allStreams.flatMap(stream => {
+        streams: allStreams.filter(s => s._active).flatMap(stream => {
             const { events, mutations } = stream.query(from, to);
             return [...events, ...mutations];
         }),

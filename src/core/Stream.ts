@@ -13,6 +13,8 @@ export interface Stream extends Record<string, any> {
  * s0.set({ ... }) // pass an object to set parameters
  */
 export class Stream {
+    _active: boolean = false;
+
     constructor(id: string) {
         this.id = id;
     }
@@ -29,8 +31,9 @@ export class Stream {
      * })
      */
     set(params: Record<string, any>) {
+        this._active = true;
         Object.entries(params)
-            .filter(([key]) => !['id', 'set', 'query', '__reset'].includes(key))
+            .filter(([key]) => !['id', 'set', 'query', '__reset', '_active'].includes(key))
             .forEach(([key, value]) => this[key] = (value instanceof Pattern 
                 ? value 
                 : methods.set(value)));
@@ -101,8 +104,9 @@ export class Stream {
      */
     __reset() {
         Object.keys(this).forEach(key => {
-            if (['id', 'set', 'query', '__reset'].includes(key)) return;
+            if (['id', 'set', 'query', '__reset', '_active'].includes(key)) return;
             delete this[key];
         });
+        this._active = false;
     }
 }
