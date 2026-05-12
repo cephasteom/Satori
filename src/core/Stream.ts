@@ -50,43 +50,33 @@ export class Stream {
      * @returns 
      */
     format(haps: Hap<any>[] = [], from: number, to: number, type: string): Event[] {
+        // extract pattern entries once per call rather than once per triggered hap
+        const patternEntries = Object.entries(this).filter(([_, v]) => v instanceof Pattern);
+
+        const seen = new Set<number>();
         return haps
-            // only keep event haps with a value, and where the from time falls within the range
-            .filter((hap: Hap<any>) => !!hap.value && hap.from >= from && hap.from < to)
-            // only keep one hap for each hap.from time, to avoid duplicate events
-            .reduce((acc: Hap<any>[], curr) => {
-                if (acc.length === 0) return [curr];
-                if (acc.some(hap => hap.from === curr.from)) return acc;
-                return [...acc, curr];
-            }, [])
-            // iterate over haps and build param sets
+            .filter((hap: Hap<any>) => {
+                if (!hap.value || hap.from < from || hap.from >= to || seen.has(hap.from)) return false;
+                seen.add(hap.from);
+                return true;
+            })
             .map((hap: Hap<any>) => ({
                 id: this.id,
                 type,
                 time: hap.from,
-                params: Object.fromEntries(Object.entries(this)
-                    // only keep Patterns
-                    .filter(([_, value]) => value instanceof Pattern)
-                    // query each Pattern and...
-                    .map(([key, pattern]) => [key, (pattern as Pattern<any>)
-                        .query(hap.from, hap.to)
-                        // keep the closest one(s) to the event time. Keep more than one if the closest ones have the same value
-                        .reduce((acc: any[], curr) => {
-                            if (acc.length === 0) return [curr];
-                            const accDiff = Math.abs(acc[0].from - hap.from);
-                            const currDiff = Math.abs(curr.from - hap.from);
-                            if (currDiff < accDiff) return [curr];
-                            if (currDiff === accDiff) return [...acc, curr];
-                            return acc;
-                        }, [])
-                        .map(({value}) => value)
-                    ])
-                    // if there's only one closest hap, return its value directly
-                    .map(([key, value]) => 
-                        [key, Array.isArray(value) && value.length === 1 
-                            ? value[0] 
-                            : value]
-                    )
+                params: Object.fromEntries(
+                    patternEntries.map(([key, pattern]) => {
+                        const results = (pattern as Pattern<any>).query(hap.from, hap.to);
+                        let best: any[] = [];
+                        let bestDiff = Infinity;
+                        for (const r of results) {
+                            const diff = Math.abs(r.from - hap.from);
+                            if (diff < bestDiff) { best = [r]; bestDiff = diff; }
+                            else if (diff === bestDiff) best.push(r);
+                        }
+                        const values = best.map(({ value }) => value);
+                        return [key, values.length === 1 ? values[0] : values];
+                    })
                 )
             }));
     }
