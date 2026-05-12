@@ -190,7 +190,7 @@ const makeBSRule = (born: ReadonlySet<number>, survive: ReadonlySet<number>) => 
         startState: number = 0,
         reset: number = 0
     ) => {
-        if (reset) return cache[size] = initGameOfLife(size, startState);
+        if (reset) return cache[size] = new Uint8Array(initGameOfLife(size, startState));
         size = Math.round(size);
         const grid = cache[size] || initGameOfLife(size, startState);
         const newGrid = new Uint8Array(size * size);
@@ -217,7 +217,7 @@ const makeBSRule = (born: ReadonlySet<number>, survive: ReadonlySet<number>) => 
             }
         }
         cache[size] = newGrid;
-        return Array.from(newGrid);
+        return newGrid;
     });
 };
 
@@ -249,7 +249,7 @@ export const runBriansBrain = memoize((
     startState: number = 0,
     reset: number = 0
 ) => {
-    if (reset) return brainGrids[size] = initGameOfLife(size, startState);
+    if (reset) return brainGrids[size] = new Uint8Array(initGameOfLife(size, startState));
     size = Math.round(size);
     const grid = brainGrids[size] || initGameOfLife(size, startState);
     const newGrid = new Uint8Array(size * size);
@@ -284,7 +284,7 @@ export const runBriansBrain = memoize((
         }
     }
     brainGrids[size] = newGrid;
-    return Array.from(newGrid)
+    return newGrid;
 });
 
 export const runGameOfLife = memoize((
@@ -293,7 +293,7 @@ export const runGameOfLife = memoize((
     startState: number = 0,
     reset: number = 0 // if true, resets the grid to the initial state
 ) => {
-    if (reset) return gameOfLifes[size] = initGameOfLife(size, startState);
+    if (reset) return gameOfLifes[size] = new Uint8Array(initGameOfLife(size, startState));
 
     size = Math.round(size);
     const grid = gameOfLifes[size] || initGameOfLife(size, startState);
@@ -327,7 +327,7 @@ export const runGameOfLife = memoize((
     }
 
     gameOfLifes[size] = newGrid;
-    return Array.from(newGrid);
+    return newGrid;
 });
 
 export const cellularAutomata = [

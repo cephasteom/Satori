@@ -1272,7 +1272,7 @@ const row = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const row = unwrap(args[0], from, to);
     return pattern.query(from, to).map(hap => {
-        const arr = [hap.value].flat();
+        const arr = hap.value;
         const size = Math.sqrt(arr.length);
         const r = Math.floor(row) % size;
         return { ...hap, value: arr.slice(r * size, (r + 1) * size) };
@@ -1289,7 +1289,7 @@ const col = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const col = unwrap(args[0], from, to);
     return pattern.query(from, to).map(hap => {
-        const arr = [hap.value].flat();
+        const arr = hap.value;
         const size = Math.sqrt(arr.length);
         const c = Math.floor(col) % size;
         return { ...hap, value: Array.from({ length: size }, (_, i) => arr[c + i * size]) };
@@ -1306,10 +1306,10 @@ const diagonal = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const n = unwrap(args[0], from, to);
     return pattern.query(from, to).map(hap => {
-        const arr = [hap.value].flat();
+        const arr = hap.value;
         const size = Math.sqrt(arr.length);
         const d = ((Math.floor(n) % (size * 2 - 1)) + (size * 2 - 1)) % (size * 2 - 1) - (size - 1);
-        return { ...hap, value: arr.filter((_, i) => (i % size) - Math.floor(i / size) === d) };
+        return { ...hap, value: arr.filter((_: number, i: number) => (i % size) - Math.floor(i / size) === d) };
     });
 });
 
@@ -1322,7 +1322,7 @@ const region = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     return pattern.query(from, to).map(hap => {
         const raw = args.slice(0, -1).map(a => unwrap(a, hap.from, hap.to));
-        const arr = [hap.value].flat();
+        const arr = hap.value;
         const size = Math.round(Math.sqrt(arr.length));
         const x1 = ((Math.floor(raw[0]) % size) + size) % size;
         const y1 = ((Math.floor(raw[1]) % size) + size) % size;
@@ -1357,7 +1357,7 @@ const tile = (...args: any[]) => P((from, to) => {
     const rawArgs = args.slice(0, -1);
 
     return pattern.query(from, to).map(hap => {
-        const arr = Array.isArray(hap.value) ? hap.value : [hap.value];
+        const arr = hap.value;
         const gridSize = Math.round(Math.sqrt(arr.length));
 
         const tileSize  = rawArgs.length > 0 ? unwrap(rawArgs[0], from, to) : 2;
@@ -1391,7 +1391,7 @@ const hood = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const [x, y] = args.slice(0, -1).map(a => unwrap(a, from, to));
     return pattern.query(from, to).map(hap => {
-        const arr = [hap.value].flat();
+        const arr = hap.value;
         const size = Math.sqrt(arr.length);
         const neighbors = [];
         for (let j = -1; j <= 1; j++) {
@@ -1416,7 +1416,7 @@ const ring = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const ringIndex = unwrap(args[0], from, to);
     return pattern.query(from, to).map(hap => {
-        const arr = [hap.value].flat();
+        const arr = hap.value;
         const size = Math.sqrt(arr.length);
         const center = Math.floor(size / 2);
         const maxRing = Math.ceil(size / 2);
@@ -1446,8 +1446,8 @@ const density = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const threshold = hasThreshold ? unwrap(args[0], from, to) : 1;
     return pattern.query(from, to).map(hap => {
-        const arr = [hap.value].flat();
-        const count = arr.filter(v => v >= threshold).length;
+        const arr = hap.value;
+        const count = arr.filter((v: number) => v >= threshold).length;
         return { ...hap, value: count / arr.length };
     });
 });
@@ -1461,8 +1461,9 @@ const changed = (pattern: Pattern<any>) => {
     let lastValue: any = null;
     return P((from, to) => pattern.query(from, to).map(hap => {
         const value = hap.value;
-        const changed = Array.isArray(value) 
-            ? value.map((v, i) => v !== (lastValue?.[i]) ? 1 : 0)
+        const isArray = Array.isArray(value) || value instanceof Uint8Array;
+        const changed = isArray
+            ? Array.from(value, (v: number, i: number) => v !== (lastValue?.[i]) ? 1 : 0)
             : value !== lastValue ? 1 : 0;
         lastValue = value;
         return { ...hap, value: changed };
