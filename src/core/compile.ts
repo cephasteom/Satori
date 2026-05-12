@@ -1,4 +1,4 @@
-import { Stream, type Event } from './Stream';
+import { Stream } from './Stream';
 import { Qubit, circuit, renderCircuit } from './Qubit';
 import { methods } from './Pattern';
 import { utilities } from './utils';
@@ -12,6 +12,7 @@ const streams = Array(16).fill(0).map((_, i) => new Stream('s' + i))
 const fxStreams = Array(4).fill(0).map((_, i) => new Stream('fx' + i))
 const qubits = Array(16).fill(0).map((_, i) => new Qubit(i));
 const canvas = new Stream('canvas');
+const allStreams = [...streams, ...fxStreams];
 
 export const reset = () => {
     [global, ...streams, ...fxStreams, ...qubits, canvas].forEach(c => c.__reset());
@@ -108,17 +109,13 @@ export const compile = (from: number, to: number) => {
         // at the global level, we are only interested in events (at least for now)
         global: global.query(from, to).events,
         // at the stream level, we want events and mutations
-        streams: [...streams, ...fxStreams].reduce((compiled, stream) => {
+        streams: allStreams.flatMap(stream => {
             const { events, mutations } = stream.query(from, to);
-            return [
-                ...compiled,
-                ...events,
-                ...mutations
-            ]
-        }, [] as Event[]),
-        canvas: [
-            ...canvas.query(from, to).events,
-            ...canvas.query(from, to).mutations
-        ]
+            return [...events, ...mutations];
+        }),
+        canvas: (() => {
+            const { events, mutations } = canvas.query(from, to);
+            return [...events, ...mutations];
+        })()
     }
 }

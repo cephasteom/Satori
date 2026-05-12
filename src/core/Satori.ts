@@ -28,13 +28,13 @@ export class Satori {
             
             // extract cps changes
             const cpsEvents = global
-                .filter((hap: any) => Object.keys(hap.params).includes('cps'))
+                .filter((hap: any) => 'cps' in hap.params)
                 .map((hap: any) => ({time: hap.time, value: hap.params.cps}));
             
             // handle global events
             global.forEach((hap: any) => {
                 // update scheduler cps
-                this.cps = hap.params.cps ? [hap.params.cps].flat()[0] : 0.5;
+                this.cps = hap.params.cps ? (Array.isArray(hap.params.cps) ? hap.params.cps[0] : hap.params.cps) : 0.5;
                 // set transport bpm at the time of the event
                 this.transport.bpm.setValueAtTime(240 * this.cps, time);
             });
@@ -42,23 +42,21 @@ export class Satori {
             // handle stream events and mutations
             streams
                 .filter((hap) => !hap.params.mute)
-                .forEach((hap) => handlers.forEach(handler => handler(
-                    {...hap, cps: this.cps}, 
-                    time // time from transport
-                    // add delta value from start of this tick, scaled by cps at that time
-                    + (hap.time - from) / (cpsEvents.find(({time}: any) => time >= hap.time)?.value || this.cps) 
-                    + latency
-                )));
+                .forEach((hap) => {
+                    const effectiveCps = cpsEvents.find(({ time: t }) => t >= hap.time)?.value ?? this.cps;
+                    const hapTime = time + (hap.time - from) / effectiveCps + latency;
+                    const enriched = { ...hap, cps: this.cps };
+                    handlers.forEach(handler => handler(enriched, hapTime));
+                });
 
             // handle canvas events and mutations
             canvas
-                .forEach((hap) => canvasHandlers.forEach(handler => handler(
-                    {...hap, cps: this.cps}, 
-                    time // time from transport
-                    // add delta value from start of this tick, scaled by cps at that time
-                    + (hap.time - from) / (cpsEvents.find(({time}: any) => time >= hap.time)?.value || this.cps) 
-                    + latency
-                )));
+                .forEach((hap) => {
+                    const effectiveCps = cpsEvents.find(({ time: t }) => t >= hap.time)?.value ?? this.cps;
+                    const hapTime = time + (hap.time - from) / effectiveCps + latency;
+                    const enriched = { ...hap, cps: this.cps };
+                    canvasHandlers.forEach(handler => handler(enriched, hapTime));
+                });
 
             // update time pointer for next tick
             this.t = to;
