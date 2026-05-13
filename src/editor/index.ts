@@ -17,6 +17,7 @@ import 'prism-code-editor/invisibles.css';
 import 'prism-code-editor/search.css';
 
 import { preset } from "./preset";
+import { initCollab } from "./collab";
 
 import './style.css'
 
@@ -124,5 +125,11 @@ export const init = async (element: string = '#editor') => {
     window.addEventListener("setCode", (e: any) => {
         editor.setOptions({ value: e.detail.code });
     });
-        
+
+    // enable collab editing if ?room=<name> is in the URL
+    const room = new URLSearchParams(window.location.search).get('room');
+    if (room) {
+        const { sendCode } = initCollab(room, (code) => editor.setOptions({ value: code }));
+        editor.textarea.addEventListener('input', () => sendCode(editor.value));
+    }
 }
