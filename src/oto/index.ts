@@ -56,11 +56,10 @@ function handleEvent(event: Event, time: number) {
     // initialize channel if it doesn't exist
     channels[id] = channels[id] || new Channel(id, out);
 
-    const { n } = formatted;
-    if(n === undefined || Array.isArray(n) && n.length === 0) return; // if no note param, ignore
+    const { n = 60 } = formatted;
     
     // play notes - handle polyphony if n is an array
-    [formatted.n].flat()
+    [n].flat()
         .filter(Boolean)
         .forEach((n: number, noteIndex: number) => {
             channels[id].play({
