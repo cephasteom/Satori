@@ -5,6 +5,7 @@
  */
 import "prism-code-editor/prism/languages/markup"
 import 'prism-code-editor/prism/languages/typescript';
+import { setSelection } from 'prism-code-editor/utils'
 
 import { editorFromPlaceholder } from 'prism-code-editor';
 import { matchBrackets } from 'prism-code-editor/match-brackets';
@@ -129,7 +130,12 @@ export const init = async (element: string = '#editor') => {
     // enable collab editing if ?room=<name> is in the URL
     const room = new URLSearchParams(window.location.search).get('room');
     if (room) {
-        const { sendCode } = initCollab(room, (code) => editor.setOptions({ value: code }));
+        const { sendCode } = initCollab(room, (code) => {
+            const { selectionStart, selectionEnd, selectionDirection } = editor.textarea;
+            editor.setOptions({ value: code });
+            editor.textarea.focus();
+            editor.textarea.setSelectionRange(selectionStart, selectionEnd, selectionDirection);
+        });
         editor.textarea.addEventListener('input', () => sendCode(editor.value));
     }
 }
