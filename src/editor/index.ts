@@ -5,7 +5,6 @@
  */
 import "prism-code-editor/prism/languages/markup"
 import 'prism-code-editor/prism/languages/typescript';
-import { setSelection } from 'prism-code-editor/utils'
 
 import { editorFromPlaceholder } from 'prism-code-editor';
 import { matchBrackets } from 'prism-code-editor/match-brackets';
