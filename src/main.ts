@@ -11,6 +11,14 @@ import './editor/theme.css';
 import { init as initConsole } from './console';
 import './console/style.css';
 
+// ensure a room name is always in the URL so it's ready to share;
+// if one is already present (someone joining a session), keep it as-is
+const urlParams = new URLSearchParams(window.location.search);
+if (!urlParams.has('room')) {
+    urlParams.set('room', crypto.randomUUID());
+    history.replaceState(null, '', `?${urlParams}${window.location.hash}`);
+}
+
 // initialize UI components
 initDocs();
 initEditor();
@@ -18,7 +26,6 @@ initConsole();
 
 // select engine to use based on URL param, default to Oto (browser based synth engine)
 // SuperSatori (SuperCollider synth engine) can be used by adding ?engine=supersatori to the URL
-const urlParams = new URLSearchParams(window.location.search);
 const engine = urlParams.get('engine');
 const ws = urlParams.get('ws');
 const wsPort = parseInt(urlParams.get('wsPort') || '5001');

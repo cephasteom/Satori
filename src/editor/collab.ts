@@ -20,7 +20,6 @@ export function initCollab(room: string, setCode: (code: string) => void) {
         } catch {
             return;
         }
-        console.log(data);
         if (data.type === 'code' && data.clientId !== clientId) {
             suppressSend = true;
             setCode(data.code);
