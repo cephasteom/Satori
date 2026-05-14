@@ -56,6 +56,10 @@ a {
     }
 }
 
+select {
+    padding: 0rem;
+}
+
 header {
     background-color: var(--black);
     padding: var(--spacer);
@@ -69,13 +73,28 @@ header {
     & a {
         font-family: var(--font-1);
         text-transform: uppercase;
-        margin-top: auto;
         font-size: var(--text-xl);
         text-decoration: none;
     }
 
+    & select {
+        background-color: var(--black);
+        border: none;
+        border-radius: var(--border-radius);
+        color: white;
+        font-family: var(--font-1);
+        text-transform: uppercase;
+        font-size: var(--text-xl);
+        letter-spacing: 15%;
+
+    }
+    & option {
+        text-transform: none;
+    }
+
     & nav {
         display: flex;
+        align-items: center;
         gap: var(--spacer);
     }
 

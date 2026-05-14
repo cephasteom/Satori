@@ -10,6 +10,7 @@ import { init as initEditor } from './editor';
 import './editor/theme.css';
 import { init as initConsole } from './console';
 import './console/style.css';
+import examples from './examples';
 
 // ensure a room name is always in the URL so it's ready to share;
 // if one is already present (someone joining a session), keep it as-is
@@ -110,3 +111,13 @@ window.addEventListener('keydown', (e) => {
         satori.stop();
     }
 });
+
+const examplesSelect = document.getElementById('examples')
+examplesSelect?.addEventListener('change', e => {
+    // @ts-ignore
+    const {value} = e.target
+    // @ts-ignore
+    const code = examples[value]
+    if(code) window.dispatchEvent(new CustomEvent("setCode", { detail: { code } }));
+
+})
