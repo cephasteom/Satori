@@ -1,4 +1,6 @@
-export default `[s0,s1,s2].map((s,i) => s.set({
+export default `// Teom Algorithm for kick, snare, and hat // Cephas Teom, 2025 */
+
+[s0,s1,s2].map((s,i) => s.set({
   inst:1, bank:'ksh', i,
   e:qm(i).cache(1, every(4))
 }))

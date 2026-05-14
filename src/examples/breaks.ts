@@ -1,4 +1,6 @@
-export default `global.set({
+export default `// Beatslicer // Cephas Teom, 2025 */
+
+global.set({
   cps: 1.5, e: '1*4'})
 
 s0.set({ 

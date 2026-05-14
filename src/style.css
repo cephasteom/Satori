@@ -90,6 +90,7 @@ header {
     }
     & option {
         text-transform: none;
+        font-family: var(--font-1);
     }
 
     & nav {
