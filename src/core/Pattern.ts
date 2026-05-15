@@ -1269,16 +1269,10 @@ const ca = (...args: (Pattern<any> | number)[]) => P((from, to) => {
  * @example pqca(1) // retrieves the second PQCA dataset, which is a different 16x16 grid evolving over 64 cycles according to a different rule.
  * @returns a 1D array representing the grid state, where each cell is either 0 or 1.
  */
-const pqca = (i: number|Pattern<number>) => {
-    let frame = 0;
-    return P((from, to) => {
-        const set = unwrap(i, from, to)
-        // pass it from so that we memoize a request for next frame
-        const value = getPqcaData(set, frame);
-        frame++;
-        return [{ from, to, value }];
-    })
-}
+const pqca = (i: number|Pattern<number>) => P((from, to) => {
+    const data = getPqcaData(unwrap(i, from, to), from);
+    return [{ from, to, value: data }];
+})
 
 /**
  * Assuming an array whose length is a perfect square, treat it as a grid and return all values in the given row.
