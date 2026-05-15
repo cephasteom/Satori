@@ -14,6 +14,7 @@ import { retrieve as retrieveData } from './data';
 import { cellularAutomata } from './CA';
 import { caWorkerClient } from './CAWorkerClient';
 import { getLevel } from './metering';
+import { getPqcaData } from './PQCA';
 // @ts-ignore
 const { Noise } = pkg;
 const noiseGenerator = new Noise(Math.random());
@@ -1262,6 +1263,24 @@ const ca = (...args: (Pattern<any> | number)[]) => P((from, to) => {
 })
 
 /**
+ * Retrieve pre-rendered PQCA datasets
+ * @param i - index of the dataset to retrieve
+ * @example pqca(0) // retrieves the first PQCA dataset, which is a 16x16 grid evolving over 64 cycles according to a specific rule. Returns an array of 256 values representing the grid state each cycle.
+ * @example pqca(1) // retrieves the second PQCA dataset, which is a different 16x16 grid evolving over 64 cycles according to a different rule.
+ * @returns a 1D array representing the grid state, where each cell is either 0 or 1.
+ */
+const pqca = (i: number|Pattern<number>) => {
+    let frame = 0;
+    return P((from, to) => {
+        const set = unwrap(i, from, to)
+        // pass it from so that we memoize a request for next frame
+        const value = getPqcaData(set, frame);
+        frame++;
+        return [{ from, to, value }];
+    })
+}
+
+/**
  * Assuming an array whose length is a perfect square, treat it as a grid and return all values in the given row.
  * @param row - row index (0-based)
  * @example ca(4).row(0) // returns the first row of the 4x4 Game of Life grid
@@ -1542,8 +1561,9 @@ export const methods = {
     // quantum methods
     qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases,
     // cellular automata methods
-    ca, row, col, diagonal, region, hood, ring, density, tile,
+    ca, pqca, row, col, diagonal, region, hood, ring, density, tile,
     changed, born, died,
+
 };
 
 // declare a type for Pattern methods, for use in the Pattern interface
