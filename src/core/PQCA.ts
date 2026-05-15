@@ -24,7 +24,17 @@ const pqcaData = (dataset: number = 0, timestamp: number = 0) => {
         pqcaData.frames.set(key, next);
     }
 
-    return data[pqcaData.frames.get(key)!];
+    const currentFrame = pqcaData.frames.get(key)!;
+    const frameLen = data[0].length;
+    const grid = new Uint8Array(frameLen * frameLen);
+
+    const rowCount = Math.min(currentFrame + 1, frameLen);
+    for (let row = 0; row < rowCount; row++) {
+        const frameIndex = currentFrame - row;
+        grid.set(data[frameIndex], row * frameLen);
+    }
+
+    return grid;
 }
 
 pqcaData.cache = new Map<string, Uint8Array[]>();
