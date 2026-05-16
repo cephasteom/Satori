@@ -1,30 +1,30 @@
-const pqcaData = (dataset: number = 0, timestamp: number = 0) => {
+export const pqca1 = (dataset: number = 0, timestamp: number = 0) => {
     const key = `${dataset.toString().padStart(2, '0')}`;
 
-    if (!pqcaData.cache.has(key)) {
+    if (!pqca1.cache.has(key)) {
         fetch(`/data/pqca/${key}.json`)
             .then((res) => res.json())
-            .then((data) => pqcaData.cache.set(
+            .then((data) => pqca1.cache.set(
                 key,
                 data.frames.map((f: number[]) => Uint8Array.from(f))
             ))
             .catch((err) => {
                 console.error(`Failed to fetch PQCA data for dataset ${dataset}:`, err);
-                pqcaData.cache.set(key, []);
+                pqca1.cache.set(key, []);
             });
         return new Uint8Array();
     }
 
-    const data = pqcaData.cache.get(key)!;
+    const data = pqca1.cache.get(key)!;
     if (data.length === 0) return new Uint8Array();
 
-    if (pqcaData.lastTimestamp.get(key) !== timestamp) {
-        pqcaData.lastTimestamp.set(key, timestamp);
-        const next = ((pqcaData.frames.get(key) ?? -1) + 1) % data.length;
-        pqcaData.frames.set(key, next);
+    if (pqca1.lastTimestamp.get(key) !== timestamp) {
+        pqca1.lastTimestamp.set(key, timestamp);
+        const next = ((pqca1.frames.get(key) ?? -1) + 1) % data.length;
+        pqca1.frames.set(key, next);
     }
 
-    const currentFrame = pqcaData.frames.get(key)!;
+    const currentFrame = pqca1.frames.get(key)!;
     const frameLen = data[0].length;
     const grid = new Uint8Array(frameLen * frameLen);
 
@@ -37,8 +37,39 @@ const pqcaData = (dataset: number = 0, timestamp: number = 0) => {
     return grid;
 }
 
-pqcaData.cache = new Map<string, Uint8Array[]>();
-pqcaData.frames = new Map<string, number>();
-pqcaData.lastTimestamp = new Map<string, number>();
+pqca1.cache = new Map<string, Uint8Array[]>();
+pqca1.frames = new Map<string, number>();
+pqca1.lastTimestamp = new Map<string, number>();
 
-export const getPqcaData = pqcaData;
+export const pqca2 = (dataset: number = 0, timestamp: number = 0) => {
+    const key = `${dataset.toString().padStart(2, '0')}`;
+
+    if (!pqca2.cache.has(key)) {
+        fetch(`/data/pqca/${key}.json`)
+            .then((res) => res.json())
+            .then((data) => pqca2.cache.set(
+                key,
+                data.frames.map((f: number[]) => Uint8Array.from(f))
+            ))
+            .catch((err) => {
+                console.error(`Failed to fetch PQCA data for dataset ${dataset}:`, err);
+                pqca2.cache.set(key, []);
+            });
+        return new Uint8Array();
+    }
+
+    const data = pqca2.cache.get(key)!;
+    if (data.length === 0) return new Uint8Array();
+
+    if (pqca2.lastTimestamp.get(key) !== timestamp) {
+        pqca2.lastTimestamp.set(key, timestamp);
+        const next = ((pqca2.frames.get(key) ?? -1) + 1) % data.length;
+        pqca2.frames.set(key, next);
+    }
+
+    return data[pqca2.frames.get(key)!];
+}
+
+pqca2.cache = new Map<string, Uint8Array[]>();
+pqca2.frames = new Map<string, number>();
+pqca2.lastTimestamp = new Map<string, number>();
