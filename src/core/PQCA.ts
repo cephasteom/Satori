@@ -1,4 +1,4 @@
-export const pqcaData = (dataset: number = 0, timestamp: number = 0) => {
+export const pqcaData = (dataset: number = 0, frame: number = 0) => {
     const key = `${dataset.toString().padStart(2, '0')}`;
 
     if (!pqcaData.cache.has(key)) {
@@ -18,15 +18,7 @@ export const pqcaData = (dataset: number = 0, timestamp: number = 0) => {
     const data = pqcaData.cache.get(key)!;
     if (data.length === 0) return new Uint8Array();
 
-    if (pqcaData.lastTimestamp.get(key) !== timestamp) {
-        pqcaData.lastTimestamp.set(key, timestamp);
-        const next = ((pqcaData.frames.get(key) ?? -1) + 1) % data.length;
-        pqcaData.frames.set(key, next);
-    }
-
-    return data[pqcaData.frames.get(key)!];
+    return data[frame % data.length];
 }
 
 pqcaData.cache = new Map<string, Uint8Array[]>();
-pqcaData.frames = new Map<string, number>();
-pqcaData.lastTimestamp = new Map<string, number>();
