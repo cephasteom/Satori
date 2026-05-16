@@ -14,7 +14,7 @@ import { retrieve as retrieveData } from './data';
 import { cellularAutomata } from './CA';
 import { caWorkerClient } from './CAWorkerClient';
 import { getLevel } from './metering';
-import { pqca1, pqca2 } from './PQCA';
+import { pqcaData } from './PQCA';
 // @ts-ignore
 const { Noise } = pkg;
 const noiseGenerator = new Noise(Math.random());
@@ -1263,26 +1263,14 @@ const ca = (...args: (Pattern<any> | number)[]) => P((from, to) => {
 })
 
 /**
- * Retrieve pre-rendered PQCA datasets and interpret as a 1D array
+ * Retrieve pre-rendered PQCA datasets
  * @param i - index of the dataset to retrieve
  * @example pqca(0) // retrieves the first PQCA dataset, which is a 16x16 grid evolving over 64 cycles according to a specific rule. Returns an array of 256 values representing the grid state each cycle.
  * @example pqca(1) // retrieves the second PQCA dataset, which is a different 16x16 grid evolving over 64 cycles according to a different rule.
  * @returns a 1D array representing the grid state, where each cell is either 0 or 1.
  */
-const pqca1d = (i: number|Pattern<number>) => P((from, to) => {
-    const data = pqca1(unwrap(i, from, to), from);
-    return [{ from, to, value: data }];
-})
-
-/**
- * Retrieve pre-rendered PQCA datasets and interpret as a 2D array (grid)
- * @param i - index of the dataset to retrieve
- * @example pqca(0).grid() // retrieves the first PQCA dataset and returns it as a 16x16 grid (2D array)
- * @example pqca(1).grid() // retrieves the second PQCA dataset and returns it as a 16x16 grid (2D array)
- * @returns a 1D array representing the grid state, where each cell is either 0 or 1.
- */
-const pqca2d = (i: number|Pattern<number>) => P((from, to) => {
-    const data = pqca2(unwrap(i, from, to), from);
+const pqca = (i: number|Pattern<number>) => P((from, to) => {
+    const data = pqcaData(unwrap(i, from, to), from);
     return [{ from, to, value: data }];
 })
 
@@ -1567,7 +1555,7 @@ export const methods = {
     // quantum methods
     qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases,
     // cellular automata methods
-    ca, pqca1d, pqca2d, row, col, diagonal, region, hood, ring, density, tile,
+    ca, pqca, row, col, diagonal, region, hood, ring, density, tile,
     changed, born, died,
 
 };
