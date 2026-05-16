@@ -30,11 +30,18 @@ function drawGrid(grid: number[], cols?: number, rows?: number) {
         gridRows = rows!;
     }
 
-    // Cells are always square; derive size from column count
-    const cellSize = canvas.width / gridCols;
+    // Cells are always square; fit within canvas in both dimensions
+    const cellSize = Math.min(canvas.width / gridCols, canvas.height / gridRows);
+
+    const xOffset = Math.round((canvas.width - cellSize * gridCols) / 2);
+    const yOffset = Math.round((canvas.height - cellSize * gridRows) / 2);
 
     const imageData = ctx.createImageData(canvas.width, canvas.height);
     const data = imageData.data;
+
+    for (let i = 0; i < data.length; i += 4) {
+        data[i] = 20; data[i + 1] = 20; data[i + 2] = 20; data[i + 3] = 255;
+    }
 
     const totalCells = gridCols * gridRows;
 
@@ -45,10 +52,10 @@ function drawGrid(grid: number[], cols?: number, rows?: number) {
         const col = i % gridCols;
         const row = Math.floor(i / gridCols);
 
-        const xStart = Math.round(col * cellSize);
-        const yStart = Math.round(row * cellSize);
-        const xEnd = Math.round((col + 1) * cellSize);
-        const yEnd = Math.round((row + 1) * cellSize);
+        const xStart = xOffset + Math.round(col * cellSize);
+        const yStart = yOffset + Math.round(row * cellSize);
+        const xEnd = xOffset + Math.round((col + 1) * cellSize);
+        const yEnd = yOffset + Math.round((row + 1) * cellSize);
 
         for (let py = yStart; py < Math.min(yEnd, canvas.height); py++) {
             for (let px = xStart; px < Math.min(xEnd, canvas.width); px++) {
