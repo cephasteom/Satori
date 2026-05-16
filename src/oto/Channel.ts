@@ -10,6 +10,7 @@ import TAM from './ct-synths/tone/AMSynth'
 import FXChannel from './ct-synths/rnbo/FXChannel2';
 import FXDelay from './ct-synths/rnbo/Delay';
 import ReverbGen from './ct-synths/rnbo/ReverbGen';
+import SimpleSynth from './ct-synths/faust/SimpleSynth';
 
 import { samples } from './samples';
 
@@ -23,7 +24,7 @@ output.connect(destination) // connect to system audio output
 
 const busses = Array.from({length: 4}, () => new Gain(1))
 
-declare type Instrument = typeof Synth | typeof Sampler | typeof Granular | typeof AcidSynth | typeof TSynth | typeof TMono | typeof TFM | typeof TAM
+declare type Instrument = typeof Synth | typeof Sampler | typeof Granular | typeof AcidSynth | typeof TSynth | typeof TMono | typeof TFM | typeof TAM | typeof SimpleSynth
 
 const instMap: Record<string, Instrument> = {
     'synth': Synth,
@@ -34,6 +35,7 @@ const instMap: Record<string, Instrument> = {
     'tone.mono': TMono,
     'tone.fm': TFM,
     'tone.am': TAM,
+    'faust.simple': SimpleSynth
 }
 
 /**
