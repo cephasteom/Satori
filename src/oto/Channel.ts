@@ -11,6 +11,7 @@ import FXChannel from './ct-synths/rnbo/FXChannel2';
 import FXDelay from './ct-synths/rnbo/Delay';
 import ReverbGen from './ct-synths/rnbo/ReverbGen';
 import SimpleSynth from './ct-synths/faust/SimpleSynth';
+import Pad from './ct-synths/faust/Pad'
 
 import { samples } from './samples';
 
@@ -35,7 +36,8 @@ const instMap: Record<string, Instrument> = {
     'tone.mono': TMono,
     'tone.fm': TFM,
     'tone.am': TAM,
-    'faust.simple': SimpleSynth
+    'faust.simple': SimpleSynth,
+    'faust.pad': Pad
 }
 
 /**
