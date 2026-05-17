@@ -11,8 +11,9 @@ import FXChannel from './ct-synths/rnbo/FXChannel2';
 import FXDelay from './ct-synths/rnbo/Delay';
 import ReverbGen from './ct-synths/rnbo/ReverbGen';
 import SimpleSynth from './ct-synths/faust/SimpleSynth';
-import Pad from './ct-synths/faust/Pad'
 import FMSynth from './ct-synths/faust/FMSynth';
+import Pad from './ct-synths/faust/Pad'
+import FDistortion from './ct-synths/faust/Distortion'
 
 import { samples } from './samples';
 
@@ -60,6 +61,7 @@ export class Channel {
     _fx: any
     _reverb: any
     _delay: any
+    _fdist: any
     _fader: Gain // volume control
 
     _busses: Gain[] // fx busses
@@ -79,7 +81,6 @@ export class Channel {
         this._limiter.connect(this._output) // delay signal to compensate for lookahead
         this._limiter.connect(this._meter) // but tap signal pre-delay for metering to get accuate reading
         this._fader.connect(this._limiter)
-
 
         // create 4 internal bus nodes
         this._busses = Array.from({length: 4}, () => new Gain(0))
@@ -197,6 +198,11 @@ export class Channel {
         this._handleInternalRouting()
     }
 
+    initFDistortion() {
+        this._fdist = new FDistortion()
+        this._handleInternalRouting()
+    }
+
     /**
      * Meter the output level of this channel, sending updates to the UI via BroadcastChannel
      */
@@ -213,8 +219,8 @@ export class Channel {
      * Handles internal routing of input -> fx -> _fader
      */
     _handleInternalRouting() {
-        const { _fx, _reverb, _delay, input, _fader } = this
-        const fx = [_fx, _delay, _reverb]
+        const { _fx, _reverb, _delay, _fdist, input, _fader } = this
+        const fx = [_fx, _delay, _reverb, _fdist]
         
         // disconnect chain
         fx.forEach(fx => fx && fx.disconnect())
@@ -302,11 +308,13 @@ export class Channel {
         // initialize reverb / delay if needed
         params.reverb > 0 && !this._reverb && this.initReverb()
         params.delay > 0 && !this._delay && this.initDelay()
+        params.fdist > 0 && !this._fdist && this.initFDistortion()
 
         // set fx params
         this._fx && this._fx.set(params, time)
         this._reverb && this._reverb.set(params, time)
         this._delay && this._delay.set(params, time)
+        this._fdist && this._fdist.set(params, time)
     }
 
     /**
@@ -317,12 +325,14 @@ export class Channel {
         Object.values(this._instruments)
             .forEach(inst => inst.mutate(params, time, lag));
 
+        this._fdist && this._fdist.mutate(params, time, lag);
+
         // handle bus sends
-        this._busses.forEach((_, i) => params[`bus${i}`] 
+        this._busses.forEach((_, i) => params[`bus${i}`]
             && this.send(i, params[`bus${i}`], time, lag));
 
         // handle fxBus sends
-        this._fxBusses.forEach((_, i) => params[`fx${i}`] 
+        this._fxBusses.forEach((_, i) => params[`fx${i}`]
             && this.sendFx(i, params[`fx${i}`], time, lag));
     }
 
