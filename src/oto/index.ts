@@ -14,7 +14,7 @@ export function init() {
 
 async function startAudio() {
     await start();
-    getContext().lookAhead = 0.05; // reduce default lookahead for more responsive scheduling
+    getContext().lookAhead = 0.1; // reduce default lookahead for more responsive scheduling
     satori.postMessage({ type: 'info', message: 'Started audio' });
     window.removeEventListener('keydown', startAudio)
     window.removeEventListener('click', startAudio)
