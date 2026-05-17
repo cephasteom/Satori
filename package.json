@@ -13,7 +13,6 @@
     "docs:stream": "npx typedoc src/core/Stream.ts --json src/docs/Stream.json",
     "docs:instruments": "npx typedoc src/oto/ct-synths/rnbo/Synth.ts src/oto/ct-synths/rnbo/Sampler2.ts src/oto/ct-synths/rnbo/Granular2.ts src/oto/ct-synths/rnbo/AcidSynth.ts src/oto/ct-synths/tone/Synth.ts src/oto/ct-synths/tone/AMSynth.ts src/oto/ct-synths/tone/FMSynth.ts src/oto/ct-synths/tone/MonoSynth.ts --json src/docs/instruments.json",
     "docs:fx": "npx typedoc src/oto/ct-synths/rnbo/Delay.ts src/oto/ct-synths/rnbo/ReverbGen.ts src/oto/ct-synths/rnbo/FXChannel.ts --json src/docs/fx.json",
-    "faust:compile": "node src/oto/ct-synths/faust/compile.mjs",
     "docs": "npm run docs:pattern && npm run docs:stream && npm run docs:instruments && npm run docs:fx"
   },
   "devDependencies": {
@@ -25,7 +24,6 @@
     "vite": "^7.2.4"
   },
   "dependencies": {
-    "@grame/faustwasm": "^0.16.1",
     "@rnbo/js": "^1.4.2",
     "highlight.js": "^11.11.1",
     "marked": "^17.0.1",
