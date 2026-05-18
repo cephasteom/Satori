@@ -14,6 +14,7 @@ import SimpleSynth from './ct-synths/faust/SimpleSynth';
 import FMSynth from './ct-synths/faust/FMSynth';
 import Pad from './ct-synths/faust/Pad'
 import FDistortion from './ct-synths/faust/Distortion'
+import FTape from './ct-synths/faust/Tape'
 
 import { samples } from './samples';
 
@@ -62,8 +63,9 @@ export class Channel {
     _reverb: any
     _delay: any
     _fdist: any
+    _ftape: any
+    
     _fader: Gain // volume control
-
     _busses: Gain[] // fx busses
     _fxBusses: Gain[]
     _meter: Meter
@@ -198,8 +200,20 @@ export class Channel {
         this._handleInternalRouting()
     }
 
+    /**
+     * Init Faust distortion
+     */
     initFDistortion() {
         this._fdist = new FDistortion()
+        this._handleInternalRouting()
+    }
+
+    /**
+     * Init Faust tape
+     */
+    initFTape() {
+        console.log('adding ftape')
+        this._ftape = new FTape()
         this._handleInternalRouting()
     }
 
@@ -219,8 +233,8 @@ export class Channel {
      * Handles internal routing of input -> fx -> _fader
      */
     _handleInternalRouting() {
-        const { _fx, _reverb, _delay, _fdist, input, _fader } = this
-        const fx = [_fx, _delay, _reverb, _fdist]
+        const { _fx, _reverb, _delay, _fdist, _ftape, input, _fader } = this
+        const fx = [_fx, _delay, _reverb, _fdist, _ftape]
         
         // disconnect chain
         fx.forEach(fx => fx && fx.disconnect())
@@ -309,12 +323,14 @@ export class Channel {
         params.reverb > 0 && !this._reverb && this.initReverb()
         params.delay > 0 && !this._delay && this.initDelay()
         params.fdist > 0 && !this._fdist && this.initFDistortion()
+        params.ftape > 0 && !this._ftape && this.initFTape()
 
         // set fx params
         this._fx && this._fx.set(params, time)
         this._reverb && this._reverb.set(params, time)
         this._delay && this._delay.set(params, time)
         this._fdist && this._fdist.set(params, time)
+        this._ftape && this._ftape.set(params, time)
     }
 
     /**

@@ -10,8 +10,6 @@ export function initCollab(room: string, setCode: (code: string) => void) {
     const socket = new PartySocket({ host: PARTYKIT_HOST, room });
 
     socket.onopen = () => channel.postMessage({ type: 'success', message: `Collaboration initialised. Share the URL to connect with others.` });
-    // socket.onerror = () => channel.postMessage({ type: 'error', message: 'Collab connection error' });
-    // socket.onclose = () => channel.postMessage({ type: 'info', message: 'Collab connection closed' });
 
     socket.onmessage = (e) => {
         let data: any;
