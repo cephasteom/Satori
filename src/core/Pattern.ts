@@ -6,7 +6,7 @@
 import { complex, round, pow, abs } from 'mathjs'
 import { parse, evalNode } from './mini';
 import { circuit, runCircuit } from './Qubit';
-import { cyclesPerSecond, to2D, transposeOctave, unwrapArray } from './utils';
+import { cyclesPerSecond, flatten, to2D, transposeOctave, unwrapArray } from './utils';
 import { setupInputListener, syncLoopState } from './MidiInput';
 import pkg from 'noisejs';
 import { WebMidi } from 'webmidi';
@@ -1413,52 +1413,25 @@ const hood = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const [x, y] = args.slice(0, -1).map(a => unwrap(a, from, to));
     return pattern.query(from, to).map(hap => {
-        const arr = hap.value;
-        const size = Math.sqrt(arr.length);
-        const neighbors = [];
+        const arr = to2D(hap.value);
+
+        const rows = arr.length
+        const cols = arr[0].length
+        const neighbours = [];
         for (let j = -1; j <= 1; j++) {
             for (let i = -1; i <= 1; i++) {
                 if (i === 0 && j === 0) continue; // skip the cell itself
-                const nx = (x + i + size) % size;
-                const ny = (y + j + size) % size;
-                neighbors.push(arr[ny * size + nx]);
+                const nx = (x + i + cols) % cols;
+                const ny = (y + j + rows) % rows;
+                neighbours.push(arr[ny][nx]);
             }
         }
-        return { ...hap, value: neighbors };
+        return { ...hap, value: neighbours };
     });
 });
 
 /**
- * Assuming an array whose length is a perfect square, treat it as a grid and return values in concentric rings from the centre outwards. The first ring (0) is the centre cell, the second ring (1) is the 8 neighbours, the third ring (2) is the 16 cells surrounding those, etc.
- * @param i - index - wraps around if exceeds the maximum number of rings
- * @example ca(4).ring(0) // returns the centre cell of the 4x4 Game of Life grid
- * @example ca(4).ring(1) // returns the 8 neighbours of the centre cell in the 4x4 Game of Life grid
- */
-const ring = (...args: any[]) => P((from, to) => {
-    const pattern = args[args.length - 1] as Pattern<any>;
-    const ringIndex = unwrap(args[0], from, to);
-    return pattern.query(from, to).map(hap => {
-        const arr = hap.value;
-        const size = Math.sqrt(arr.length);
-        const center = Math.floor(size / 2);
-        const maxRing = Math.ceil(size / 2);
-        const r = ((Math.floor(ringIndex) % maxRing) + maxRing) % maxRing; // wrap around and handle negative
-        const ringValues = [];
-        for (let y = center - r; y <= center + r; y++) {
-            for (let x = center - r; x <= center + r; x++) {
-                if (Math.max(Math.abs(x - center), Math.abs(y - center)) === r) { // only include cells on the current ring
-                    const nx = (x + size) % size;
-                    const ny = (y + size) % size;
-                    ringValues.push(arr[ny * size + nx]);
-                }
-            }
-        }
-        return { ...hap, value: ringValues };
-    });
-});
-
-/**
- * Assuming an array of values, return the number of values that are above a certain threshold, as a normalised value between 0 and 1.
+ * Assuming a 1D or 2D array of values, return the number of values that are above a certain threshold, as a normalised value between 0 and 1.
  * @param threshold - value to compare against. Default is 1.
  * @example ca(16).density(0.5) // returns a normalised count of how many cells in the 4x4 Game of Life grid are above 0.5
  * @example ca(4).row(0).density(0.5) // returns a normalised count of how many cells in the first row of the Game of Life grid are above 0.5
@@ -1468,7 +1441,7 @@ const density = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const threshold = hasThreshold ? unwrap(args[0], from, to) : 1;
     return pattern.query(from, to).map(hap => {
-        const arr = hap.value;
+        const arr = flatten(hap.value);
         const count = arr.filter((v: number) => v >= threshold).length;
         return { ...hap, value: count / arr.length };
     });
@@ -1604,7 +1577,7 @@ export const methods = {
     // quantum methods
     qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases,
     // cellular automata methods
-    ca, pqca, row, col, diagonal, region, hood, ring, density, tile,
+    ca, pqca, row, col, diagonal, region, hood, density, tile,
     changed, born, died,
     reflectx, reflecty
 
