@@ -10,19 +10,26 @@ let ctx: CanvasRenderingContext2D | null = null;
  * @param rows
  * @returns 
  */
-function drawGrid(grid: number[], cols?: number, rows?: number) {
+function drawGrid(grid: number[] | number[][], cols?: number, rows?: number) {
     if (!ctx || !canvas) return;
 
     let gridCols: number;
     let gridRows: number;
+    const is2D = Array.isArray(grid[0])
 
-    if (cols == null && rows == null) {
+    if (is2D) {
+        gridCols = grid[0].length
+        gridRows = grid.length
+    } else if (cols == null && rows == null) {
+        // assume a perfect square
         gridCols = Math.round(Math.sqrt(grid.length));
         gridRows = gridCols;
     } else if (cols != null && rows == null) {
+        // best fit based on cols
         gridCols = cols;
         gridRows = Math.ceil(grid.length / cols);
     } else if (cols == null && rows != null) {
+        // best fit based on rows
         gridRows = rows;
         gridCols = Math.ceil(grid.length / rows);
     } else {
@@ -44,9 +51,10 @@ function drawGrid(grid: number[], cols?: number, rows?: number) {
     }
 
     const totalCells = gridCols * gridRows;
+    const flatGrid = grid.flat()
 
     for (let i = 0; i < totalCells; i++) {
-        const value = i < grid.length ? grid[i] : 0;
+        const value = i < flatGrid.length ? flatGrid[i] : 0;
         const alpha = Math.round(value * 255);
 
         const col = i % gridCols;
