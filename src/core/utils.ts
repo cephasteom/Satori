@@ -55,6 +55,45 @@ export const flatten = (data: Uint8Array | Uint8Array[] | number[] | number[][])
     return Uint8Array.from(flat as number[]);
 }
 
+export const to2D = (
+    data: Uint8Array | Uint8Array[] | number[] | number[][], 
+    rows?: number, 
+    cols?: number): any => {
+    // if (data[0].length) return data
+    let gridCols: number;
+    let gridRows: number;
+    const is2D = data[0]?.length
+
+    if (is2D) {
+        return data
+    } else if (cols == null && rows == null) {
+        // assume a perfect square
+        gridCols = Math.round(Math.sqrt(data.length));
+        gridRows = gridCols;
+    } else if (cols != null && rows == null) {
+        // best fit based on cols
+        gridCols = cols;
+        gridRows = Math.ceil(data.length / cols);
+    } else if (cols == null && rows != null) {
+        // best fit based on rows
+        gridRows = rows;
+        gridCols = Math.ceil(data.length / rows);
+    } else {
+        gridCols = cols!;
+        gridRows = rows!;
+    }
+
+    let arr = []
+    for (let i = 0; i < gridRows; i++) {
+        arr[i] = []
+    }
+    for (let i = 0; i < gridCols; i++) {
+        arr[Math.floor(i/gridCols)] = data[i]
+    }
+
+    return data
+}
+
 let samplesMessage = '';
 channel.addEventListener('message', (e) => samplesMessage = e.data.type === 'samples' 
     ? e.data.message 

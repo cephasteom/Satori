@@ -6,7 +6,7 @@
 import { complex, round, pow, abs } from 'mathjs'
 import { parse, evalNode } from './mini';
 import { circuit, runCircuit } from './Qubit';
-import { cyclesPerSecond, transposeOctave, unwrapArray } from './utils';
+import { cyclesPerSecond, to2D, transposeOctave, unwrapArray } from './utils';
 import { setupInputListener, syncLoopState } from './MidiInput';
 import pkg from 'noisejs';
 import { WebMidi } from 'webmidi';
@@ -1539,6 +1539,45 @@ const died = (pattern: Pattern<any>) => {
 }
 
 /**
+ * Reflect a grid on the x-axis
+ * If a 1D array, treat as a perfect square
+ * If a 2D array, treat as a list of rows
+ */
+const reflectx = (...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    return pattern.query(from, to).map(hap => {
+        const arr = to2D(hap.value);
+        
+        return { 
+            ...hap, 
+            value:  arr.map((row: number[]) => {
+                return [...row, ...row.reverse()]
+            })
+        };
+    });
+});
+
+/**
+ * Reflect a grid on the y-axis
+ * If a 1D array, treat as a perfect square
+ * If a 2D array, treat as a list of rows
+ */
+const reflecty = (...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    return pattern.query(from, to).map(hap => {
+        const arr = to2D(hap.value);
+        
+        return { 
+            ...hap, 
+            value:  [
+                ...arr,
+                ...arr.reverse()
+            ]
+        };
+    });
+});
+
+/**
  * Asssuming an array, join together into a string with an optional separator.
  * @param separator - string to join values with. Default is '' (no separator).
  * @example 'C E G'.join() // returns 'CEG'
@@ -1583,6 +1622,7 @@ export const methods = {
     // cellular automata methods
     ca, pqca, row, col, diagonal, region, hood, ring, density, tile,
     changed, born, died,
+    reflectx, reflecty
 
 };
 
