@@ -1295,18 +1295,10 @@ const pqca = (
 const row = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const row = unwrap(args[0], from, to);
-    return pattern.query(from, to).map(hap => {
-        const arr = hap.value;
-        
-        if(arr[0]?.length) return {
-            ...hap,
-            value: Array.from(arr[row])
-        }
-        
-        const size = Math.sqrt(arr.length);
-        const r = Math.floor(row) % size;
-        return { ...hap, value: arr.slice(r * size, (r + 1) * size) };
-    });
+    return pattern.query(from, to).map(hap => ({
+        ...hap,
+        value: Array.from(to2D(hap.value)[row] || [])
+    }))
 });
 
 /**
@@ -1320,18 +1312,10 @@ const row = (...args: any[]) => P((from, to) => {
 const col = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const col = unwrap(args[0], from, to);
-    return pattern.query(from, to).map(hap => {
-        const arr = hap.value;
-
-        if(arr[0]?.length) return {
-            ...hap,
-            value: Array.from(arr[col])
-        }
-
-        const size = Math.sqrt(arr.length);
-        const c = Math.floor(col) % size;
-        return { ...hap, value: Array.from({ length: size }, (_, i) => arr[c + i * size]) };
-    });
+    return pattern.query(from, to).map(hap => ({
+        ...hap,
+        value: Array.from(to2D(hap.value)[col] || [])
+    }))
 });
 
 /**
@@ -1550,7 +1534,7 @@ const reflectx = (...args: any[]) => P((from, to) => {
         
         return { 
             ...hap, 
-            value:  arr.map((row: number[]) => {
+            value:  arr.map((row: number[] = []) => {
                 return [...row, ...row.reverse()]
             })
         };

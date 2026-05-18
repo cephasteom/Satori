@@ -62,19 +62,18 @@ export const to2D = (
     // if (data[0].length) return data
     let gridCols: number;
     let gridRows: number;
-    const is2D = data[0]?.length
-
+    const is2D = data[0]?.length || false
     if (is2D) {
         return data
-    } else if (cols == null && rows == null) {
+    } else if (cols == undefined && rows == undefined) {
         // assume a perfect square
         gridCols = Math.round(Math.sqrt(data.length));
         gridRows = gridCols;
-    } else if (cols != null && rows == null) {
+    } else if (cols != undefined && rows == undefined) {
         // best fit based on cols
         gridCols = cols;
         gridRows = Math.ceil(data.length / cols);
-    } else if (cols == null && rows != null) {
+    } else if (cols == undefined && rows != undefined) {
         // best fit based on rows
         gridRows = rows;
         gridCols = Math.ceil(data.length / rows);
@@ -91,7 +90,7 @@ export const to2D = (
         arr[Math.floor(i/gridCols)] = data[i]
     }
 
-    return data
+    return arr
 }
 
 let samplesMessage = '';
