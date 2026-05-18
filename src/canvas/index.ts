@@ -1,13 +1,14 @@
 import { getDraw } from "tone";
+import { flatten } from "../core/utils";
 
 let canvas: HTMLCanvasElement;
 let ctx: CanvasRenderingContext2D | null = null;
 
 /**
- * 
- * @param grid 
- * @param cols 
- * @param rows
+ * Draw Grid
+ * @param grid - a 1D or 2D array  
+ * @param cols - optional - if omitted, 2D arrays treated as a list of rows, 1D arrays treated as a perfect square
+ * @param rows - optional - if omitted, 2D arrays treated as a list of rows, 1D arrays treated as a perfect square
  * @returns 
  */
 function drawGrid(grid: number[] | number[][], cols?: number, rows?: number) {
@@ -15,7 +16,7 @@ function drawGrid(grid: number[] | number[][], cols?: number, rows?: number) {
 
     let gridCols: number;
     let gridRows: number;
-    const is2D = Array.isArray(grid[0])
+    const is2D = grid[0]?.length
 
     if (is2D) {
         gridCols = grid[0].length
@@ -51,7 +52,7 @@ function drawGrid(grid: number[] | number[][], cols?: number, rows?: number) {
     }
 
     const totalCells = gridCols * gridRows;
-    const flatGrid = grid.flat()
+    const flatGrid = flatten(grid)
 
     for (let i = 0; i < totalCells; i++) {
         const value = i < flatGrid.length ? flatGrid[i] : 0;

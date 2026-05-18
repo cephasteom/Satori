@@ -45,6 +45,16 @@ export function unwrapArray(value: any): any {
     return Array.isArray(value) && value.length === 1 ? value[0] : value;
 }
 
+// a function that can flatten different types of lists
+export const flatten = (data: Uint8Array | Uint8Array[] | number[] | number[][]): Uint8Array => {
+    if (data instanceof Uint8Array) return data;
+    if (data.length === 0) return new Uint8Array();
+    if (data[0] instanceof Uint8Array)
+        return new Uint8Array((data[0] as Uint8Array).buffer, (data[0] as Uint8Array).byteOffset, (data as Uint8Array[]).reduce((acc, row) => acc + row.length, 0));
+    const flat = (data as number[] | number[][]).flat(2);
+    return Uint8Array.from(flat as number[]);
+}
+
 let samplesMessage = '';
 channel.addEventListener('message', (e) => samplesMessage = e.data.type === 'samples' 
     ? e.data.message 
