@@ -1368,7 +1368,7 @@ const region = (...args: any[]) => P((from, to) => {
 
 /**
  * Assuming an array whose length is a perfect square, treat it as a grid and return values of the specified tile.
- * Tiles are indexed starting from the top-left, going row by row. For example, in a 4x4 grid, tile(2,2) would return the bottom-right 2x2 section.
+ * Tiles are indexed starting from the top-left, going row by row. For example, in a 4x4 grid, tile(2,3) would return the bottom-right 2x2 section.
  * 
  * @param size - size of the tile
  * @param i - tile index, starting from top-left and going row by row. Wraps around if exceeds the number of tiles.
