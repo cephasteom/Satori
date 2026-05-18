@@ -1,6 +1,6 @@
-type PqcaCache = { frames: Uint8Array[][] } | { frames: Uint8Array[][][] };
+type PqcaCache = { frames: number[][] } | { frames: number[][][] };
 
-export const pqcaData = (dataset: number = 0, frame: number = 0, shot: number = 0): Uint8Array | Uint8Array[] => {
+export const pqcaData = (dataset: number = 0, frame: number = 0, shot: number = 0): number | number[] => {
     const key = `${dataset.toString().padStart(2, '0')}`;
 
     if (!pqcaData.cache.has(key)) {
@@ -14,7 +14,7 @@ export const pqcaData = (dataset: number = 0, frame: number = 0, shot: number = 
                         const flat = Uint8Array.from(shot);
                         if (rows && cols) {
                             return Array.from({ length: rows }, (_, r) =>
-                                flat.subarray(r * cols, (r + 1) * cols)
+                                Array.from(flat.subarray(r * cols, (r + 1) * cols))
                             );
                         }
                         return flat;
@@ -27,11 +27,11 @@ export const pqcaData = (dataset: number = 0, frame: number = 0, shot: number = 
                 console.error(`Failed to fetch PQCA data for dataset ${dataset}:`, err);
                 pqcaData.cache.set(key, { frames: [] });
             });
-        return new Uint8Array();
+        return [];
     }
 
     const cached = pqcaData.cache.get(key)!;
-    if (cached.frames.length === 0) return new Uint8Array();
+    if (cached.frames.length === 0) return [];
 
     const frameData = cached.frames[frame % cached.frames.length];
     return frameData[shot % frameData.length];

@@ -1416,14 +1416,14 @@ const hood = (...args: any[]) => P((from, to) => {
         const arr = to2D(hap.value);
 
         const rows = arr.length
-        const cols = arr[0].length
+        const cols = arr[0]?.length || 1
         const neighbours = [];
         for (let j = -1; j <= 1; j++) {
             for (let i = -1; i <= 1; i++) {
                 if (i === 0 && j === 0) continue; // skip the cell itself
                 const nx = (x + i + cols) % cols;
                 const ny = (y + j + rows) % rows;
-                neighbours.push(arr[ny][nx]);
+                arr[ny] !== undefined && neighbours.push(arr[ny][nx])
             }
         }
         return { ...hap, value: neighbours };
@@ -1456,8 +1456,7 @@ const changed = (pattern: Pattern<any>) => {
     let lastValue: any = null;
     return P((from, to) => pattern.query(from, to).map(hap => {
         const value = hap.value;
-        const isArray = Array.isArray(value) || value instanceof Uint8Array;
-        const changed = isArray
+        const changed = Array.isArray(value)
             ? Array.from(value, (v: number, i: number) => v !== (lastValue?.[i]) ? 1 : 0)
             : value !== lastValue ? 1 : 0;
         lastValue = value;

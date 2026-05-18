@@ -9,7 +9,7 @@
 /* ─── tokens ──────────────────────────────────────────────── */
 
 :root {
-  --bg:           #0d0d0d;
+  --bg:           rgb(13,13,13);
   --bg-panel:     #0a0a0a;
   --bg-inset:     #080808;
 
@@ -36,7 +36,6 @@
   --sidebar-w:    90px;
   --transport-h:  calc(30px + (var(--spacer)));
   --console-h:    40%;
-
 
   --font: 'Courier New', 'Lucida Console', monospace;
   --font-sz: 1rem;

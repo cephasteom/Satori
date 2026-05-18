@@ -48,7 +48,7 @@ function drawGrid(grid: number[] | number[][], cols?: number, rows?: number) {
     const data = imageData.data;
 
     for (let i = 0; i < data.length; i += 4) {
-        data[i] = 20; data[i + 1] = 20; data[i + 2] = 20; data[i + 3] = 255;
+        data[i] = 13; data[i + 1] = 13; data[i + 2] = 13; data[i + 3] = 255;
     }
 
     const totalCells = gridCols * gridRows;
