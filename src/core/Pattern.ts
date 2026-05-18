@@ -1285,7 +1285,9 @@ const pqca = (
 })
 
 /**
- * Assuming an array whose length is a perfect square, treat it as a grid and return all values in the given row.
+ * Return row n
+ * If a 1D array, treat as a perfect square
+ * If a 2D array, treat as a list of rows
  * @param row - row index (0-based)
  * @example ca(4).row(0) // returns the first row of the 4x4 Game of Life grid
  * @example ca(4).row(count()) // returns a different row each event, cycling through the rows as count() increments
@@ -1295,6 +1297,12 @@ const row = (...args: any[]) => P((from, to) => {
     const row = unwrap(args[0], from, to);
     return pattern.query(from, to).map(hap => {
         const arr = hap.value;
+        
+        if(arr[0]?.length) return {
+            ...hap,
+            value: Array.from(arr[row])
+        }
+        
         const size = Math.sqrt(arr.length);
         const r = Math.floor(row) % size;
         return { ...hap, value: arr.slice(r * size, (r + 1) * size) };
@@ -1302,7 +1310,9 @@ const row = (...args: any[]) => P((from, to) => {
 });
 
 /**
- * Assuming an array whose length is a perfect square, treat it as a grid and return all values in the given column.
+ * Return col n
+ * If a 1D array, treat as a perfect square
+ * If a 2D array, treat as a list of rows
  * @param col - column index (0-based)
  * @example ca(4).col(0) // returns the first column of the 4x4 Game of Life grid
  * @example ca(4).col(count()) // returns a different column each event, cycling through the columns as count() increments
@@ -1312,6 +1322,12 @@ const col = (...args: any[]) => P((from, to) => {
     const col = unwrap(args[0], from, to);
     return pattern.query(from, to).map(hap => {
         const arr = hap.value;
+
+        if(arr[0]?.length) return {
+            ...hap,
+            value: Array.from(arr[col])
+        }
+
         const size = Math.sqrt(arr.length);
         const c = Math.floor(col) % size;
         return { ...hap, value: Array.from({ length: size }, (_, i) => arr[c + i * size]) };
