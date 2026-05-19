@@ -1342,9 +1342,10 @@ const diagonal = (...args: any[]) => P((from, to) => {
     });
 });
 
-// TODO
-/** 
- * Assuming an array whose length is a perfect square, treat it as a grid and return values from x1,y1 to x2,y2. If x2 or y2 are out of bounds, they will wrap around to the beginning of the row or column.
+/**
+ * Assuming a 1D or 2D array, treat it as a grid and return values from x1,y1 to x2,y2.
+ * If a 1D array, treat as a perfect square. If a 2D array, treat as a list of rows.
+ * If x2 or y2 are out of bounds, they will wrap around to the beginning of the row or column.
  * @param args - x1, y1, x2, y2
  * @example ca(4).region(0,0,2,2) // returns the top-left 2x2 region of the 4x4 Game of Life grid
  */
@@ -1352,50 +1353,52 @@ const region = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     return pattern.query(from, to).map(hap => {
         const raw = args.slice(0, -1).map(a => unwrap(a, hap.from, hap.to));
-        const arr = hap.value;
-        const size = Math.round(Math.sqrt(arr.length));
-        const x1 = ((Math.floor(raw[0]) % size) + size) % size;
-        const y1 = ((Math.floor(raw[1]) % size) + size) % size;
-        const x2 = ((Math.floor(raw[2]) % size) + size) % size;
-        const y2 = ((Math.floor(raw[3]) % size) + size) % size;
-        const cols = ((x2 - x1) + size) % size;
-        const rows = ((y2 - y1) + size) % size;
+        const grid = to2D(hap.value);
+        const gridRows = grid.length;
+        const gridCols = grid[0]?.length || 1;
+        const x1 = ((Math.floor(raw[0]) % gridCols) + gridCols) % gridCols;
+        const y1 = ((Math.floor(raw[1]) % gridRows) + gridRows) % gridRows;
+        const x2 = ((Math.floor(raw[2]) % gridCols) + gridCols) % gridCols;
+        const y2 = ((Math.floor(raw[3]) % gridRows) + gridRows) % gridRows;
+        const cols = ((x2 - x1) + gridCols) % gridCols;
+        const rows = ((y2 - y1) + gridRows) % gridRows;
         const regionValues = new Array(rows * cols);
         let idx = 0;
         // split each row at the wrap boundary to avoid per-cell modulo
-        const c1 = Math.min(size - x1, cols);
+        const c1 = Math.min(gridCols - x1, cols);
         const c2 = cols - c1;
         for (let r = 0; r < rows; r++) {
-            const rowOffset = ((y1 + r) % size) * size;
-            for (let c = 0; c < c1; c++) regionValues[idx++] = arr[rowOffset + x1 + c];
-            for (let c = 0; c < c2; c++) regionValues[idx++] = arr[rowOffset + c];
+            const ry = (y1 + r) % gridRows;
+            for (let c = 0; c < c1; c++) regionValues[idx++] = grid[ry][x1 + c];
+            for (let c = 0; c < c2; c++) regionValues[idx++] = grid[ry][c];
         }
         return { ...hap, value: regionValues };
     });
 });
 
-// TODO
 /**
- * Assuming an array whose length is a perfect square, treat it as a grid and return values of the specified tile.
- * Tiles are indexed starting from the top-left, going row by row. For example, in a 4x4 grid, tile(2,3) would return the bottom-right 2x2 section.
- * 
- * @param size - size of the tile
- * @param i - tile index, starting from top-left and going row by row. Wraps around if exceeds the number of tiles.
- * @returns 
+ * Assuming a 1D or 2D array, treat it as a grid and return values of the specified tile.
+ * If a 1D array, treat as a perfect square. If a 2D array, treat as a list of rows.
+ * Tiles are indexed starting from the top-left, going row by row. Wraps around if the index exceeds the number of tiles.
+ * @param tileSize - size of the tile
+ * @param i - tile index, starting from top-left and going row by row.
+ * @example ca(4).tile(2, 3) // returns the bottom-right 2x2 section of the 4x4 Game of Life grid
  */
 const tile = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const rawArgs = args.slice(0, -1);
 
     return pattern.query(from, to).map(hap => {
-        const arr = hap.value;
-        const gridSize = Math.round(Math.sqrt(arr.length));
+        const grid = to2D(hap.value);
+        const gridRows = grid.length;
+        const gridCols = grid[0]?.length || 1;
 
         const tileSize  = rawArgs.length > 0 ? unwrap(rawArgs[0], from, to) : 2;
         const tileIndex = rawArgs.length > 1 ? unwrap(rawArgs[1], from, to) : 0;
 
-        const tilesPerRow = Math.ceil(gridSize / tileSize);
-        const totalTiles  = tilesPerRow * tilesPerRow;
+        const tilesPerRow = Math.ceil(gridCols / tileSize);
+        const tilesPerCol = Math.ceil(gridRows / tileSize);
+        const totalTiles  = tilesPerRow * tilesPerCol;
         const i  = ((Math.floor(tileIndex) % totalTiles) + totalTiles) % totalTiles;
         const tileX = (i % tilesPerRow) * tileSize;
         const tileY = Math.floor(i / tilesPerRow) * tileSize;
@@ -1403,9 +1406,9 @@ const tile = (...args: any[]) => P((from, to) => {
         const tileValues = new Array(tileSize * tileSize);
         let idx = 0;
         for (let y = 0; y < tileSize; y++) {
-            const rowBase = ((tileY + y) % gridSize) * gridSize;
+            const ry = (tileY + y) % gridRows;
             for (let x = 0; x < tileSize; x++) {
-                tileValues[idx++] = arr[rowBase + ((tileX + x) % gridSize)];
+                tileValues[idx++] = grid[ry][(tileX + x) % gridCols];
             }
         }
 
@@ -1458,7 +1461,7 @@ const density = (...args: any[]) => P((from, to) => {
 });
 
 /**
- * changed - 1 if an item changed, 0 if remains the same. If recieves a single value, compares it to the previous value and returns a single value. If recieves an array, compares each item to the previous value at the same index and returns an array of 1s and 0s.
+ * changed - 1 if an item changed, 0 if remains the same. If recieves a single value, compares it to the previous value and returns a single value. If recieves a 1D or 2D array, compares each item to the previous value at the same index and returns an array of 1s and 0s.
  * @example choose(0,1,2).changed() // returns 1 when the value changes, 0 when it stays the same
  * @example ca(3).row(0).changed() // returns an array of 3 values containing 1s and 0s
  */
@@ -1466,41 +1469,52 @@ const changed = (pattern: Pattern<any>) => {
     let lastValue: any = null;
     return P((from, to) => pattern.query(from, to).map(hap => {
         const value = hap.value;
-        const changed = Array.isArray(value)
-            ? Array.from(value, (v: number, i: number) => v !== (lastValue?.[i]) ? 1 : 0)
-            : value !== lastValue ? 1 : 0;
+        const is2D = Array.isArray(value) && Array.isArray(value[0]);
+        const result = is2D
+            ? (value as number[][]).map((row: number[], r: number) => row.map((v: number, c: number) => v !== lastValue?.[r]?.[c] ? 1 : 0))
+            : Array.isArray(value)
+                ? Array.from(value, (v: number, i: number) => v !== lastValue?.[i] ? 1 : 0)
+                : value !== lastValue ? 1 : 0;
         lastValue = value;
-        return { ...hap, value: changed };
+        return { ...hap, value: result };
     }));
 }
 
 /**
  * born - like changed, but return 1 only when the value changes from falsy to truthy, else 0.
+ * Works with scalar, 1D array, or 2D array values.
  */
 const born = (pattern: Pattern<any>) => {
     let lastValue: any = null;
     return P((from, to) => pattern.query(from, to).map(hap => {
         const value = hap.value;
-        const born = Array.isArray(value) 
-            ? value.map((v, i) => v && !lastValue?.[i] ? 1 : 0)
-            : value && !lastValue ? 1 : 0;
+        const is2D = Array.isArray(value) && Array.isArray(value[0]);
+        const result = is2D
+            ? (value as number[][]).map((row: number[], r: number) => row.map((v: number, c: number) => v && !lastValue?.[r]?.[c] ? 1 : 0))
+            : Array.isArray(value)
+                ? value.map((v, i) => v && !lastValue?.[i] ? 1 : 0)
+                : value && !lastValue ? 1 : 0;
         lastValue = value;
-        return { ...hap, value: born };
+        return { ...hap, value: result };
     }));
 }
 
 /**
  * died - like changed, but return 1 only when the value changes from truthy to falsy, else 0.
+ * Works with scalar, 1D array, or 2D array values.
  */
 const died = (pattern: Pattern<any>) => {
     let lastValue: any = null;
     return P((from, to) => pattern.query(from, to).map(hap => {
         const value = hap.value;
-        const died = Array.isArray(value) 
-            ? value.map((v, i) => !v && lastValue?.[i] ? 1 : 0)
-            : !value && lastValue ? 1 : 0;
+        const is2D = Array.isArray(value) && Array.isArray(value[0]);
+        const result = is2D
+            ? (value as number[][]).map((row: number[], r: number) => row.map((v: number, c: number) => !v && lastValue?.[r]?.[c] ? 1 : 0))
+            : Array.isArray(value)
+                ? value.map((v, i) => !v && lastValue?.[i] ? 1 : 0)
+                : !value && lastValue ? 1 : 0;
         lastValue = value;
-        return { ...hap, value: died };
+        return { ...hap, value: result };
     }));
 }
 
