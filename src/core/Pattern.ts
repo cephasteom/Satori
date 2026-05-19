@@ -1557,6 +1557,47 @@ const reflecty = (...args: any[]) => P((from, to) => {
     });
 });
 
+const reflectn = (...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    const n = Math.max(1, Math.round(args.length > 0 ? unwrap(args[0], from, to) : 4));
+
+    return pattern.query(from, to).map(hap => {
+        const grid = to2D(hap.value);
+        const rows = grid.length;
+        const cols = grid[0]?.length || 1;
+        const cx = (cols - 1) / 2;
+        const cy = (rows - 1) / 2;
+        const segmentAngle = (Math.PI * 2) / n;
+
+        const result: number[][] = Array.from({ length: rows }, (_, r) =>
+            Array.from({ length: cols }, (_, c) => {
+                const dx = c - cx;
+                const dy = r - cy;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                // Offset by half a segment so the source wedge is centred on "up-left"
+                let angle = Math.atan2(dy, dx) + segmentAngle / 2;
+                angle = ((angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+
+                const segIndex = Math.floor(angle / segmentAngle);
+                let localAngle = angle - segIndex * segmentAngle;
+                if (segIndex % 2 === 1) localAngle = segmentAngle - localAngle;
+
+                // Remove the offset before sampling back into the source grid
+                const srcAngle = localAngle - segmentAngle / 2;
+                const srcX = cx + dist * Math.cos(srcAngle);
+                const srcY = cy + dist * Math.sin(srcAngle);
+                const srcC = Math.min(cols - 1, Math.max(0, Math.round(srcX)));
+                const srcR = Math.min(rows - 1, Math.max(0, Math.round(srcY)));
+
+                return grid[srcR]?.[srcC] ?? 0;
+            })
+        );
+
+        return { ...hap, value: result };
+    });
+});
+
 /**
  * Asssuming an array, join together into a string with an optional separator.
  * @param separator - string to join values with. Default is '' (no separator).
@@ -1602,7 +1643,7 @@ export const methods = {
     // cellular automata methods
     ca, pqca, row, col, diagonal, region, hood, density, tile,
     changed, born, died,
-    reflectx, reflecty
+    reflectx, reflecty, reflectn
 
 };
 
