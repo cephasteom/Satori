@@ -93,7 +93,7 @@ function renderDots(
     const cellSize = Math.min(canvas.width / gridCols, canvas.height / gridRows);
     const xOffset = (canvas.width - cellSize * gridCols) / 2;
     const yOffset = (canvas.height - cellSize * gridRows) / 2;
-    const maxRadius = cellSize * 0.52;
+    const maxRadius = cellSize * 0.5;
 
     ctx.fillStyle = "rgb(13,13,13)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
