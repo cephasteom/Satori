@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-import { stepBS, stepBriansBrain, stepFloatLife } from "./ca.core";
+import { stepBS, stepBriansBrain, stepFloatLife, stepVitality } from "./ca.core";
 
 // Indexed to match the cellularAutomata array in CA.ts
 const BS_RULES: Array<{ born: ReadonlySet<number>; survive: ReadonlySet<number> } | string> = [
@@ -12,6 +12,7 @@ const BS_RULES: Array<{ born: ReadonlySet<number>; survive: ReadonlySet<number> 
     { born: new Set([3]),       survive: new Set([4,5,6,7,8]) },    // 5: Coral
     'brian',                                                        // 6: BriansBrain
     'float',                                                        // 7: FloatGOL
+    'vitality',                                                     // 8: Vitality
 ];
 
 // One grid per active CA stream
@@ -25,6 +26,8 @@ function computeStep(key: string, caIndex: number, size: number, min: number): n
         next = stepBriansBrain(grid, size, min);
     } else if (rule === 'float') {
         next = stepFloatLife(grid, size, min);
+    } else if (rule === 'vitality') {
+        next = stepVitality(grid, size, min);
     } else {
         next = stepBS(grid, size, min, rule!.born, rule!.survive);
     }

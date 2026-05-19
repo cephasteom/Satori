@@ -1,5 +1,5 @@
 import { memoize } from "./utils";
-import { stepBS, stepBriansBrain, stepFloatLife } from "./ca.core";
+import { stepBS, stepBriansBrain, stepFloatLife, stepVitality } from "./ca.core";
 
 // --- Still lifes ---
 
@@ -260,6 +260,26 @@ export const runFloatLife = memoize((
     return next;
 });
 
+let vitalityGrids: { [key: number]: number[] } = {};
+window.addEventListener('message', (e) =>
+    e.data.type === 'clearCache' && (vitalityGrids = {}));
+
+export const runVitality = memoize((
+    size: number = 16,
+    min: number = 0,
+    startState: number = 0,
+    reset: number = 0,
+    flow: number = 0.5,
+    gain: number = 3.7,
+) => {
+    if (reset) return vitalityGrids[size] = initGameOfLife(size, startState).map(Number);
+    size = Math.round(size);
+    const grid = vitalityGrids[size] ?? initGameOfLife(size, startState).map(Number);
+    const next = stepVitality(grid, size, min, flow, gain);
+    vitalityGrids[size] = next;
+    return next;
+});
+
 export const cellularAutomata = [
     runGameOfLife,
     runHighLife,
@@ -268,5 +288,6 @@ export const cellularAutomata = [
     runSeeds,
     runCoral,
     runBriansBrain,
-    runFloatLife
+    runFloatLife,
+    runVitality,
 ]
