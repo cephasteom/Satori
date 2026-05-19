@@ -1,46 +1,53 @@
 import { getDraw } from "tone";
-import { flatten } from "../core/utils";
 
 let canvas: HTMLCanvasElement;
 let ctx: CanvasRenderingContext2D | null = null;
 
-/**
- * Draw Grid
- * @param grid - a 1D or 2D array  
- * @param cols - optional - if omitted, 2D arrays treated as a list of rows, 1D arrays treated as a perfect square
- * @param rows - optional - if omitted, 2D arrays treated as a list of rows, 1D arrays treated as a perfect square
- * @returns 
- */
-function drawGrid(grid: number[] | number[][], cols?: number, rows?: number) {
-    if (!ctx || !canvas) return;
+export type RenderMode = "blocky" | "bilinear" | "dots" | "blur";
 
+function resolveGridDimensions(
+    grid: number[] | number[][],
+    cols?: number,
+    rows?: number
+): { flatGrid: number[]; gridCols: number; gridRows: number } {
+    const is2D = Array.isArray(grid[0]);
     let gridCols: number;
     let gridRows: number;
-    const is2D = grid[0]?.length
+    let flatGrid: number[];
 
     if (is2D) {
-        gridCols = grid[0].length
-        gridRows = grid.length
-    } else if (cols == null && rows == null) {
-        // assume a perfect square
-        gridCols = Math.round(Math.sqrt(grid.length));
-        gridRows = gridCols;
-    } else if (cols != null && rows == null) {
-        // best fit based on cols
-        gridCols = cols;
-        gridRows = Math.ceil(grid.length / cols);
-    } else if (cols == null && rows != null) {
-        // best fit based on rows
-        gridRows = rows;
-        gridCols = Math.ceil(grid.length / rows);
+        const grid2D = grid as number[][];
+        gridCols = grid2D[0].length;
+        gridRows = grid2D.length;
+        flatGrid = grid2D.flat();
     } else {
-        gridCols = cols!;
-        gridRows = rows!;
+        flatGrid = grid.flat();
+        if (cols == null && rows == null) {
+            gridCols = Math.round(Math.sqrt(flatGrid.length));
+            gridRows = gridCols;
+        } else if (cols != null && rows == null) {
+            gridCols = cols;
+            gridRows = Math.ceil(flatGrid.length / cols);
+        } else if (cols == null && rows != null) {
+            gridRows = rows;
+            gridCols = Math.ceil(flatGrid.length / rows);
+        } else {
+            gridCols = cols!;
+            gridRows = rows!;
+        }
     }
 
-    // Cells are always square; fit within canvas in both dimensions
-    const cellSize = Math.min(canvas.width / gridCols, canvas.height / gridRows);
+    return { flatGrid, gridCols, gridRows };
+}
 
+function renderBlocky(
+    ctx: CanvasRenderingContext2D,
+    canvas: HTMLCanvasElement,
+    flatGrid: number[],
+    gridCols: number,
+    gridRows: number
+): void {
+    const cellSize = Math.min(canvas.width / gridCols, canvas.height / gridRows);
     const xOffset = Math.round((canvas.width - cellSize * gridCols) / 2);
     const yOffset = Math.round((canvas.height - cellSize * gridRows) / 2);
 
@@ -52,15 +59,11 @@ function drawGrid(grid: number[] | number[][], cols?: number, rows?: number) {
     }
 
     const totalCells = gridCols * gridRows;
-    const flatGrid = flatten(grid)
-
     for (let i = 0; i < totalCells; i++) {
         const value = i < flatGrid.length ? flatGrid[i] : 0;
         const alpha = Math.round(value * 255);
-
         const col = i % gridCols;
         const row = Math.floor(i / gridCols);
-
         const xStart = xOffset + Math.round(col * cellSize);
         const yStart = yOffset + Math.round(row * cellSize);
         const xEnd = xOffset + Math.round((col + 1) * cellSize);
@@ -69,9 +72,9 @@ function drawGrid(grid: number[] | number[][], cols?: number, rows?: number) {
         for (let py = yStart; py < Math.min(yEnd, canvas.height); py++) {
             for (let px = xStart; px < Math.min(xEnd, canvas.width); px++) {
                 const idx = (py * canvas.width + px) * 4;
-                data[idx]     = 255; // R
-                data[idx + 1] = 255; // G
-                data[idx + 2] = 255; // B
+                data[idx]     = 255;
+                data[idx + 1] = 255;
+                data[idx + 2] = 255;
                 data[idx + 3] = alpha;
             }
         }
@@ -80,18 +83,82 @@ function drawGrid(grid: number[] | number[][], cols?: number, rows?: number) {
     ctx.putImageData(imageData, 0, 0);
 }
 
-export const handler = (event: any, time: number) => {
-    const grid: number[] = event.params.grid || [];
-    const { cols, rows } = event.params;
-    const delay = event.params.delay || 0;
-    getDraw().schedule(() => drawGrid(grid, cols, rows), time + (delay / 1000));
+function renderDots(
+    ctx: CanvasRenderingContext2D,
+    canvas: HTMLCanvasElement,
+    flatGrid: number[],
+    gridCols: number,
+    gridRows: number
+): void {
+    const cellSize = Math.min(canvas.width / gridCols, canvas.height / gridRows);
+    const xOffset = (canvas.width - cellSize * gridCols) / 2;
+    const yOffset = (canvas.height - cellSize * gridRows) / 2;
+    const maxRadius = cellSize * 0.52;
+
+    ctx.fillStyle = "rgb(13,13,13)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const totalCells = gridCols * gridRows;
+    for (let i = 0; i < totalCells; i++) {
+        const value = i < flatGrid.length ? flatGrid[i] : 0;
+        const col = i % gridCols;
+        const row = Math.floor(i / gridCols);
+        const cx = xOffset + (col + 0.5) * cellSize;
+        const cy = yOffset + (row + 0.5) * cellSize;
+        const radius = maxRadius * value;
+
+        if (radius < 0.5) continue;
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${0.5 + value * 0.5})`;
+        ctx.fill();
+    }
 }
 
+/**
+ * Draw Grid
+ * @param grid   - a 1D or 2D array of values in the range [0, 1]
+ * @param cols   - optional column count (inferred if omitted)
+ * @param rows   - optional row count (inferred if omitted)
+ * @param mode   - render mode: "blocky" | "bilinear" | "dots" | "blur" (default: "blocky")
+ */
+function drawGrid(
+    grid: number[] | number[][],
+    cols: number,
+    rows: number,
+    mode: RenderMode = "bilinear"
+): void {
+    if (!ctx || !canvas) return;
+
+    const { flatGrid, gridCols, gridRows } = resolveGridDimensions(grid, cols, rows);
+
+    switch (mode) {
+        case "dots":
+            renderDots(ctx, canvas, flatGrid, gridCols, gridRows);
+            break;
+        case "blocky":
+        default:
+            renderBlocky(ctx, canvas, flatGrid, gridCols, gridRows);
+            break;
+    }
+}
+
+export const handler = (event: any, time: number) => {
+    const grid: number[] = event.params.grid || [];
+    const { cols, rows, mode } = event.params;
+    const delay = event.params.delay || 0;
+    getDraw().schedule(
+        () => drawGrid(grid, cols, rows, mode as RenderMode),
+        time + (delay / 1000)
+    );
+};
+
 export const init = () => {
-    canvas = document.querySelector('#satori-canvas') as HTMLCanvasElement;
+    canvas = document.querySelector("#satori-canvas") as HTMLCanvasElement;
     if (!canvas) return handler;
 
-    ctx = canvas.getContext('2d');
+    ctx = canvas.getContext("2d");
 
     const ro = new ResizeObserver(entries => {
         for (const entry of entries) {
@@ -100,11 +167,11 @@ export const init = () => {
             if (canvas.width !== size || canvas.height !== size) {
                 canvas.width = size;
                 canvas.height = size;
-                ctx = canvas.getContext('2d');
+                ctx = canvas.getContext("2d");
             }
         }
     });
     ro.observe(canvas);
 
     return handler;
-}
+};
