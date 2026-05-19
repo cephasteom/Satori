@@ -1599,6 +1599,62 @@ const reflectn = (...args: any[]) => P((from, to) => {
 });
 
 /**
+ * Roll (shift with wraparound) a grid along the x-axis
+ * If a 1D array, treat as a perfect square
+ * If a 2D array, treat as a list of rows
+ * @param steps - steps to shift right (negative = left)
+ */
+const gridrollx = (steps: number = 0, ...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    return pattern.query(from, to).map(hap => {
+        const arr = to2D(hap.value);
+        const cols = arr[0].length;
+        const dx = ((unwrap(steps, from, to) % cols) + cols) % cols;
+
+        const shifted = arr.map(row => [
+            ...row.slice(cols - dx),
+            ...row.slice(0, cols - dx),
+        ]);
+
+        return { ...hap, value: shifted };
+    });
+});
+
+/**
+ * Roll (shift with wraparound) a grid along the y-axis
+ * If a 1D array, treat as a perfect square
+ * If a 2D array, treat as a list of rows
+ * @param steps - steps to shift down (negative = up)
+ */
+const gridrolly = (steps: number = 0, ...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    return pattern.query(from, to).map(hap => {
+        const arr = to2D(hap.value);
+        const rows = arr.length;
+        const dy = ((unwrap(steps, from, to) % rows) + rows) % rows;
+
+        const shifted = [
+            ...arr.slice(rows - dy),
+            ...arr.slice(0, rows - dy),
+        ];
+
+        return { ...hap, value: shifted };
+    });
+});
+
+/**
+ * Roll (shift with wraparound) a grid along the x and/or y axis
+ * If a 1D array, treat as a perfect square
+ * If a 2D array, treat as a list of rows
+ * @param stepsX - steps to shift right (negative = left)
+ * @param stepsY - steps to shift down (negative = up)
+ */
+const gridroll = (stepsX: number = 0, stepsY: number = 0, ...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    return gridrolly(stepsY, gridrollx(stepsX, pattern)).query(from, to);
+});
+
+/**
  * Asssuming an array, join together into a string with an optional separator.
  * @param separator - string to join values with. Default is '' (no separator).
  * @example 'C E G'.join() // returns 'CEG'
@@ -1643,7 +1699,8 @@ export const methods = {
     // cellular automata methods
     ca, pqca, row, col, diagonal, region, hood, density, tile,
     changed, born, died,
-    reflectx, reflecty, reflectn
+    reflectx, reflecty, reflectn,
+    gridroll, gridrollx, gridrolly
 
 };
 
