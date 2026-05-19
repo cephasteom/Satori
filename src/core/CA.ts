@@ -1,4 +1,5 @@
 import { memoize } from "./utils";
+import { stepBS, stepBriansBrain, stepFloatLife } from "./ca.core";
 
 // --- Still lifes ---
 
@@ -96,12 +97,6 @@ const gosperGliderGun = (size: number): number[] => {
   return placePattern(size, coords);
 };
 
-const DIRECTIONS = [
-    [-1,-1], [-1,0], [-1,1],
-    [0, -1],         [0, 1],
-    [1, -1], [1, 0], [1, 1]
-] as const;
-
 // --- Utilities ---
 
 interface PlaceOptions {
@@ -167,16 +162,6 @@ export const initGameOfLife = (size: number, startState: number = 0) => {
     }
 }
 
-const countAliveNeighbours = (grid: number[], size: number, x: number, y: number) => {
-    let count = 0;
-    for (const [dx, dy] of DIRECTIONS) {
-        const nx = (x + dx + size) % size;
-        const ny = (y + dy + size) % size;
-        count += grid[nx * size + ny];
-    }
-    return count;
-}
-
 // --- Generic B/S rule factory ---
 
 const makeBSRule = (born: ReadonlySet<number>, survive: ReadonlySet<number>) => {
@@ -193,31 +178,9 @@ const makeBSRule = (born: ReadonlySet<number>, survive: ReadonlySet<number>) => 
         if (reset) return cache[size] = initGameOfLife(size, startState).slice();
         size = Math.round(size);
         const grid = cache[size] || initGameOfLife(size, startState);
-        const newGrid = new Array(size * size).fill(0);
-        let population = 0;
-        for (let i = 0; i < size; i++) {
-            for (let j = 0; j < size; j++) {
-                const n = countAliveNeighbours(grid, size, i, j);
-                const idx = i * size + j;
-                const alive = grid[idx] === 1 ? (survive.has(n) ? 1 : 0) : (born.has(n) ? 1 : 0);
-                newGrid[idx] = alive;
-                population += alive;
-            }
-        }
-        const minPopulation = Math.ceil(size * size * min);
-        if (population < minPopulation) {
-            const deadCells: number[] = [];
-            for (let i = 0; i < size * size; i++)
-                if (newGrid[i] === 0) deadCells.push(i);
-            const needed = minPopulation - population;
-            for (let k = 0; k < needed; k++) {
-                const r = k + Math.floor(Math.random() * (deadCells.length - k));
-                [deadCells[k], deadCells[r]] = [deadCells[r], deadCells[k]];
-                newGrid[deadCells[k]] = 1;
-            }
-        }
-        cache[size] = newGrid;
-        return newGrid;
+        const next = stepBS(grid, size, min, born, survive);
+        cache[size] = next;
+        return next;
     });
 };
 
@@ -252,82 +215,23 @@ export const runBriansBrain = memoize((
     if (reset) return brainGrids[size] = initGameOfLife(size, startState).slice();
     size = Math.round(size);
     const grid = brainGrids[size] || initGameOfLife(size, startState);
-    const newGrid = new Array(size * size).fill(0);
-    let population = 0;
-    for (let i = 0; i < size; i++) {
-        for (let j = 0; j < size; j++) {
-            const idx = i * size + j;
-            const state = grid[idx];
-            // countAliveNeighbours counts cells === 1, so dying (2) cells don't influence births
-            let next: number;
-            if (state === 1) {
-                next = 2;
-            } else if (state === 2) {
-                next = 0;
-            } else {
-                next = countAliveNeighbours(grid, size, i, j) === 2 ? 1 : 0;
-            }
-            newGrid[idx] = next;
-            if (next === 1) population++;
-        }
-    }
-    const minPopulation = Math.ceil(size * size * min);
-    if (population < minPopulation) {
-        const deadCells: number[] = [];
-        for (let i = 0; i < size * size; i++)
-            if (newGrid[i] === 0) deadCells.push(i);
-        const needed = minPopulation - population;
-        for (let k = 0; k < needed; k++) {
-            const r = k + Math.floor(Math.random() * (deadCells.length - k));
-            [deadCells[k], deadCells[r]] = [deadCells[r], deadCells[k]];
-            newGrid[deadCells[k]] = 1;
-        }
-    }
-    brainGrids[size] = newGrid;
-    return newGrid;
+    const next = stepBriansBrain(grid, size, min);
+    brainGrids[size] = next;
+    return next;
 });
 
 export const runGameOfLife = memoize((
     size: number = 16,
     min: number = 0,
     startState: number = 0,
-    reset: number = 0 // if true, resets the grid to the initial state
+    reset: number = 0
 ) => {
     if (reset) return gameOfLifes[size] = initGameOfLife(size, startState).slice();
-
     size = Math.round(size);
     const grid = gameOfLifes[size] || initGameOfLife(size, startState);
-    const newGrid = new Array(size * size).fill(0);
-    let population = 0;
-    for (let i = 0; i < size; i++) {
-        for (let j = 0; j < size; j++) {
-            const aliveNeighbours = countAliveNeighbours(grid, size, i, j);
-            const idx = i * size + j;
-            const alive = grid[idx] === 1
-                ? (aliveNeighbours === 2 || aliveNeighbours === 3 ? 1 : 0)
-                : (aliveNeighbours === 3 ? 1 : 0);
-            newGrid[idx] = alive;
-            population += alive;
-        }
-    }
-
-    const minPopulation = Math.ceil(size * size * min);
-    if (population < minPopulation) {
-        const deadCells: number[] = [];
-        for (let i = 0; i < size * size; i++)
-            if (newGrid[i] === 0) deadCells.push(i);
-
-        // partial Fisher-Yates: shuffle only as many slots as we need
-        const needed = minPopulation - population;
-        for (let k = 0; k < needed; k++) {
-            const r = k + Math.floor(Math.random() * (deadCells.length - k));
-            [deadCells[k], deadCells[r]] = [deadCells[r], deadCells[k]];
-            newGrid[deadCells[k]] = 1;
-        }
-    }
-
-    gameOfLifes[size] = newGrid;
-    return newGrid;
+    const next = stepBS(grid, size, min, new Set([3]), new Set([2, 3]));
+    gameOfLifes[size] = next;
+    return next;
 });
 
 // B3/S23 with gradual float decay — cells are born at 1.0 and decay by `decayRate`
@@ -349,62 +253,11 @@ export const runFloatLife = memoize((
         const init = initGameOfLife(size, startState).map(v => v as number);
         return floatLifeGrids[size] = new Float32Array(init);
     }
-
     size = Math.round(size);
-    const grid = floatLifeGrids[size] ?? new Float32Array(initGameOfLife(size, startState));
-    const newGrid = new Float32Array(size * size);
-    let population = 0;
-
-    for (let i = 0; i < size; i++) {
-        for (let j = 0; j < size; j++) {
-            const idx = i * size + j;
-            const current = grid[idx];
-
-            // Count neighbours above threshold as "alive"
-            let aliveNeighbours = 0;
-            for (const [dx, dy] of DIRECTIONS) {
-                const nx = (i + dx + size) % size;
-                const ny = (j + dy + size) % size;
-                if (grid[nx * size + ny] >= threshold) aliveNeighbours++;
-            }
-
-            let next: number;
-            const isAlive = current >= threshold;
-
-            if (isAlive) {
-                // Survive rule: 2 or 3 neighbours → maintain; otherwise decay
-                next = (aliveNeighbours === 2 || aliveNeighbours === 3)
-                    ? Math.min(1.0, current + decayRate)  // recover toward 1.0 if supported
-                    : Math.max(0.0, current - decayRate);
-            } else {
-                // Birth rule: exactly 3 neighbours → born at decayRate (not instantly at 1.0)
-                // so new cells also "grow in" gradually
-                next = aliveNeighbours === 3
-                    ? Math.min(1.0, current + decayRate)
-                    : Math.max(0.0, current - decayRate);
-            }
-
-            newGrid[idx] = next;
-            if (next >= threshold) population++;
-        }
-    }
-
-    // Minimum population enforcement (mirrors existing pattern)
-    const minPopulation = Math.ceil(size * size * min);
-    if (population < minPopulation) {
-        const deadCells: number[] = [];
-        for (let i = 0; i < size * size; i++)
-            if (newGrid[i] < threshold) deadCells.push(i);
-        const needed = minPopulation - population;
-        for (let k = 0; k < needed; k++) {
-            const r = k + Math.floor(Math.random() * (deadCells.length - k));
-            [deadCells[k], deadCells[r]] = [deadCells[r], deadCells[k]];
-            newGrid[deadCells[k]] = decayRate; // seed at decayRate, not 1.0
-        }
-    }
-
-    floatLifeGrids[size] = newGrid;
-    return newGrid;
+    const grid = Array.from(floatLifeGrids[size] ?? new Float32Array(initGameOfLife(size, startState)));
+    const next = new Float32Array(stepFloatLife(grid, size, min, decayRate, threshold));
+    floatLifeGrids[size] = next;
+    return next;
 });
 
 export const cellularAutomata = [
