@@ -133,10 +133,10 @@ const placePattern = (
   return grid;
 };
 
-let gameOfLifes: { [key: number]: number[] | Uint8Array } = {};
+let gameOfLifes: { [key: number]: number[] } = {};
 
 // on clearCache event, reset gameOfLifes
-window.addEventListener('message', (e) => 
+window.addEventListener('message', (e) =>
     e.data.type === 'clearCache' && (gameOfLifes = {}))
 
 const createEmptyGrid = (size: number) => new Array(size * size).fill(0);
@@ -167,7 +167,7 @@ export const initGameOfLife = (size: number, startState: number = 0) => {
     }
 }
 
-const countAliveNeighbours = (grid: number[] | Uint8Array, size: number, x: number, y: number) => {
+const countAliveNeighbours = (grid: number[], size: number, x: number, y: number) => {
     let count = 0;
     for (const [dx, dy] of DIRECTIONS) {
         const nx = (x + dx + size) % size;
@@ -180,7 +180,7 @@ const countAliveNeighbours = (grid: number[] | Uint8Array, size: number, x: numb
 // --- Generic B/S rule factory ---
 
 const makeBSRule = (born: ReadonlySet<number>, survive: ReadonlySet<number>) => {
-    let cache: { [key: number]: number[] | Uint8Array } = {};
+    let cache: { [key: number]: number[] } = {};
     window.addEventListener('message', (e) =>
         e.data.type === 'clearCache' && (cache = {}));
 
@@ -190,10 +190,10 @@ const makeBSRule = (born: ReadonlySet<number>, survive: ReadonlySet<number>) => 
         startState: number = 0,
         reset: number = 0
     ) => {
-        if (reset) return cache[size] = new Uint8Array(initGameOfLife(size, startState));
+        if (reset) return cache[size] = initGameOfLife(size, startState).slice();
         size = Math.round(size);
         const grid = cache[size] || initGameOfLife(size, startState);
-        const newGrid = new Uint8Array(size * size);
+        const newGrid = new Array(size * size).fill(0);
         let population = 0;
         for (let i = 0; i < size; i++) {
             for (let j = 0; j < size; j++) {
@@ -239,7 +239,7 @@ export const runCoral = makeBSRule(new Set([3]), new Set([4, 5, 6, 7, 8]));
 // --- Brian's Brain (3-state: 0=off, 1=on, 2=dying) ---
 // A cell turns on when off with exactly 2 on-neighbours; on cells always become dying; dying cells go off.
 
-let brainGrids: { [key: number]: number[] | Uint8Array } = {};
+let brainGrids: { [key: number]: number[] } = {};
 window.addEventListener('message', (e) =>
     e.data.type === 'clearCache' && (brainGrids = {}));
 
@@ -249,10 +249,10 @@ export const runBriansBrain = memoize((
     startState: number = 0,
     reset: number = 0
 ) => {
-    if (reset) return brainGrids[size] = new Uint8Array(initGameOfLife(size, startState));
+    if (reset) return brainGrids[size] = initGameOfLife(size, startState).slice();
     size = Math.round(size);
     const grid = brainGrids[size] || initGameOfLife(size, startState);
-    const newGrid = new Uint8Array(size * size);
+    const newGrid = new Array(size * size).fill(0);
     let population = 0;
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
@@ -293,11 +293,11 @@ export const runGameOfLife = memoize((
     startState: number = 0,
     reset: number = 0 // if true, resets the grid to the initial state
 ) => {
-    if (reset) return gameOfLifes[size] = new Uint8Array(initGameOfLife(size, startState));
+    if (reset) return gameOfLifes[size] = initGameOfLife(size, startState).slice();
 
     size = Math.round(size);
     const grid = gameOfLifes[size] || initGameOfLife(size, startState);
-    const newGrid = new Uint8Array(size * size);
+    const newGrid = new Array(size * size).fill(0);
     let population = 0;
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
