@@ -330,6 +330,83 @@ export const runGameOfLife = memoize((
     return newGrid;
 });
 
+// B3/S23 with gradual float decay — cells are born at 1.0 and decay by `decayRate`
+// each step when under-supported. Neighbours are counted as alive if above `threshold`.
+
+let floatLifeGrids: { [key: number]: Float32Array } = {};
+window.addEventListener('message', (e) =>
+    e.data.type === 'clearCache' && (floatLifeGrids = {}));
+
+export const runFloatLife = memoize((
+    size: number = 16,
+    min: number = 0,
+    startState: number = 0,
+    reset: number = 0,
+    decayRate: number = 0.2,
+    threshold: number = 0.5
+) => {
+    if (reset) {
+        const init = initGameOfLife(size, startState).map(v => v as number);
+        return floatLifeGrids[size] = new Float32Array(init);
+    }
+
+    size = Math.round(size);
+    const grid = floatLifeGrids[size] ?? new Float32Array(initGameOfLife(size, startState));
+    const newGrid = new Float32Array(size * size);
+    let population = 0;
+
+    for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+            const idx = i * size + j;
+            const current = grid[idx];
+
+            // Count neighbours above threshold as "alive"
+            let aliveNeighbours = 0;
+            for (const [dx, dy] of DIRECTIONS) {
+                const nx = (i + dx + size) % size;
+                const ny = (j + dy + size) % size;
+                if (grid[nx * size + ny] >= threshold) aliveNeighbours++;
+            }
+
+            let next: number;
+            const isAlive = current >= threshold;
+
+            if (isAlive) {
+                // Survive rule: 2 or 3 neighbours → maintain; otherwise decay
+                next = (aliveNeighbours === 2 || aliveNeighbours === 3)
+                    ? Math.min(1.0, current + decayRate)  // recover toward 1.0 if supported
+                    : Math.max(0.0, current - decayRate);
+            } else {
+                // Birth rule: exactly 3 neighbours → born at decayRate (not instantly at 1.0)
+                // so new cells also "grow in" gradually
+                next = aliveNeighbours === 3
+                    ? Math.min(1.0, current + decayRate)
+                    : Math.max(0.0, current - decayRate);
+            }
+
+            newGrid[idx] = next;
+            if (next >= threshold) population++;
+        }
+    }
+
+    // Minimum population enforcement (mirrors existing pattern)
+    const minPopulation = Math.ceil(size * size * min);
+    if (population < minPopulation) {
+        const deadCells: number[] = [];
+        for (let i = 0; i < size * size; i++)
+            if (newGrid[i] < threshold) deadCells.push(i);
+        const needed = minPopulation - population;
+        for (let k = 0; k < needed; k++) {
+            const r = k + Math.floor(Math.random() * (deadCells.length - k));
+            [deadCells[k], deadCells[r]] = [deadCells[r], deadCells[k]];
+            newGrid[deadCells[k]] = decayRate; // seed at decayRate, not 1.0
+        }
+    }
+
+    floatLifeGrids[size] = newGrid;
+    return newGrid;
+});
+
 export const cellularAutomata = [
     runGameOfLife,
     runHighLife,
@@ -337,5 +414,6 @@ export const cellularAutomata = [
     runMaze,
     runSeeds,
     runCoral,
-    runBriansBrain
+    runBriansBrain,
+    runFloatLife
 ]
