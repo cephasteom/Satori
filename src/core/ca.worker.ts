@@ -18,9 +18,9 @@ const DIRECTIONS = [
 ] as const;
 
 // One grid per active CA stream
-const grids = new Map<string, Uint8Array>();
+const grids = new Map<string, number[]>();
 
-function countAlive(grid: Uint8Array, size: number, x: number, y: number): number {
+function countAlive(grid: number[], size: number, x: number, y: number): number {
     let n = 0;
     for (const [dx, dy] of DIRECTIONS) {
         n += grid[((x + dx + size) % size) * size + ((y + dy + size) % size)];
@@ -28,7 +28,7 @@ function countAlive(grid: Uint8Array, size: number, x: number, y: number): numbe
     return n;
 }
 
-function applyMinPop(grid: Uint8Array, size: number, min: number, pop: number): void {
+function applyMinPop(grid: number[], size: number, min: number, pop: number): void {
     const target = Math.ceil(size * size * min);
     if (pop >= target) return;
     const dead: number[] = [];
@@ -42,13 +42,13 @@ function applyMinPop(grid: Uint8Array, size: number, min: number, pop: number): 
 }
 
 function stepBS(
-    grid: Uint8Array,
+    grid: number[],
     size: number,
     min: number,
     born: ReadonlySet<number>,
     survive: ReadonlySet<number>,
-): Uint8Array {
-    const next = new Uint8Array(size * size);
+): number[] {
+    const next = new Array(size * size).fill(0);
     let pop = 0;
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
@@ -63,8 +63,8 @@ function stepBS(
     return next;
 }
 
-function stepBriansBrain(grid: Uint8Array, size: number, min: number): Uint8Array {
-    const next = new Uint8Array(size * size);
+function stepBriansBrain(grid: number[], size: number, min: number): number[] {
+    const next = new Array(size * size).fill(0);
     let pop = 0;
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
@@ -79,15 +79,14 @@ function stepBriansBrain(grid: Uint8Array, size: number, min: number): Uint8Arra
     return next;
 }
 
-function computeStep(key: string, caIndex: number, size: number, min: number): ArrayBuffer {
+function computeStep(key: string, caIndex: number, size: number, min: number): number[] {
     const grid = grids.get(key)!;
     const rule = BS_RULES[caIndex];
     const next = rule
         ? stepBS(grid, size, min, rule.born, rule.survive)
         : stepBriansBrain(grid, size, min);
     grids.set(key, next);
-    // slice(0) copies the buffer so state reference remains valid after transfer
-    return next.buffer.slice(0) as ArrayBuffer;
+    return next;
 }
 
 self.onmessage = ({ data }: MessageEvent) => {
@@ -97,15 +96,15 @@ self.onmessage = ({ data }: MessageEvent) => {
         caIndex: number;
         size: number;
         min: number;
-        initGrid?: ArrayBuffer;
+        initGrid?: number[];
         count: number;
     };
 
     if (type === 'init') {
-        grids.set(key, new Uint8Array(initGrid!));
+        grids.set(key, initGrid!);
     }
 
-    const frames: ArrayBuffer[] = [];
+    const frames: number[][] = [];
     for (let i = 0; i < count; i++) frames.push(computeStep(key, caIndex, size, min));
-    self.postMessage({ key, frames }, { transfer: frames });
+    self.postMessage({ key, frames });
 };

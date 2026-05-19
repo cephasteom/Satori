@@ -9,16 +9,16 @@ type FrameKey = string; // `${caIndex}-${size}`
 
 class CAWorkerClient {
     private worker: Worker;
-    private buffers = new Map<FrameKey, Uint8Array[]>();
+    private buffers = new Map<FrameKey, number[][]>();
     private initialized = new Set<FrameKey>();
-    private lastResult = new Map<FrameKey, { from: number; frame: Uint8Array }>();
+    private lastResult = new Map<FrameKey, { from: number; frame: number[] }>();
 
     constructor() {
         this.worker = new Worker(new URL('./ca.worker.ts', import.meta.url), { type: 'module' });
         this.worker.onmessage = ({ data }: MessageEvent) => {
-            const { key, frames } = data as { key: string; frames: ArrayBuffer[] };
+            const { key, frames } = data as { key: string; frames: number[][] };
             const buf = this.buffers.get(key) ?? [];
-            for (const ab of frames) buf.push(new Uint8Array(ab));
+            for (const frame of frames) buf.push(frame);
             this.buffers.set(key, buf);
         };
         this.worker.onerror = (e: ErrorEvent) => console.error('[CAWorker]', e.message);
@@ -31,7 +31,7 @@ class CAWorkerClient {
         preset: number,
         reset: number,
         from: number,
-    ): Uint8Array {
+    ): number[] {
         const key: FrameKey = `${caIndex}-${size}`;
 
         // Dedup: same from within the same scheduling pass returns the same frame
@@ -58,7 +58,7 @@ class CAWorkerClient {
 
         if (!frame) {
             // Buffer temporarily empty — repeat last known frame rather than stalling
-            return last?.frame ?? new Uint8Array(size * size);
+            return last?.frame ?? new Array(size * size).fill(0);
         }
 
         const result = { from, frame };
@@ -73,18 +73,16 @@ class CAWorkerClient {
         min: number,
         preset: number,
         from: number,
-    ): Uint8Array {
-        const initGrid = new Uint8Array(initGameOfLife(size, preset));
+    ): number[] {
+        const initGrid = initGameOfLife(size, preset);
         this.initialized.add(key);
         this.buffers.set(key, []);
         this.lastResult.delete(key);
 
         // Send a copy to the worker so both sides start from identical state
-        const copy = initGrid.buffer.slice(0);
-        this.worker.postMessage(
-            { type: 'init', key, caIndex, size, min, initGrid: copy, count: LOOKAHEAD },
-            { transfer: [copy] },
-        );
+        this.worker.postMessage({
+            type: 'init', key, caIndex, size, min, initGrid: initGrid.slice(), count: LOOKAHEAD,
+        });
 
         this.lastResult.set(key, { from, frame: initGrid });
         return initGrid;

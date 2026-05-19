@@ -56,42 +56,20 @@ export const flatten = (data: Uint8Array | Uint8Array[] | number[] | number[][])
 }
 
 export const to2D = (
-    data: Uint8Array | Uint8Array[] | number[] | number[][], 
-    rows?: number, 
-    cols?: number): any => {
-    // if (data[0].length) return data
-    let gridCols: number;
-    let gridRows: number;
-    const is2D = data[0]?.length || false
-    if (is2D) {
-        return data
-    } else if (cols == undefined && rows == undefined) {
-        // assume a perfect square
-        gridCols = Math.round(Math.sqrt(data.length));
-        gridRows = gridCols;
-    } else if (cols != undefined && rows == undefined) {
-        // best fit based on cols
-        gridCols = cols;
-        gridRows = Math.ceil(data.length / cols);
-    } else if (cols == undefined && rows != undefined) {
-        // best fit based on rows
-        gridRows = rows;
-        gridCols = Math.ceil(data.length / rows);
-    } else {
-        gridCols = cols!;
-        gridRows = rows!;
-    }
+    data: Uint8Array | Uint8Array[] | number[] | number[][],
+    rows?: number,
+    cols?: number
+): number[][] => {
+    if ((data as any)[0]?.length) return data as number[][];
 
-    let arr = []
-    for (let i = 0; i < gridRows; i++) {
-        arr[i] = []
-    }
-    for (let i = 0; i < gridCols; i++) {
-        arr[Math.floor(i/gridCols)] = data[i]
-    }
+    const flat = data as number[] | Uint8Array;
+    const gridCols = cols ?? (rows ? Math.ceil(flat.length / rows) : Math.round(Math.sqrt(flat.length)));
+    const gridRows = rows ?? Math.ceil(flat.length / gridCols);
 
-    return arr
-}
+    return Array.from({ length: gridRows }, (_, i) =>
+        Array.from({ length: gridCols }, (_, j) => flat[i * gridCols + j] ?? 0)
+    );
+};
 
 let samplesMessage = '';
 channel.addEventListener('message', (e) => samplesMessage = e.data.type === 'samples' 
