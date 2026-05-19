@@ -1319,22 +1319,30 @@ const col = (...args: any[]) => P((from, to) => {
 });
 
 /**
- * Assuming an array whose length is a perfect square, treat it as a grid and return all values at the given diagonal
- * top-left = 0 to bottom-right = size-1. bottom-left = -size to top-right = size*2-1
- * @param args 
- * @returns 
+ * Assuming a 1D or 2D array, treat it as a grid and return all values at the given diagonal.
+ * If a 1D array, treat as a perfect square.
+ * If a 2D array, treat as a list of rows.
+ * top-left = 0 to bottom-right = rows-1. Wraps around.
+ * @param n - diagonal index
+ * @example ca(4).diagonal(0) // returns the first diagonal of the 4x4 Game of Life grid
  */
 const diagonal = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const n = unwrap(args[0], from, to);
     return pattern.query(from, to).map(hap => {
-        const arr = hap.value;
-        const size = Math.sqrt(arr.length);
-        const d = ((Math.floor(n) % (size * 2 - 1)) + (size * 2 - 1)) % (size * 2 - 1) - (size - 1);
-        return { ...hap, value: arr.filter((_: number, i: number) => (i % size) - Math.floor(i / size) === d) };
+        const grid = to2D(hap.value);
+        const rows = grid.length;
+        const cols = grid[0]?.length || 1;
+        const numDiagonals = rows + cols - 1;
+        const d = ((Math.floor(n) % numDiagonals) + numDiagonals) % numDiagonals - (rows - 1);
+        const value = grid.flatMap((row: number[], r: number) =>
+            (row as number[]).filter((_: number, c: number) => c - r === d)
+        );
+        return { ...hap, value };
     });
 });
 
+// TODO
 /** 
  * Assuming an array whose length is a perfect square, treat it as a grid and return values from x1,y1 to x2,y2. If x2 or y2 are out of bounds, they will wrap around to the beginning of the row or column.
  * @param args - x1, y1, x2, y2
@@ -1366,6 +1374,7 @@ const region = (...args: any[]) => P((from, to) => {
     });
 });
 
+// TODO
 /**
  * Assuming an array whose length is a perfect square, treat it as a grid and return values of the specified tile.
  * Tiles are indexed starting from the top-left, going row by row. For example, in a 4x4 grid, tile(2,3) would return the bottom-right 2x2 section.
@@ -1405,7 +1414,8 @@ const tile = (...args: any[]) => P((from, to) => {
 });
 
 /** 
- * Assuming an array whose length is a perfect square, treat it as a grid and return values of the 8 neighbouring cells for the cell at the given index. Neighbours are returned in the order: top-left, top, top-right, left, right, bottom-left, bottom, bottom-right. If a neighbour is out of bounds, it will wrap around to the opposite side of the grid.
+ * Assuming a 1D or 2D array, treat it as a grid and return values of the 8 neighbouring cells for the cell at the given index. Neighbours are returned in the order: top-left, top, top-right, left, right, bottom-left, bottom, bottom-right. 
+ * If a neighbour is out of bounds, wraps around the grid.
  * @param x, y - x and y coordinates of the cell, e.g. for a 4x4 grid: 0,0 is top-left, 3,3 is bottom-right
  * @example ca(4).hood(0,0) // returns the 8 neighbors of the cell at coordinates 0,0 in the 4x4 Game of Life grid
  */
