@@ -1527,11 +1527,13 @@ const reflectx = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     return pattern.query(from, to).map(hap => {
         const arr = to2D(hap.value);
+        console.log(arr)
         
         return { 
             ...hap, 
             value:  arr.map((row: number[] = []) => {
-                return [...row, ...row.reverse()]
+                const reversed = [...row].reverse();
+                return [...row, ...reversed];
             })
         };
     });
@@ -1551,7 +1553,7 @@ const reflecty = (...args: any[]) => P((from, to) => {
             ...hap, 
             value:  [
                 ...arr,
-                ...arr.reverse()
+                ...[...arr].reverse()
             ]
         };
     });
