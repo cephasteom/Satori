@@ -1527,7 +1527,6 @@ const reflectx = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     return pattern.query(from, to).map(hap => {
         const arr = to2D(hap.value);
-        console.log(arr)
         
         return { 
             ...hap, 
@@ -1606,11 +1605,12 @@ const reflectn = (...args: any[]) => P((from, to) => {
  * If a 2D array, treat as a list of rows
  * @param steps - steps to shift right (negative = left)
  */
-const gridrollx = (steps: number = 0, ...args: any[]) => P((from, to) => {
+const gridrollx = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     return pattern.query(from, to).map(hap => {
         const arr = to2D(hap.value);
         const cols = arr[0].length;
+        const steps = args.length > 1 ? unwrap(args[0], from, to) : 0;
         const dx = ((unwrap(steps, from, to) % cols) + cols) % cols;
 
         const shifted = arr.map(row => [
@@ -1628,11 +1628,12 @@ const gridrollx = (steps: number = 0, ...args: any[]) => P((from, to) => {
  * If a 2D array, treat as a list of rows
  * @param steps - steps to shift down (negative = up)
  */
-const gridrolly = (steps: number = 0, ...args: any[]) => P((from, to) => {
+const gridrolly = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     return pattern.query(from, to).map(hap => {
         const arr = to2D(hap.value);
         const rows = arr.length;
+        const steps = args.length > 1 ? unwrap(args[0], from, to) : 0;
         const dy = ((unwrap(steps, from, to) % rows) + rows) % rows;
 
         const shifted = [
@@ -1651,9 +1652,9 @@ const gridrolly = (steps: number = 0, ...args: any[]) => P((from, to) => {
  * @param stepsX - steps to shift right (negative = left)
  * @param stepsY - steps to shift down (negative = up)
  */
-const gridroll = (stepsX: number = 0, stepsY: number = 0, ...args: any[]) => P((from, to) => {
+const gridroll = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
-    return gridrolly(stepsY, gridrollx(stepsX, pattern)).query(from, to);
+    return gridrolly(args[0], gridrollx(args[1], pattern)).query(from, to);
 });
 
 /**
