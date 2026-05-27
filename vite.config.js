@@ -12,5 +12,6 @@ export default defineConfig({
         nested: resolve(import.meta.dirname, 'pqca/index.html'),
       },
     },
+    minify: false
   },
 })
