@@ -6,12 +6,17 @@ export default defineConfig({
     exclude: ['@grame/faustwasm']
   },
   build: {
+    minify: 'esbuild',
     rollupOptions: {
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
         nested: resolve(import.meta.dirname, 'pqca/index.html'),
       },
     },
-    minify: false
   },
+  esbuild: {
+    minifyIdentifiers: false, // no name mangling — fixes the wasm glue
+    minifySyntax: true,       // still minify syntax
+    minifyWhitespace: true,   // still minify whitespace
+  }
 })
