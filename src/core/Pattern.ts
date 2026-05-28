@@ -928,7 +928,7 @@ const at = (...args: any[]) => P((from, to) => {
             )
         return {
         ...hap,
-        value: values.length > 1 ? values : values[0]
+        value: values.length > 1 ? values : values[0] || 0
     }
     });
 }); 

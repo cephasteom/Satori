@@ -340,7 +340,12 @@ export class Channel {
         Object.values(this._instruments)
             .forEach(inst => inst.mutate(params, time, lag));
 
-        this._fdist && this._fdist.mutate(params, time, lag);
+        // set fx params
+        this._fx && this._fx.mutate(params, time)
+        this._reverb && this._reverb.mutate(params, time)
+        this._delay && this._delay.mutate(params, time)
+        this._fdist && this._fdist.mutate(params, time)
+        this._ftape && this._ftape.mutate(params, time)
 
         // handle bus sends
         this._busses.forEach((_, i) => params[`bus${i}`]
