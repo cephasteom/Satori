@@ -127,7 +127,7 @@ function drawGrid(
     grid: number[] | number[][],
     cols: number,
     rows: number,
-    mode: RenderMode = "bilinear"
+    mode: RenderMode = "blocky"
 ): void {
     if (!ctx || !canvas) return;
 

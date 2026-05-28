@@ -920,14 +920,17 @@ const inversion = (...args: any[]) => {
 const at = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const indexes = args.slice(0, -1).map(a => [unwrap(a, from, to)].flat()).flat(); // remove pattern
-    return pattern.query(from, to).map(hap => ({
-        ...hap,
-        value: unwrapArray([hap.value].flat())
+    return pattern.query(from, to).map(hap => {
+        const values = unwrapArray([hap.value].flat())
             .filter((_: any, i: number, arr: any[]) => indexes
                 .map(i => i % arr.length)
                 .includes(i)
             )
-    }));
+        return {
+        ...hap,
+        value: values.length > 1 ? values : values[0]
+    }
+    });
 }); 
 
 /**
@@ -1315,6 +1318,20 @@ const pqca = (
         unwrap(shot, from, to),
     );
     return [{ from, to, value: data }];
+})
+
+/**
+ * Assuming a 2D array, flat to a 1D array
+ */
+const flat = (...args: any[]) => P((from, to) => {
+    const pattern = args[args.length - 1] as Pattern<any>;
+    return pattern.query(from, to).map(hap => {
+        
+        return {
+            ...hap,
+            value: hap.value.flat()
+        }
+    })
 })
 
 /**
@@ -1739,7 +1756,7 @@ export const methods = {
     // quantum methods
     qm, qmeasure, qms, qmeasures, qpr, qprob, qprs, qprobs, qph, qphase, qphs, qphases,
     // cellular automata methods
-    ca, pqca, row, col, diagonal, region, hood, density, tile,
+    ca, pqca, row, col, diagonal, region, hood, density, tile, flat,
     changed, born, died,
     reflectx, reflecty, reflectn,
     gridroll, gridrollx, gridrolly
