@@ -16,8 +16,8 @@ import Pad from './ct-synths/faust/Pad'
 import FDistortion from './ct-synths/faust/Distortion'
 import FTape from './ct-synths/faust/Tape'
 
-import { samples } from './samples';
 
+import { samples } from './samples';
 const satori = new BroadcastChannel('satori');
 
 const destination = getDestination() // system audio output
@@ -297,8 +297,8 @@ export class Channel {
         if(!this._instruments[inst]) {
             this._instruments[inst] = new instMap[inst]();
             this._instruments[inst].connect(this.input);
-            this._instruments[inst].banks = samples; // provide samples if applicable
         }
+        this._instruments[inst].banks = samples(); // provide samples if applicable
 
         // play instrument with given params
         this._instruments[inst].play(params, time);

@@ -2,6 +2,7 @@ import { getTransport } from 'tone';
 import { scales } from './scales';
 import { WebMidi } from 'webmidi';
 import { clear as clearStore, keys, store } from './data';
+import { loadSamples } from '../oto/samples';
 
 const channel = new BroadcastChannel('satori');
 
@@ -106,6 +107,7 @@ export const utilities = {
         channel.postMessage({ type: 'success', message: 'Sample banks ->\n' });
         channel.postMessage({ type: 'samples', message: samplesMessage } );
     },
+    load: loadSamples,
     store,
     stored: () => {
         const ks = keys();
