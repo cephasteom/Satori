@@ -212,7 +212,6 @@ export class Channel {
      * Init Faust tape
      */
     initFTape() {
-        console.log('adding ftape')
         this._ftape = new FTape()
         this._handleInternalRouting()
     }

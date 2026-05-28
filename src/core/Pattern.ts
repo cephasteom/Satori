@@ -703,6 +703,19 @@ const once = () => {
 }
 
 /**
+ * Return two 1s at the earliest convenience, then 0s after that.
+ * @param pattern 
+ */
+const twice = () => {
+    let count = 0
+    return P((from, to) => {
+        const value = count < 2 ? 0 : 1;
+        count++;
+        return [{ from, to, value }];
+    });
+}
+
+/**
  * Toggle 1s and 0s when the condition is met.
  * @param condition - pattern to evaluate
  * @example rarely().toggle() // toggles between 1 and 0 each time rarely() returns 1
@@ -899,7 +912,7 @@ const inversion = (...args: any[]) => {
 }
 
 /**
- * Assuming an array, take the element at the given index.
+ * Assuming an array, take the element at the given index. Indexes wrap to array length.
  * @param index - index of the element to take. 
  * @example 'Dmi'.at(2) // returns A
  * @example 'Dmi'.at([0,2]) // returns D and A
@@ -910,7 +923,10 @@ const at = (...args: any[]) => P((from, to) => {
     return pattern.query(from, to).map(hap => ({
         ...hap,
         value: unwrapArray([hap.value].flat())
-            .filter((_: any, i: number) => indexes.includes(i))
+            .filter((_: any, i: number, arr: any[]) => indexes
+                .map(i => i % arr.length)
+                .includes(i)
+            )
     }));
 }); 
 
@@ -980,6 +996,23 @@ const expand = withValue((...args) => {
     const n = args[0] || 1; // first arg is n
     const func = args[1] || ((x: any) => x); // second arg is optional function
     return Array.from({ length: n }, (_, i) => func(value, i));
+});
+
+/**
+ * Apply the patterns when the codition is met
+ * @param condition 
+ * @param transform - passed as a function to delay execution
+ * @example set(10).add(1).when(coin(), p => p.sub(2))
+ */
+const when = (
+    condition: Pattern<any> | number = 1,
+    transform: (p: Pattern<any>) => Pattern<any>,
+    pattern: Pattern<any>
+) => P((from, to) => {
+    const active = unwrap(condition, from, to);
+    return active
+        ? transform(pattern).query(from, to)
+        : pattern.query(from, to);
 });
 
 /**
@@ -1295,10 +1328,13 @@ const pqca = (
 const row = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const row = unwrap(args[0], from, to);
-    return pattern.query(from, to).map(hap => ({
-        ...hap,
-        value: Array.from(to2D(hap.value)[row] || [])
-    }))
+    return pattern.query(from, to).map(hap => {
+        const arr = to2D(hap.value)
+        return {
+            ...hap,
+            value: Array.from(arr[row % arr.length] || [])
+        }
+    })
 });
 
 /**
@@ -1312,10 +1348,13 @@ const row = (...args: any[]) => P((from, to) => {
 const col = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const col = unwrap(args[0], from, to);
-    return pattern.query(from, to).map(hap => ({
-        ...hap,
-        value: Array.from(to2D(hap.value)[col] || [])
-    }))
+    return pattern.query(from, to).map(hap => {
+        const rows = to2D(hap.value)
+        return {
+            ...hap,
+            value: rows.map(row => row[col % row.length])
+        }
+    })
 });
 
 /**
@@ -1519,11 +1558,11 @@ const died = (pattern: Pattern<any>) => {
 }
 
 /**
- * Reflect a grid on the x-axis
+ * Reflect a grid on the y-axis
  * If a 1D array, treat as a perfect square
  * If a 2D array, treat as a list of rows
  */
-const reflectx = (...args: any[]) => P((from, to) => {
+const reflecty = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     return pattern.query(from, to).map(hap => {
         const arr = to2D(hap.value);
@@ -1539,11 +1578,11 @@ const reflectx = (...args: any[]) => P((from, to) => {
 });
 
 /**
- * Reflect a grid on the y-axis
+ * Reflect a grid on the x-axis
  * If a 1D array, treat as a perfect square
  * If a 2D array, treat as a list of rows
  */
-const reflecty = (...args: any[]) => P((from, to) => {
+const reflectx = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     return pattern.query(from, to).map(hap => {
         const arr = to2D(hap.value);
@@ -1608,8 +1647,8 @@ const reflectn = (...args: any[]) => P((from, to) => {
 const gridrollx = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     return pattern.query(from, to).map(hap => {
-        const arr = to2D(hap.value);
-        const cols = arr[0].length;
+        const arr = to2D(hap.value) || [];
+        const cols = arr[0]?.length || 0
         const steps = args.length > 1 ? unwrap(args[0], from, to) : 0;
         const dx = ((unwrap(steps, from, to) % cols) + cols) % cols;
 
@@ -1684,8 +1723,8 @@ export const methods = {
     stack, inversion,
     mini, hold, holdUntil,
     interp, degrade, expand, toggle, io, cache, count,
-    choose, coin, rarely, sometimes, often, every, fallsOnFrom, once,
-    ifelse, ie, and, or, xor, not,
+    choose, coin, rarely, sometimes, often, every, fallsOnFrom, once, twice,
+    ifelse, ie, and, or, xor, not, when,
     cts, ctms, cps, cthz,
     mtof, ftom, mton,
     lt, gt, eq, neq,

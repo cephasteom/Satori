@@ -1,72 +1,44 @@
-const preset1 = `auto = ca({size: 15, reset: every(4)})
-rowd = n => auto.row(n).density()
+const preset1 = `// Fugen, Teom y Puy // Berlin, May 2026
 
-global
-  cps: .5
-  e: '1'
+grid = pqca(0,c(),c()).when(
+  square(1,0).slow(16), 
+  p => p.gridroll(count(),count().mul(1.3).floor())
+    .reflectx()
+    .reflecty()
+)
 
-s0
-  inst 0
-  cut 0
-  lag ctms(.5)
-  _n stack('45','52','Ami%6..?','Emi%4..?')
-    .at(auto.row(5).indexesOf(1))
-    .add('0|*4 5|*4')
-  _modi rowd(0).mtr(.5,2)
-  _harm rowd(1).mtr(.5,5).step(.5)
-  mods .5
-  modd rowd(6).mul(100).step(1)
-  moda 0
-  strum ctms(1/16)
-  _pan rowd(10)
-  reverb .5
-  delay .125
-  dtime rowd(5).mtr(1,8).step(1).div(8).ctms()
-  dfb .75
-  m '1*16'.and(rowd(7).gt(.75))
-  e '1*8'
-    .and(auto.row(3).at(t().mul(15).floor()))
-    
-canvas
-  grid auto
-  e: s0.e
+canvas.set({ grid, e: every(1)})
+global.set({ cps: .75, e: once() })
+
+fx0.set({
+  _ftape: 1,
+  reverb: 0.5, 
+  rsize: .7, 
+  rtail: .1,
+  e: once() })
+
+streams.slice(1,5).map((s, i) => 
+s.set({
+  inst: 'faust.pad',
+  n: 'Cmi'.at(0, 2).sub(24).add(i * 14),
+  cut: i + 1, cutr: ctms(1),
+  amp: (1).sub(0.25 * i),
+  a: ctms(4), r: ctms(4),
+  dur: ctms(64),
+  _pan: noise(.5 - Math.pow(0.65, i), .5 + Math.pow(0.65, i))
+    .clamp().slow(4 + i * 3),
+  _bpfv: sine(.1, .4).slow(4).rotate(i * (1 / 4))
+    .add(.08 + i * 0.12)
+    .clamp(),
+  _resv: grid.row(i).at(count()).mtr(.3,.001),
+  hpfv: (i * (1 / 8)).add(.3), 
+  _lpfv: grid.row(i+1).at(count()).mtr(.5,.01),
+  fx0: 1, level: 0,
+  lag: 0,
+  m: '1*12'.and(grid.row(i+2).at(count())),
+  e: once() }))
 `;
 
-const preset2 = `size = '16|8'.slow(1.5)
-auto = ca({size, noise: every(2).ie(.15,0), preset: 10})
-  .cache(1,every('2|*4 1|*4'))
-harmony = 'Dmi%16|*2 Flyd%16|Ami%16'
-  .at(t().mul(size).mod(floor(size.div(4))))
-    
-streams.slice(0,4).map((stream,i) => 
-  stream
-    inst 0
-    cut 'all'
-    reverb .5
-    delay .125
-    n harmony.rotate(i).sub(i*12).add(12)
-    e '1'.fast(size.mul(2))
-      .and(auto.hood(i*3,i*3).join(' '))
-      .degrade(i.div(size/4))      
-)
-
-streams.slice(4,12).map((stream,i) => 
-  stream
-    inst 1
-    dur ctms(1)
-    bank 'cpu2'
-    i i
-    e '1'.fast(size)
-      .and(auto.hood(i*3+10,i*5+10).join(' '))
-      .degrade(i.div(size/4))      
-)
-
-canvas
-  grid auto
-  e '1*16'
-`
-
 export const presets: Record<number, string> = {
-  1: preset1,
-  2: preset2
+  1: preset1
 }
