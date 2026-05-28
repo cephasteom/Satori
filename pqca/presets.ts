@@ -40,7 +40,7 @@ s.set({
 `;
 
 const preset2 = `// Toccata, Cephas Teom // Dartmoor, May 2026
-// ?samples=https://raw.githubusercontent.com/cephasteom/samples/main/samples.json
+load('https://raw.githubusercontent.com/cephasteom/samples/main/samples.json')
 
 data = pqca(1, c().fast(4))
 grid = data
@@ -103,6 +103,7 @@ s5
   
 fx0
   reverb .5
+  rsize .7
   rtail .125
   ftape .6
   _ftapesat grid.density()
