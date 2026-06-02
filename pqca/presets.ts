@@ -125,7 +125,80 @@ canvas
   e '1*24'
 `
 
+const preset3 = `// Stabat in Tenebris, Cephas Teom // Dartmoor, June 2026
+
+speed = 11
+trigger = '1'.fast(speed)
+
+grid = pqca(3,
+  c().lt(4).ie(
+    t().mul(speed).floor(),
+    cosine(0,10).slow(4).floor()
+  ),
+  sine(0,10).slow(5).floor()
+)
+  .gridrollx(c())
+
+harmony = set([48,55,60,65,67,70,72,74,75,77,79,82])
+  .sub(12)
+  .add(c().slow(4).mul(5).mod(17))
+
+regions = [grid.region(0,0,2,3), grid.region(3,0,5,3)]
+
+streams.slice(0,2).map((s,i) => s.set({
+  n: harmony.at(regions[i].born().indexesOf(1)),
+  amp: regions[i].density(),
+  pan: regions[i].density().mtr(i * .6 + .2, i * -.6 + .8),
+  fx0: regions[i].density().mtr(.5,1),
+  level: regions[i].density().mtr(.5,0),
+  ftape: 1,
+  ftapehiss: .01,
+  _ftapesat: regions[i].density().mtr(.75,1),
+  _ftapewow: regions[i].density().mtr(.5,1),
+  _ftapeflutter: regions[i].density().mtr(.5,1),
+  lag: 200,
+  e: trigger.and(() => regions[i].born().includes(1))
+}))
+
+s0.set({ 
+  inst: 'tone.mono',
+  vol: .3, r: 1000,
+  fila: 10, fils: .1 })
+
+s1.set({
+  inst: 'tone.fm',
+  a: 10,
+  osc: 0,
+  cut: [0,1],
+  lpf: 1,
+  cutr: ctms(1/4),
+  modi: .25,
+  s: .25 })
+
+fx0.set({
+  ftape: .6,
+  ftapehiss: .025,
+  _ftapesat: grid.density().mtr(.5,1),
+  _ftapewow: grid.density().mtr(.5,1),
+  _ftapeflutter: grid.density().mtr(.5,1),
+  reverb: .5,
+  rtail:.1,
+  delay: grid.density().mtr(.2, .5),
+  dfb:.1,
+  dtime: ctms(1/4),
+  m: trigger,
+  e: trigger })
+
+canvas.set({
+  grid: grid,
+  e: trigger })
+
+global.set({
+  cps: grid.density().mtr(1/16, 1).step(1/16),
+  e: trigger })`
+
 export const presets: Record<number, string> = {
   1: preset1,
-  2: preset2
+  2: preset2,
+  3: preset3
 }
