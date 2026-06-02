@@ -1325,13 +1325,10 @@ const pqca = (
  */
 const flat = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
-    return pattern.query(from, to).map(hap => {
-        
-        return {
-            ...hap,
-            value: hap.value.flat()
-        }
-    })
+    return pattern.query(from, to).map(hap => ({
+        ...hap,
+        value: hap.value.flat()
+    }))
 })
 
 /**
@@ -1410,14 +1407,15 @@ const region = (...args: any[]) => P((from, to) => {
     return pattern.query(from, to).map(hap => {
         const raw = args.slice(0, -1).map(a => unwrap(a, hap.from, hap.to));
         const grid = to2D(hap.value);
-        const gridRows = grid.length;
+        const gridRows = grid.length || 1;
         const gridCols = grid[0]?.length || 1;
-        const x1 = ((Math.floor(raw[0]) % gridCols) + gridCols) % gridCols;
-        const y1 = ((Math.floor(raw[1]) % gridRows) + gridRows) % gridRows;
-        const x2 = ((Math.floor(raw[2]) % gridCols) + gridCols) % gridCols;
-        const y2 = ((Math.floor(raw[3]) % gridRows) + gridRows) % gridRows;
-        const cols = ((x2 - x1) + gridCols) % gridCols;
-        const rows = ((y2 - y1) + gridRows) % gridRows;
+        const x1 = ((Math.floor(raw[0]) % gridCols) + gridCols);
+        const y1 = ((Math.floor(raw[1]) % gridRows) + gridRows);
+        const x2 = ((Math.floor(raw[2]) % gridCols) + gridCols);
+        const y2 = ((Math.floor(raw[3]) % gridRows) + gridRows);
+        // Inclusive span: number of columns/rows selected
+        const cols = ((x2 - x1 + gridCols) % gridCols) + 1;
+        const rows = ((y2 - y1 + gridRows) % gridRows) + 1;
         const regionValues = new Array(rows * cols);
         let idx = 0;
         // split each row at the wrap boundary to avoid per-cell modulo

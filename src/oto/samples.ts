@@ -10,8 +10,6 @@ let repos = [
     ...samplesURL.split(',').map(u => u.trim()) // repos from url
 ].filter(Boolean)
 
-console.log(repos)
-
 let samplesStore: Record<string, string[]> = {}
 
 export async function loadSamples(...userRepos: string[]) {

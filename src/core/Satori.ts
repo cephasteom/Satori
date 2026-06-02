@@ -43,7 +43,7 @@ export class Satori {
             streams
                 .filter((hap) => !hap.params.mute)
                 .forEach((hap) => {
-                    const effectiveCps = cpsEvents.find(({ time: t }) => t >= hap.time)?.value ?? this.cps;
+                    const effectiveCps = [cpsEvents.find(({ time: t }) => t >= hap.time)?.value].flat()[0] ?? this.cps;
                     const hapTime = time + (hap.time - from) / effectiveCps + latency;
                     const enriched = { ...hap, cps: this.cps };
                     handlers.forEach(handler => handler(enriched, hapTime));
