@@ -42,7 +42,7 @@ const instMap: Record<string, Instrument> = {
     'faust.simple': SimpleSynth,
     'faust.fm': FMSynth,
     'faust.pad': Pad,
-    'faust.karplus': Karplus
+    'faust.karplus': Karplus,
 }
 
 /**

@@ -128,7 +128,7 @@ canvas
 const preset3 = `// Stabat in Tenebris, Cephas Teom // Dartmoor, June 2026
 
 speed = 11
-trigger = '1'.fast(speed)
+trigger = every((1).div(speed))
 
 grid = pqca(3,
   c().lt(4).ie(
@@ -157,7 +157,7 @@ streams.slice(0,2).map((s,i) => s.set({
   _ftapewow: regions[i].density().mtr(.5,1),
   _ftapeflutter: regions[i].density().mtr(.5,1),
   lag: 200,
-  e: trigger.and(() => regions[i].born().includes(1))
+  e: trigger.and(regions[i].born().includes(1))
 }))
 
 s0.set({ 

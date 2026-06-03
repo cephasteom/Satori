@@ -611,8 +611,10 @@ const often = (...args: any[]) => weightedCoin(0.75, ...args);
  */
 const and = withValue((other, v, from, to) => {
     if (!v) return 0;
-    const resolved = typeof other === 'function' ? other() : other; // handle thunked patterns
-    return v && unwrap(resolved, from, to);
+    return unwrap(
+        typeof other === 'function' ? other() : other, // handle thunked patterns
+        from, to
+    );
 });
 
 /**
