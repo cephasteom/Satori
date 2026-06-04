@@ -53,6 +53,7 @@ const updateTime = () => {
      : (transportTime.innerHTML = `00:00:00`);
 }
 
+let isFirstPlay = true
 const play = () => {
     if(isRunning) return;
     startTime = Date.now();
@@ -82,25 +83,22 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
+let isFirstRun = true
 runBtn?.addEventListener('click', () => {
     window.dispatchEvent(new CustomEvent("triggerEvaluate"));
     play();
+    if(isFirstRun) {
+        setTimeout(() => {
+            console.log('run')
+            window.dispatchEvent(new CustomEvent("triggerEvaluate")) // bit of a hack to ensure synths have loaded
+            isFirstRun = false
+        }, 500)
+    }
 });
 
 stopBtn?.addEventListener('click', stop);
-// get all .preset-btn elements and console log their data-preset attribute on click
+
 const presetBts = document.querySelectorAll('.preset-btn')
-
-// .forEach(btn => {
-//     btn.addEventListener('click', () => {
-//         const presetName = btn.getAttribute('data-preset') as string;
-//         const preset = presets[+presetName];
-//         if(!preset) return console.warn(`Preset ${presetName} not found`);
-//         // send a setCode event to the global scope, which the editor listens out for to set the code in the editor
-//         window.dispatchEvent(new CustomEvent("setCode", { detail: { code: preset } }));
-//     })
-// });
-
 if(preset) {
     const code = presets[+preset];
     if(!code ) console.warn(`Preset ${preset} not found`);
