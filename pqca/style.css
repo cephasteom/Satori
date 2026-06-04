@@ -211,6 +211,7 @@ button {
   text-align: center;
   transition: color 0.1s, border-color 0.1s, background 0.1s;
   position: relative;
+  text-decoration: none;
 }
 
 .preset-btn::before {

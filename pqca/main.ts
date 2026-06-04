@@ -22,6 +22,7 @@ initDocs();
 const urlParams = new URLSearchParams(window.location.search);
 const engine = urlParams.get('engine');
 const ws = urlParams.get('ws');
+const preset = urlParams.get('preset');
 const wsPort = parseInt(urlParams.get('wsPort') || '5001');
 
 // handlers process events and are fired on every tick of the scheduler
@@ -69,7 +70,6 @@ const stop = () => {
     stopBtn.classList.remove('is-running');
 }
 
-
 window.addEventListener('keydown', (e) => {
     // Play / Stop controls
     if((e.altKey || e.ctrlKey) && e.key === 'Enter') {
@@ -88,14 +88,28 @@ runBtn?.addEventListener('click', () => {
 });
 
 stopBtn?.addEventListener('click', stop);
-
 // get all .preset-btn elements and console log their data-preset attribute on click
-document.querySelectorAll('.preset-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const presetName = btn.getAttribute('data-preset') as string;
-        const preset = presets[+presetName];
-        if(!preset) return console.warn(`Preset ${presetName} not found`);
+const presetBts = document.querySelectorAll('.preset-btn')
+
+// .forEach(btn => {
+//     btn.addEventListener('click', () => {
+//         const presetName = btn.getAttribute('data-preset') as string;
+//         const preset = presets[+presetName];
+//         if(!preset) return console.warn(`Preset ${presetName} not found`);
+//         // send a setCode event to the global scope, which the editor listens out for to set the code in the editor
+//         window.dispatchEvent(new CustomEvent("setCode", { detail: { code: preset } }));
+//     })
+// });
+
+if(preset) {
+    const code = presets[+preset];
+    if(!code ) console.warn(`Preset ${preset} not found`);
+    else {
         // send a setCode event to the global scope, which the editor listens out for to set the code in the editor
-        window.dispatchEvent(new CustomEvent("setCode", { detail: { code: preset } }));
-    })
-});
+        window.dispatchEvent(new CustomEvent("setCode", { detail: { code } }));
+        // set presetBtn active
+        [...presetBts]
+            .find(btn => btn.getAttribute('data-preset') === preset)
+            ?.classList.add('active')
+    }
+}
