@@ -89,7 +89,6 @@ runBtn?.addEventListener('click', () => {
     play();
     if(isFirstRun) {
         setTimeout(() => {
-            console.log('run')
             window.dispatchEvent(new CustomEvent("triggerEvaluate")) // bit of a hack to ensure synths have loaded
             isFirstRun = false
         }, 500)
@@ -110,4 +109,7 @@ if(preset) {
             .find(btn => btn.getAttribute('data-preset') === preset)
             ?.classList.add('active')
     }
+    const url = new URL(window.location.href);
+    url.searchParams.delete('preset');
+    window.history.replaceState({}, '', url);
 }

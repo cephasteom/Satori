@@ -117,8 +117,8 @@ fx0
   e once()
 
 global
-  cps .25
-  e once()
+  cps c().lt(3).ie(1,.25)
+  e '1'
   
 canvas 
   grid grid
