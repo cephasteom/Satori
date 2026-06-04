@@ -198,6 +198,8 @@ global.set({
   e: trigger })`
 
 const preset4 = `// Wonkstep, Cephas Teom // Dartmoor, 2026
+load('https://raw.githubusercontent.com/mot4i/turbo-garden/main/strudel.json',
+     'https://raw.githubusercontent.com/cephasteom/samples/main/samples.json')
 
 speed = '8 | 16 8'
 trigger = every((1).div(speed))
