@@ -1409,8 +1409,10 @@ const region = (...args: any[]) => P((from, to) => {
     return pattern.query(from, to).map(hap => {
         const raw = args.slice(0, -1).map(a => unwrap(a, hap.from, hap.to));
         const grid = to2D(hap.value);
-        const gridRows = grid.length || 1;
-        const gridCols = grid[0]?.length || 1;
+        if(!grid.length) return { ...hap, value: []}
+        
+        const gridRows = grid.length || 0;
+        const gridCols = grid[0]?.length || 0;
         const x1 = ((Math.floor(raw[0]) % gridCols) + gridCols);
         const y1 = ((Math.floor(raw[1]) % gridRows) + gridRows);
         const x2 = ((Math.floor(raw[2]) % gridCols) + gridCols);
@@ -1425,7 +1427,7 @@ const region = (...args: any[]) => P((from, to) => {
         const c2 = cols - c1;
         for (let r = 0; r < rows; r++) {
             const ry = (y1 + r) % gridRows;
-            for (let c = 0; c < c1; c++) regionValues[idx++] = grid[ry][x1 + c];
+            for (let c = 0; c < c1; c++) regionValues[idx++] = grid[ry][x1 + c]
             for (let c = 0; c < c2; c++) regionValues[idx++] = grid[ry][c];
         }
         return { ...hap, value: regionValues };

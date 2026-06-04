@@ -46,8 +46,6 @@ export async function loadSamples(...repos: string[]) {
         }, Promise.resolve({} as Record<string, Array<string>>)) || {}
     }
 
-    console.log(samplesStore)
-
     setTimeout(() => {
         if(Object.keys(samplesStore).length > 0) {
             satori.postMessage({ type: 'success', message: 'Sample banks ->\n' });
