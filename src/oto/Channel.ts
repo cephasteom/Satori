@@ -16,6 +16,7 @@ import Pad from './ct-synths/faust/Pad'
 import FDistortion from './ct-synths/faust/Distortion'
 import FTape from './ct-synths/faust/Tape'
 import Karplus from './ct-synths/faust/Karplus';
+import NoiseRes from './ct-synths/faust/NoiseRes';
 
 import { samples } from './samples';
 const satori = new BroadcastChannel('satori');
@@ -43,6 +44,7 @@ const instMap: Record<string, Instrument> = {
     'faust.fm': FMSynth,
     'faust.pad': Pad,
     'faust.karplus': Karplus,
+    'faust.noiseres': NoiseRes
 }
 
 /**

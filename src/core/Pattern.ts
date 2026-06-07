@@ -996,11 +996,14 @@ const includes = (...args: any[]) => P((from, to) => {
     e: every(2) })
  */
 const expand = withValue((...args) => {
+    const [from,to] = args.slice(-2)
     args = args.slice(0, -2); // remove from and to
     const value = args.pop(); // last arg is the value
     const n = args[0] || 1; // first arg is n
     const func = args[1] || ((x: any) => x); // second arg is optional function
-    return Array.from({ length: n }, (_, i) => func(value, i));
+    const result = Array.from({ length: n }, (_, i) => func(value, i))
+        .map(val => val instanceof Pattern ? val.query(from,to)[0].value : val)
+    return result
 });
 
 /**
