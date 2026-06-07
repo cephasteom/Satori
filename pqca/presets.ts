@@ -1,3 +1,22 @@
+const preset0 = `/* Welcome to Satori PQCA.
+ * Satori is a live coding environment for generating 
+ * quantum computer music. This version is a fork for
+ * exploring Partitioned Quantum Cellular Automata.
+ * Click ABOUT for more information.
+ * Click RUN to start exploring the datasets.
+ * Click a PRESET to explore some musical starting points.
+*/
+
+canvas.set({
+  grid: pqca(
+    0, // dataset. 0 - 9
+    count(), // timestep. 
+    random().mtr(0,128).step(1) // shot
+  ),
+  e: '1*8'
+})
+`
+
 const preset1 = `// Fugen, Teom y Puy // Berlin, May 2026
 
 grid = pqca(0,c(),c()).when(
@@ -304,6 +323,7 @@ canvas.set({
 `
 
 export const presets: Record<number, string> = {
+  0: preset0,
   1: preset1,
   2: preset2,
   3: preset3,
