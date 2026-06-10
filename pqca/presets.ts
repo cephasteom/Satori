@@ -9,12 +9,18 @@ const preset0 = `/* Welcome to Satori PQCA.
 
 canvas.set({
   grid: pqca(
-    0, // dataset. 0 - 9
+    1, // dataset. 0 - 9
     count(), // timestep. 
     random().mtr(0,128).step(1) // shot
-  ),
+  )
+    // optional classical transformations
+    // .reflectx() 
+    // .reflecty()
+    // .reflectn(6)
+  ,
   e: '1*8'
 })
+
 `
 
 const preset1 = `// Fugen, Teom y Puy // Berlin, May 2026
