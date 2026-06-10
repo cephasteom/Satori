@@ -10,6 +10,7 @@ function resolveGridDimensions(
     cols?: number,
     rows?: number
 ): { flatGrid: number[]; gridCols: number; gridRows: number } {
+    console.log(grid)
     const is2D = Array.isArray(grid[0]);
     let gridCols: number;
     let gridRows: number;
