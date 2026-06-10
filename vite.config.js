@@ -9,8 +9,7 @@ export default defineConfig({
     minify: 'esbuild',
     rollupOptions: {
       input: {
-        main: resolve(import.meta.dirname, 'index.html'),
-        nested: resolve(import.meta.dirname, 'pqca/index.html'),
+        main: resolve(import.meta.dirname, 'pqca/index.html'),
       },
     },
   },
