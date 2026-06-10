@@ -53,7 +53,6 @@ const updateTime = () => {
      : (transportTime.innerHTML = `00:00:00`);
 }
 
-let isFirstPlay = true
 const play = () => {
     if(isRunning) return;
     startTime = Date.now();
@@ -66,7 +65,7 @@ const play = () => {
 
 const stop = () => {
     satori.stop();
-    if(!isRunning) satori.cut() // stop has been called twice so flush events
+    satori.cut();
     isRunning = false;
     runBtn.classList.remove('is-running');
     stopBtn.classList.remove('is-running');
@@ -92,7 +91,7 @@ runBtn?.addEventListener('click', () => {
         setTimeout(() => {
             window.dispatchEvent(new CustomEvent("triggerEvaluate")) // bit of a hack to ensure synths have loaded
             isFirstRun = false
-        }, 500)
+        }, 1000)
     }
 });
 
