@@ -66,6 +66,7 @@ const play = () => {
 
 const stop = () => {
     satori.stop();
+    if(!isRunning) satori.cut() // stop has been called twice so flush events
     isRunning = false;
     runBtn.classList.remove('is-running');
     stopBtn.classList.remove('is-running');

@@ -1,4 +1,4 @@
-import { getDraw, getTransport, immediate, Loop } from 'tone'
+import { getDraw, getTransport, immediate, Loop, now } from 'tone'
 import { evaluate, compile } from "./compile";
 import { setCurrentCycle } from './MidiInput';
 
@@ -10,9 +10,11 @@ export class Satori {
     divisions: number = 48; // how many times / cycle to query
     t: number = 0; // time pointer in cycles
     loop: Loop;
+    handlers: Function[]
 
     constructor(handlers: Function[], canvasHandlers: Function[] = []) {
         this.transport = getTransport()
+        this.handlers = handlers
         this.loop = new Loop(time => {
             const from = this.t;
             const to = this.t + (1 / this.divisions);
@@ -72,6 +74,10 @@ export class Satori {
         // reset time pointer
         this.t = 0;
         this.transport.stop(immediate())
+    }
+
+    cut() {
+        this.handlers.forEach(handler => handler({type: 'cut'}, now()));
     }
 
     evaluate(code: string) {
