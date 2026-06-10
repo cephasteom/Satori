@@ -36,16 +36,15 @@ canvas.set({ grid, e: every(1)})
 global.set({ cps: .75, e: once() })
 
 fx0.set({
-  _ftape: .8,
   reverb: 0.5, 
   rsize: .7, 
   rtail: .1,
   e: once() })
 
-streams.slice(1,5).map((s, i) => 
+streams.slice(0,3).map((s, i) => 
 s.set({
   inst: 'faust.pad',
-  n: 'Cmi'.at(0, 2).sub(24).add(i * 14),
+  n: 'Cmi'.at(0,2).sub(24).add(i * 14),
   cut: i + 1, cutr: ctms(1),
   amp: (1).sub(0.25 * i),
   a: ctms(4), r: ctms(4),

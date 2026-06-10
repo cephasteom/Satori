@@ -25,6 +25,7 @@ export function handler(event: Event, time: number) {
     switch (event.type) {
         case 'e': return handleEvent(event, time);
         case 'm': return handleMutation(event, time);
+        case 'cut': return handleCut(time)
     }    
 }
 
@@ -93,4 +94,11 @@ function handleMutation(mutation: Event, time: number) {
         time,
         params.lag
     );
+}
+
+/**
+ * Release all voices
+ */
+function handleCut(time: number) {
+    Object.values(channels).forEach(ch => ch.cut(time))
 }
