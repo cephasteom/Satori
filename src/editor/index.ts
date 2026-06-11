@@ -28,7 +28,7 @@ export const init = async (element: string = '#editor') => {
     const editor = editorFromPlaceholder(
         element,
         {
-            language: 'plaintext',
+            language: 'typescript',
             lineNumbers: false,
             value: localStorage.getItem("satori.code") || preset,
             tabSize: 2,
