@@ -286,7 +286,9 @@ export class Channel {
         if(['fx0', 'fx1', 'fx2', 'fx3'].includes(this.id)) return;
 
         // if inst is integer, using instMap to get actual
-        const inst = typeof params.inst === 'number' ? Object.keys(instMap)[params.inst] : params.inst;
+        const inst = typeof params.inst === 'number' 
+            ? Object.keys(instMap)[params.inst] 
+            : params.inst;
         
         // exit if no valid instrument specified
         const noInst = !Object.keys(instMap).includes(inst)
@@ -304,7 +306,6 @@ export class Channel {
             this._instruments[inst].connect(this.input);
         }
         this._instruments[inst].banks = samples(); // provide samples if applicable
-
         // play instrument with given params
         this._instruments[inst].play(params, time);
     }
@@ -364,7 +365,7 @@ export class Channel {
     /** 
      * Cut all instruments on this channel
      */
-    cut(time: number, release: number = 25) {
+    cut(time: number, release: number = 1000) {
         Object.values(this._instruments)
             .forEach(inst => inst.cut(time, release));
     }
