@@ -12,13 +12,14 @@ import { init as initConsole } from './console';
 import './console/style.css';
 import examples from './examples';
 
+const urlParams = new URLSearchParams(window.location.search);
+
 // ensure a room name is always in the URL so it's ready to share;
 // if one is already present (someone joining a session), keep it as-is
-const urlParams = new URLSearchParams(window.location.search);
-if (!urlParams.has('room')) {
-    urlParams.set('room', crypto.randomUUID());
-    history.replaceState(null, '', `?${urlParams}${window.location.hash}`);
-}
+// if (!urlParams.has('room')) {
+//     urlParams.set('room', crypto.randomUUID());
+//     history.replaceState(null, '', `?${urlParams}${window.location.hash}`);
+// }
 
 // initialize UI components
 initDocs();
