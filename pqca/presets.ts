@@ -322,10 +322,74 @@ canvas.set({
   e: s0.e.or(s1.e).or(s2.e).or(s3.e) })
 `
 
+const preset5 = `// Hiroshi's Dream, Cephas Teom // Dartmoor, 2026
+
+load('https://raw.githubusercontent.com/cephasteom/samples/main/samples.json')
+
+speed = 12
+harmony = set([0,12,18,23,24,26,28,30,35,36,38,40]).add(36)
+grid = pqca(7, t().mul(speed).step(1))
+  .gridroll(c().slow(4))
+cresc = saw().slow(speed)
+
+canvas.set({
+  grid: grid.gridaccumx(12), 
+  e: every(1).fast(speed)})
+
+fx0.set({
+  reverb: .5,
+  rtail: cresc.mtr(.01,.1),
+  delay: cresc, 
+  dtime: grid.density()
+    .mtr((1).div(speed),1)
+    .step((1).div(speed))
+    .ctms(),
+  e: every(1).fast(speed) })
+
+s0.set({
+  inst: 'faust.kick',
+  punch: cresc.mtr(.5,.7),
+  n: 36,
+  amp: grid.density().mtr(1,.5),
+  e: every(1).fast(speed)
+    .and(grid.at(c().mod(2).slow(2))) })
+  
+s1.set({ 
+  inst: 'tone.mono',
+  n: harmony.at(grid.born().indexesOf(1)),
+  lpf: .7,
+  vol: .3, r: 1000, fx0: grid.density(),
+  fila: 10, fils: grid.density().mtr(.1,.5), 
+  e: every(1).fast(speed)
+    .and(grid.at((2).add(c().mod(2)))) })
+
+s2.set({ 
+  inst: 'faust.fm',
+  dur: 10,
+  n: harmony.at(grid.born().indexesOf(1)),
+  modi: grid.density().mtr(0,4).mul(cresc), 
+  mods: .1,
+  cut: [1,3],
+  amp: grid.density().mtr(.25,.75),
+  e: every(1).fast(speed)
+    .and(grid.at((4).add(c().mod(2)))) })
+  
+s3.set({
+  inst: 'sampler', amp: saw(1,.5).fast(speed.div(2)),
+  dist: cresc.mul(.25),
+  bank: 'breaks.brush.113', i: 3,
+  begin: saw().slow(2).step(.125),
+  dur: 50,
+  snap: ctms(2),
+  cut: 3,
+  e: s0.e.or(s2.e) })
+`
+
 export const presets: Record<number, string> = {
   0: preset0,
   1: preset1,
   2: preset2,
   3: preset3,
-  4: preset4
+  4: preset4,
+  5: preset5
 }
