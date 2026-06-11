@@ -1,140 +1,180 @@
 /**
- * Code editor setup.
- * If you want to make use of this, add a <div id="editor"></div> to your HTML.
- * Then, listen out for the 'evaluateCode' event to get the code the user has written.
+ * Code editor setup using Monaco Editor.
+ * Add a <div id="editor"></div> to your HTML (with an explicit height).
+ * Listen for the 'evaluateCode' event to get the code the user has written.
+ *
+ * Install: npm install monaco-editor
+ * Bundler note: Monaco requires worker files to be served separately.
+ * With Vite, add the vite-plugin-monaco-editor plugin, or copy the workers
+ * from node_modules/monaco-editor/esm/vs/... into your public dir.
  */
-import "prism-code-editor/prism/languages/markup"
-import 'prism-code-editor/prism/languages/typescript';
 
-import { editorFromPlaceholder } from 'prism-code-editor';
-import { matchBrackets } from 'prism-code-editor/match-brackets';
-import { defaultCommands, editHistory } from 'prism-code-editor/commands';
-import 'prism-code-editor/languages/clike';
-
-import 'prism-code-editor/layout.css';
-import 'prism-code-editor/guides.css';
-import 'prism-code-editor/invisibles.css';
-import 'prism-code-editor/search.css';
-
+import * as monaco from "monaco-editor";
 import { preset } from "./preset";
 import { initCollab } from "./collab";
 
-import './style.css'
+export const init = async (element: string = "#editor") => {
+  const container = document.querySelector<HTMLElement>(element);
+  if (!container) throw new Error(`No element found for selector: ${element}`);
 
-export const init = async (element: string = '#editor') => {
-    /**
-     * Initialize the code editor in an element with ID 'editor'
-     */
-    const editor = editorFromPlaceholder(
-        element,
-        {
-            language: 'plaintext',
-            lineNumbers: false,
-            value: localStorage.getItem("satori.code") || preset,
-            tabSize: 2,
-        },
-        matchBrackets(),
-        defaultCommands(),
-        editHistory(),
+  monaco.editor.defineTheme("satori", {
+    base: "vs-dark", // or "vs" (light) / "hc-black" (high contrast)
+    inherit: true,   // inherit the rest of the base theme's rules
+    rules: [],
+    colors: {
+        "editor.background": "#0a0a0a",
+    },
+  });
+  
+
+  /**
+   * Create the Monaco editor instance.
+   */
+  const editor = monaco.editor.create(container, {
+    value: localStorage.getItem("satori.code") ?? preset,
+    language: 'javascript',
+    theme: 'satori',
+    fontSize: 16,
+    fontFamily: "Courier New, Lucida Console, monospace",
+    lineNumbers: 'off',
+    glyphMargin: false,
+    folding: false,
+    lineDecorationsWidth: 0,
+    lineNumbersMinChars: 0,
+    minimap: {
+        enabled: false
+    },
+    automaticLayout: true,
+    renderLineHighlight: 'none',
+    quickSuggestions: false,
+    wordWrap: "on",
+    scrollbar: {
+        vertical: "hidden",
+        horizontal: "hidden",
+        verticalScrollbarSize: 0,
+        horizontalScrollbarSize: 0,
+        useShadows: false,
+        verticalHasArrows: false,
+        horizontalHasArrows: false,
+        arrowSize: 0
+    },
+    suggestOnTriggerCharacters: false,
+    acceptSuggestionOnEnter: "off",
+    acceptSuggestionOnCommitCharacter: false,
+    snippetSuggestions: 'none',
+    roundedSelection: false,
+    tabSize: 2,
+    parameterHints: {
+        enabled: false
+    },
+    hover: {
+        enabled: false
+    },
+    guides: {
+        indentation: false        // newer setting
+    },
+    stickyScroll: {
+        enabled: false
+    }
+  });
+
+  /**
+   * Fire evaluateCode event with the current editor content.
+   */
+  const evaluateCode = () => {
+    window.dispatchEvent(
+      new CustomEvent("evaluateCode", { detail: { code: editor.getValue() } })
     );
+  };
 
-    /**
-     * Fire evaluateCode event
-     */
-    const evaluateCode = () => {
-        window.dispatchEvent(new CustomEvent("evaluateCode", { detail: { code: editor.value } }));
+  /**
+   * Persist code to localStorage on every change.
+   */
+  editor.onDidChangeModelContent(() => {
+    localStorage.setItem("satori.code", editor.getValue());
+  });
+
+  /**
+   * Ctrl/Cmd+Enter or Ctrl/Alt+Enter → evaluate code.
+   * Monaco uses addCommand for keybindings.
+   */
+  editor.onKeyDown((e) => {
+    if ((e.ctrlKey || e.metaKey || e.altKey) && e.code === "Enter") {
+      evaluateCode();
+    }
+  });
+
+
+  /**
+   * Global keyboard shortcuts (file open / save).
+   */
+  window.addEventListener("keydown", async (event) => {
+    const meta = event.metaKey || event.ctrlKey;
+
+    // Cmd+O → open a .js file
+    if (meta && event.key === "o") {
+      event.preventDefault();
+      const [handle] = await (window as any).showOpenFilePicker({
+        types: [
+          {
+            description: "JavaScript Files",
+            accept: { "text/javascript": [".js"] },
+          },
+        ],
+        excludeAcceptAllOption: true,
+        multiple: false,
+      });
+      const file = await handle.getFile();
+      const contents = await file.text();
+      editor.setValue(contents);
     }
 
-    /**
-     * If a user presses Shift+Enter, fire a custom 'evaluateCode' event
-     */
-    editor.textarea.addEventListener('keydown', (e) => {
-        localStorage.setItem("satori.code", editor.value);
-        const meta = e.metaKey || e.ctrlKey; // Cmd on Mac, Ctrl on Windows/Linux
-
-        if (e.key === 'Enter' && (e.ctrlKey || e.altKey)) {
-            e.preventDefault();
-            evaluateCode();
-            return false;
-        }
-
-        // Cmd+Left: jump to first non-whitespace character, then start of line
-        if (meta && e.key === 'ArrowLeft') {
-            e.preventDefault();
-            const { selectionStart } = editor.textarea;
-            const lineStart = editor.value.lastIndexOf('\n', selectionStart - 1) + 1;
-            const firstChar = lineStart + editor.value.slice(lineStart).search(/\S/);
-            
-            // if already at first char, go to true line start
-            const target = selectionStart === firstChar ? lineStart : firstChar;
-            editor.textarea.setSelectionRange(target, target);
-            return;
-        }
-    });
-
-    window.addEventListener('keydown', async (event) => {
-        if (event.metaKey && event.key === "o") {
-            event.preventDefault();
-            // @ts-ignore
-            const [handle] = await window.showOpenFilePicker({
-                types: [
-                    {
-                        description: "JavaScript Files",
-                        accept: {
-                            "text/javascript": [".js"]
-                        }
-                    }
-                ],
-                excludeAcceptAllOption: true, // optional: hides "All files (*.*)"
-                multiple: false
-            });
-            const file = await handle.getFile();
-            const contents = await file.text();
-            editor.setOptions({ value: contents })
-        }
-
-        // Cmd+S to save, download a file with the current code
-        if (event.metaKey && event.key === "s") {
-            event.preventDefault();
-
-            const options = {
-                // todays date as YYYY-MM-DD.js
-                suggestedName: `satori-${new Date().toISOString().split('T')[0]}.js`,
-                types: [
-                    {
-                        description: "JavaScript File",
-                        accept: { "text/plain": [".js"] }
-                    }
-                ]
-            };
-
-            // @ts-ignore
-            const handle = await window.showSaveFilePicker(options);
-
-            const writable = await handle.createWritable();
-            await writable.write(editor.value);
-            await writable.close();
-        }
-
-    });
-
-    // listen out for custom 'triggerEvaluate' events from the global scope
-    window.addEventListener("triggerEvaluate", evaluateCode);
-
-    // listen out for custom 'setCode' events to set the code in the editor
-    window.addEventListener("setCode", (e: any) => {
-        editor.setOptions({ value: e.detail.code });
-    });
-
-    // enable collab editing if ?room=<name> is in the URL
-    const room = new URLSearchParams(window.location.search).get('room');
-    if (room) {
-        const { sendCode } = initCollab(room, (code) => {
-            const { selectionStart, selectionEnd, selectionDirection } = editor.textarea;
-            editor.setOptions({ value: code });
-            editor.textarea.focus();
-            editor.textarea.setSelectionRange(selectionStart, selectionEnd, selectionDirection);
-        });
-        editor.textarea.addEventListener('input', () => sendCode(editor.value));
+    // Cmd+S → save / download the current code as a .js file
+    if (meta && event.key === "s") {
+      event.preventDefault();
+      const options = {
+        suggestedName: `satori-${new Date().toISOString().split("T")[0]}.js`,
+        types: [
+          {
+            description: "JavaScript File",
+            accept: { "text/plain": [".js"] },
+          },
+        ],
+      };
+      const handle = await (window as any).showSaveFilePicker(options);
+      const writable = await handle.createWritable();
+      await writable.write(editor.getValue());
+      await writable.close();
     }
-}
+  });
+
+  /**
+   * External event: trigger evaluation programmatically.
+   */
+  window.addEventListener("triggerEvaluate", evaluateCode);
+
+  /**
+   * External event: replace editor content from outside.
+   */
+  window.addEventListener("setCode", (e: any) => {
+    editor.setValue(e.detail.code);
+  });
+
+  /**
+   * Collaborative editing via ?room=<name> URL param.
+   * We preserve the cursor position across remote updates.
+   */
+  const room = new URLSearchParams(window.location.search).get("room");
+  if (room) {
+    const { sendCode } = initCollab(room, (code) => {
+      const position = editor.getPosition();
+      editor.setValue(code);
+      if (position) editor.setPosition(position);
+      editor.focus();
+    });
+
+    editor.onDidChangeModelContent(() => {
+      sendCode(editor.getValue());
+    });
+  }
+};

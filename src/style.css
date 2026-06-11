@@ -278,6 +278,10 @@ header {
     display: none;
 }
 
+.editor > div {
+    height: 100%;
+}
+
 .prism-code-editor {
     font-family: var(--font-2)!important;
     letter-spacing: 15%;

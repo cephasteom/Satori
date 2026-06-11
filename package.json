@@ -29,6 +29,7 @@
     "highlight.js": "^11.11.1",
     "marked": "^17.0.1",
     "mathjs": "^15.1.0",
+    "monaco-editor": "^0.55.1",
     "noisejs": "^2.1.0",
     "partysocket": "^1.1.19",
     "pegjs": "^0.10.0",
