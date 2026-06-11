@@ -150,6 +150,7 @@ canvas
 `
 
 const preset3 = `// Stabat in Tenebris, Cephas Teom // Dartmoor, June 2026
+load('https://raw.githubusercontent.com/cephasteom/samples/main/samples.json')
 
 speed = 11
 trigger = every((1).div(speed))
@@ -175,12 +176,12 @@ streams.slice(0,2).map((s,i) => s.set({
   pan: regions[i].density().mtr(i * .6 + .2, i * -.6 + .8),
   fx0: regions[i].density().mtr(.5,1),
   level: regions[i].density().mtr(.5,0),
-  ftape: 1,
-  ftapehiss: .01,
+  ftape: 1, ftapehiss: .01,
   _ftapesat: regions[i].density().mtr(.75,1),
   _ftapewow: regions[i].density().mtr(.5,1),
   _ftapeflutter: regions[i].density().mtr(.5,1),
   lag: 200,
+  hpf: .3,
   e: trigger.and(regions[i].born().includes(1))
 }))
 
@@ -190,25 +191,32 @@ s0.set({
   fila: 10, fils: .1 })
 
 s1.set({
-  inst: 'tone.fm',
-  a: 10,
-  osc: 0,
-  cut: [0,1],
-  lpf: 1,
-  cutr: ctms(1/4),
-  modi: .25,
-  s: .25 })
+  inst: 'tone.fm', mod: .25,
+  a: 10, s: .25,
+  cut: [0,1], cutr: ctms(1/4),
+  lpf: 1 })
+  
+s2.set({
+  inst: 'faust.kick',
+  amp: grid.density().mtr(.5,1),
+  n: harmony.at(0).mod(12).add(36),
+  e: '3:8'.and('1 0') })
+
+s3.set({
+  inst: 'sampler',
+  bank: 'rs808', i: 3, 
+  lpf: .4,
+  reverb: .5, rtail:.1,
+  n: harmony.at(5).mod(12).add(48),
+  e: '3:8'.and('0 1') })
 
 fx0.set({
-  ftape: .6,
-  ftapehiss: .025,
+  ftape: .6, ftapehiss: .025,
   _ftapesat: grid.density().mtr(.5,1),
   _ftapewow: grid.density().mtr(.5,1),
   _ftapeflutter: grid.density().mtr(.5,1),
-  reverb: .5,
-  rtail:.1,
-  delay: grid.density().mtr(.2, .5),
-  dfb:.1,
+  reverb: .5, rtail:.1,
+  delay: grid.density().mtr(.2, .5), dfb:.1,
   dtime: ctms(1/4),
   m: trigger,
   e: trigger })
