@@ -17,6 +17,16 @@ export const init = async (element: string = "#editor") => {
   const container = document.querySelector<HTMLElement>(element);
   if (!container) throw new Error(`No element found for selector: ${element}`);
 
+  monaco.editor.defineTheme("satori", {
+    base: "vs-dark", // or "vs" (light) / "hc-black" (high contrast)
+    inherit: true,   // inherit the rest of the base theme's rules
+    rules: [],
+    colors: {
+        "editor.background": "#0a0a0a",
+    },
+  });
+  
+
   /**
    * Create the Monaco editor instance.
    */
@@ -24,7 +34,8 @@ export const init = async (element: string = "#editor") => {
     value: localStorage.getItem("satori.code") ?? preset,
     language: 'javascript',
     theme: 'satori',
-    fontSize: 17,
+    fontSize: 16,
+    fontFamily: "Courier New, Lucida Console, monospace",
     lineNumbers: 'off',
     glyphMargin: false,
     folding: false,

@@ -1084,3 +1084,7 @@ button {
 .docs__list li {
   margin-bottom: calc(var(--spacer) * 1.5);
 }
+
+#editor {
+  height: 100%;
+}
