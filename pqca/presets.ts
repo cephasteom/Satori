@@ -45,8 +45,8 @@ streams.slice(0,3).map((s, i) =>
 s.set({
   inst: 'faust.pad',
   n: 'Cmi'.at(0,2).sub(24).add(i * 14),
-  cut: i + 1, cutr: ctms(1),
-  amp: (1).sub(0.25 * i),
+  cut: i, cutr: ctms(1),
+  amp: (1).sub(0.1 * i).mul(.5),
   a: ctms(4), r: ctms(4),
   dur: ctms(64),
   _pan: noise(.5 - Math.pow(0.65, i), .5 + Math.pow(0.65, i))
