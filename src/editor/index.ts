@@ -98,35 +98,12 @@ export const init = async (element: string = "#editor") => {
    * Ctrl/Cmd+Enter or Ctrl/Alt+Enter → evaluate code.
    * Monaco uses addCommand for keybindings.
    */
-  editor.addCommand(
-    monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
-    evaluateCode
-  );
-  editor.addCommand(
-    monaco.KeyMod.Alt | monaco.KeyCode.Enter,
-    evaluateCode
-  );
-
-  /**
-   * Cmd/Ctrl+Left → jump to first non-whitespace char, then true line start
-   * (mirrors the original prism behaviour).
-   * We override the built-in "cursorHome" action with the same key.
-   */
-  editor.addCommand(
-    monaco.KeyMod.CtrlCmd | monaco.KeyCode.LeftArrow,
-    () => {
-      const model = editor.getModel();
-      const position = editor.getPosition();
-      if (!model || !position) return;
-
-      const lineContent = model.getLineContent(position.lineNumber);
-      const firstNonWhitespace = lineContent.search(/\S/) + 1; // 1-based column
-      const isAtFirstNonWS = position.column === firstNonWhitespace;
-
-      const targetColumn = isAtFirstNonWS ? 1 : firstNonWhitespace;
-      editor.setPosition({ lineNumber: position.lineNumber, column: targetColumn });
+  editor.onKeyDown((e) => {
+    if ((e.ctrlKey || e.metaKey || e.altKey) && e.code === "Enter") {
+      evaluateCode();
     }
-  );
+  });
+
 
   /**
    * Global keyboard shortcuts (file open / save).
