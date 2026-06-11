@@ -250,16 +250,15 @@ regions = [
   grid.region(0, 4, 2, 7),
   grid.region(3, 4, 5, 7),
 ]
+
 s0.set({
   inst: 'sampler',
   bank: 'turbo-garden_bd',
   nudge: grid.density().step(1/8).ctms(),
-  fx0: 1,
-  level: 0,
+  fx0: 1, level: 0,
   cut: 1,
   e: every(1/2)
-    .and(regions[2].density().gt(.25))
-})
+    .and(regions[2].density().gt(.25)) })
 
 s1.set({
   inst: 'sampler',
@@ -267,62 +266,51 @@ s1.set({
   amp: .25,
   snap: ctms(.5).add(noise().slow(4).mtr(0,25).step(1)),
   dur: regions[3].density().mtr(1/16,1).ctms(),
-  fx0: 1,
+  fx0: 1, level: 0,
   nudge: random().mtr(0,25).step(1),
-  level: 0,
   cut: 'all',
-  e: '0 1'
-})
+  e: '0 1' })
 
 s2.set({
   inst: 'sampler',
-  bank: 'toms808',
+  bank: 'toms808', i: regions[0].born().indexesOf(1),
   cut: [0,1,'self'],
   amp: regions[0].density().mtr(.5,1),
-  i: regions[0].born().indexesOf(1),
   n: 'Cmpent%8'.at(tri().mul(speed).slow(speed).floor().mod(speed)),
-  fx0: 1,
-  level: 0,
+  fx0: 1, level: 0,
   e: trigger
     .and(regions[0].born().includes(1))
     .and(not(s0.e.or(s1.e)))
-    .and('1 0'.slow(1.5))
-})
+    .and('1 0'.slow(1.5)) })
 
 s3.set({
   inst: 'sampler',
-  bank: 'ct.mb145',
+  bank: 'ct.mb145', i: 3,
   s: regions[1].density().mtr(.1,1),
   snap: ctms(1),
   cut: [0,1,3],
-  i: 3,
-  fx0: 1,
-  level: 0,
+  fx0: 1, level: 0,
   n: 'Cmpent%8'.at(random().mul(speed).slow(speed).floor().mod(speed)),
   e: trigger
     .and(regions[1].born().includes(1))
     .and(not(s0.e.or(s1.e)))
-    .and('0 1'.slow(1.5))
-})
+    .and('0 1'.slow(1.5)) })
 
 s4.set({
   inst: 'sampler',
   bank: 'ma808',
-  fx0: 1,
-  level: 0,
+  fx0: 1, level: 0,
   e: '0 1 0 1'.fast('1?2')
-    .and(not(s0.e.or(s1.e)))
-})
+    .and(not(s0.e.or(s1.e))) })
 
 fx0.set({
   ftape: grid.density().mtr(.5,1),
   ftapehiss: .125,
-  dist: .5,
-  drive: .5,
+  dist: .5, drive: .5,
   _ftapesat: grid.density().mtr(.5,1),
   _ftapewow: grid.density().mtr(.5,1),
   _ftapeflutter: grid.density().mtr(.5,1),
-  lag: ctms(1/8),
+  lag: ctms(1/8), level: .5,
   e: s0.e.or(s1.e).or(s2.e).or(s3.e) })
 
 global.set({
@@ -331,8 +319,7 @@ global.set({
 
 canvas.set({
   grid,
-  e: s0.e.or(s1.e).or(s2.e).or(s3.e)
-})
+  e: s0.e.or(s1.e).or(s2.e).or(s3.e) })
 `
 
 export const presets: Record<number, string> = {

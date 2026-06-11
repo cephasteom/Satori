@@ -1720,6 +1720,54 @@ const gridroll = (...args: any[]) => P((from, to) => {
 });
 
 /**
+ * Accumulate grids on the x axis. Useful for 1D grids
+ * @param max - maximum number to accumulate before scrolling through
+ * @param reset
+ * @example pqca(7, count()).gridaccumx(12)
+ */
+const gridaccumx = (...args: any[]) => {
+    let arr: any[][] = []
+    return P((from, to) => {
+        const pattern = args[args.length - 1] as Pattern<any>;
+        const max = args.length > 1 ? unwrap(args[0], from, to) : Infinity
+        const reset = args.length > 2 ? unwrap(args[1], from, to) : 0
+        return pattern.query(from, to).map(hap => {
+            arr = reset
+                ? []
+                : [ ...arr, ...to2D(hap.value) ].slice(-max)
+            return {
+                ...hap,
+                value: arr
+            }
+        })
+    })
+}
+
+/**
+ * Accumulate grids on the y axis. Useful for 1D grids
+ * @param max - maximum number to accumulate before scrolling through
+ * @param reset
+ * @example pqca(7, count()).gridaccumy(12)
+ */
+const gridaccumy = (...args: any[]) => {
+    let arr: any[][] = []
+    return P((from, to) => {
+        const pattern = args[args.length - 1] as Pattern<any>;
+        const max = args.length > 1 ? unwrap(args[0], from, to) : Infinity
+        const reset = args.length > 2 ? unwrap(args[1], from, to) : 0
+        return pattern.query(from, to).map(hap => {
+            arr = reset
+                ? []
+                : to2D(hap.value).map((row, i) => [...row, ...(arr[i] || [])].slice(0, (max * row.length)))
+            return {
+                ...hap,
+                value: arr
+            }
+        })
+    })
+}
+
+/**
  * Asssuming an array, join together into a string with an optional separator.
  * @param separator - string to join values with. Default is '' (no separator).
  * @example 'C E G'.join() // returns 'CEG'
@@ -1765,7 +1813,7 @@ export const methods = {
     ca, pqca, row, col, diagonal, region, hood, density, tile, flat,
     changed, born, died,
     reflectx, reflecty, reflectn,
-    gridroll, gridrollx, gridrolly
+    gridroll, gridrollx, gridrolly, gridaccumx, gridaccumy
 
 };
 
