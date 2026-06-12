@@ -13,6 +13,18 @@ import * as monaco from "monaco-editor";
 import { preset } from "./preset";
 import { initCollab } from "./collab";
 
+import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
+import tsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
+import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
+
+self.MonacoEnvironment = {
+  getWorker(_moduleId: string, label: string) {
+    if (label === "typescript" || label === "javascript") return new tsWorker();
+    if (label === "json") return new jsonWorker();
+    return new editorWorker();
+  },
+};
+
 export const init = async (element: string = "#editor") => {
   const container = document.querySelector<HTMLElement>(element);
   if (!container) throw new Error(`No element found for selector: ${element}`);
