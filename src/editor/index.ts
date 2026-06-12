@@ -34,7 +34,7 @@ export const init = async (element: string = "#editor") => {
     inherit: true,   // inherit the rest of the base theme's rules
     rules: [],
     colors: {
-        "editor.background": "#0a0a0a",
+      "editor.background": "#0a0a0a",
     },
   });
   
