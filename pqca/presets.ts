@@ -78,75 +78,64 @@ harmony = '48 55 60 63 67 70 72 74 75 77 79 81 82 84'.sub(12)
 
 streams.slice(0,4).map((stream, i) => {
   transport = t().mul(24).add(i*4)
-  stream
-    inst 'faust.fm'
-    dur ctms(8)
-    mods 1
-    _harm i.add(1).mul(3)
-    _modi grid.flat().at(transport.add(2))
-      .mtr(0,tri(0,.5).slow((i+1).mul(6)))
-    _amp grid.flat().at(transport.add(4)).mtr(.75,.125)
-      .mul(harmony.mtr(1,.5,36,72))
-    _pan grid.flat().at(transport.add(6))
-    _hpfv grid.flat().at(transport.add(8)).mtr(.125,.5)
-    hpf .3
-    a ctms(2)
-    d ctms(2)
-    _n harmony.add(floor(i/2).mul(12))
-    lag i.add(1).mul(2)
-    fx0 .75
-    level 0
-    m '1*24'
-      .and(grid.flat().at(transport))
-    e every((i + 1) * 2)
+  stream.set({
+    inst: 'faust.fm',
+    dur: ctms(8),
+    _harm: i.add(1).mul(3),
+    _modi: grid.flat().at(transport.add(2))
+      .mtr(0,tri(0,.5).slow((i+1).mul(6))),
+    mods: 1,
+    _amp: grid.flat().at(transport.add(4)).mtr(.75,.125)
+      .mul(harmony.mtr(1,.5,36,72)),
+    _pan: grid.flat().at(transport.add(6)),
+    _hpfv: grid.flat().at(transport.add(8)).mtr(.125,.5),
+    hpf: .3,
+    a: ctms(2), d: ctms(2),
+    _n: harmony.add(floor(i/2).mul(12)),
+    lag: i.add(1).mul(2),
+    fx0: .75, level: 0,
+    m: '1*24'
+      .and(grid.flat().at(transport)),
+    e: every((i + 1) * 2) })
 })
 
-s4
-  inst 'synth'
-  n '36|32'.slow(16)
-  cut 4
-  amp .5
-  lforate .75
-  lfodepth .5
-  dur ctms(16)
-  a ctms(4)
-  r ctms(2)
-  e every(8)
+s4.set({
+  inst: 'synth',
+  n: '36|32'.slow(16),
+  cut: 4,
+  amp: .5,
+  lforate: .75, lfodepth: .5,
+  dur: ctms(16),
+  a: ctms(4), r: ctms(2),
+  e: every(8) })
 
-s5
-  inst 'sampler'
-  bank 'air'
-  a ctms(2)
-  r ctms(2)
-  i count()
-  snap ctms(16)
-  dur ctms(8)
-  fx0 1
-  level 0
-  e every(8)
-  
-fx0
-  reverb .5
-  rsize .7
-  rtail .125
-  ftape .6
-  _ftapesat grid.density()
-  _ftapewow grid.density()
-  _ftapeflutter grid.density().mul(2).clamp()
-  delay tri(.01,.5).slow(16)
-  dtime ctms(.75)
-  lag ctms(1/6)
-  hpf .25
-  m '1*24'
-  e once()
+s5.set({
+  inst: 'sampler',
+  bank: 'air', i: count(),
+  snap: ctms(16),
+  a: ctms(2), r: ctms(2),
+  dur: ctms(8),
+  fx0: 1, level: 0,
+  e: every(8) })
 
-global
-  cps c().lt(3).ie(1,.25)
-  e '1'
-  
-canvas 
-  grid grid
-  e '1*24'
+fx0.set({
+  reverb: .5, rsize: .7, rtail: .125,
+  ftape: .6,
+  _ftapesat: grid.density(),
+  _ftapewow: grid.density(),
+  _ftapeflutter: grid.density().mul(2).clamp(),
+  delay: tri(.01,.5).slow(16), dtime: ctms(.75),
+  hpf: .25,
+  m: '1*24', lag: ctms(1/6),
+  e: once() })
+
+global.set({
+  cps: c().lt(3).ie(1,.25),
+  e: '1' })
+
+canvas.set({
+  grid: grid,
+  e: '1*24' })
 `
 
 const preset3 = `// Stabat in Tenebris, Cephas Teom // Dartmoor, June 2026
