@@ -4,6 +4,10 @@ export const pqcaData = (dataset: number = 0, frame: number = 0, shot: number = 
     const key = `${dataset.toString().padStart(2, '0')}`;
 
     if (!pqcaData.cache.has(key)) {
+        // set key to prevent repeat calls
+        pqcaData.cache.set(key, { frames: [] });
+
+        // fetch the dataset
         fetch(`/data/pqca/${key}.json`)
             .then((res) => res.json())
             .then((data) => {
@@ -32,7 +36,8 @@ export const pqcaData = (dataset: number = 0, frame: number = 0, shot: number = 
             })
             .catch((err) => {
                 console.error(`Failed to fetch PQCA data for dataset ${dataset}:`, err);
-                pqcaData.cache.set(key, { frames: [] });
+                // remove from cache so that it can be tried again
+                pqcaData.cache.delete(key)
             });
         return [];
     }
