@@ -262,7 +262,7 @@ export class Channel {
      * @param params - e.g. {inst: 'tone.synth', n: 60, dur: 1000}
      * @param time 
      */
-    play(params: any, time: number) {
+    play(params: any, time: number = 0) {
         const { midi, level = 1, out = 0 } = params;
         
         // handle output routing
@@ -280,7 +280,7 @@ export class Channel {
         this.handleFx(params, time);
 
         // set channel level
-        this._fader.gain.rampTo(level, 0.1, time)
+        this._fader.gain.rampTo(level ?? 0, 0.1, time)
 
         // exit if this is an FX channel
         if(['fx0', 'fx1', 'fx2', 'fx3'].includes(this.id)) return;

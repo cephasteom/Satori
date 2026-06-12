@@ -31,7 +31,7 @@ export class Satori {
             // extract cps changes
             const cpsEvents = global
                 .filter((hap: any) => 'cps' in hap.params)
-                .map((hap: any) => ({time: hap.time, value: hap.params.cps}));
+                .map((hap: any) => ({time: hap.time, value: isNaN(hap.params.cps) ? 0.5 : hap.params.cps}));
             
             // handle global events
             global.forEach((hap: any) => {
