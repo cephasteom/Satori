@@ -25,7 +25,8 @@ self.MonacoEnvironment = {
   },
 };
 
-export const init = async (element: string = "#editor", background: string = '#0a0a0a') => {
+export const init = async (options: Record<string, string>) => {
+  const { element = "#editor", background = "#0a0a0a" } = options
   const container = document.querySelector<HTMLElement>(element);
   if (!container) throw new Error(`No element found for selector: ${element}`);
 

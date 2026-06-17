@@ -13,7 +13,7 @@ import { handler as midiHandler } from '../src/core/MIDI';
 import { init as initWebSocket } from '../src/core/WebSocket';
 import { init as initCanvas } from '../src/canvas';
 
-initEditor('#editor', '#0a0a0a');
+initEditor({background: '#0a0a0a'});
 initConsole();
 initDocs();
 
