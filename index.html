@@ -19,11 +19,7 @@
         <nav>
           <a href="https://github.com/cephasteom/satori" target="_blank">Github</a>
           <a href="https://cephasteom.co.uk" target="_blank">About</a>
-          <select id="examples">
-            <option>examples</option>
-            <option>breaks</option>
-            <option>quantum</option>
-          </select>
+          <a href="#" id="examples-btn">Examples</a>
         </nav>
       </header>
 
@@ -55,6 +51,21 @@
         </section>
       </div>
     </main>
+
+    <div class="modal-overlay hidden" id="modal-overlay">
+      <div class="modal">
+        <div class="modal-titlebar">
+          <span class="modal-title">Examples</span>
+          <button class="modal-close" id="modal-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal-body">
+          <div class="examples-list">
+            <button class="example-btn" data-example="breaks">Breaks</button>
+            <button class="example-btn" data-example="quantum">Quantum</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

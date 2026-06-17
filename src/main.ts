@@ -113,12 +113,35 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
-const examplesSelect = document.getElementById('examples')
-examplesSelect?.addEventListener('change', e => {
-    // @ts-ignore
-    const {value} = e.target
-    // @ts-ignore
-    const code = examples[value]
-    if(code) window.dispatchEvent(new CustomEvent("setCode", { detail: { code } }));
+const modalOverlay = document.getElementById('modal-overlay');
+const examplesBtn = document.getElementById('examples-btn');
+const modalClose = document.getElementById('modal-close');
 
-})
+const openModal = () => modalOverlay?.classList.remove('hidden');
+const closeModal = () => modalOverlay?.classList.add('hidden');
+
+examplesBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openModal();
+});
+
+modalClose?.addEventListener('click', closeModal);
+
+modalOverlay?.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) closeModal();
+});
+
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+});
+
+document.querySelectorAll('.example-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        const key = (btn as HTMLElement).dataset.example as string;
+        const code = examples[key as keyof typeof examples];
+        if (code) {
+            window.dispatchEvent(new CustomEvent('setCode', { detail: { code } }));
+            closeModal();
+        }
+    });
+});
