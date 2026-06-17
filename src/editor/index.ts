@@ -25,16 +25,48 @@ self.MonacoEnvironment = {
   },
 };
 
-export const init = async (element: string = "#editor") => {
+export const init = async (options: Record<string, string>) => {
+  const { element = "#editor", background = "#0a0a0a" } = options
   const container = document.querySelector<HTMLElement>(element);
   if (!container) throw new Error(`No element found for selector: ${element}`);
 
   monaco.editor.defineTheme("satori", {
-    base: "vs-dark", // or "vs" (light) / "hc-black" (high contrast)
-    inherit: true,   // inherit the rest of the base theme's rules
-    rules: [],
+    base: "vs-dark",
+    inherit: true,
+    rules: [
+      { token: "comment",    foreground: "969696" },
+      { token: "keyword",    foreground: "569cd6" },
+      { token: "keyword.control", foreground: "c586c0" },
+      { token: "keyword.flow", foreground: "c586c0" },
+      { token: "number",     foreground: "00FFFF" },
+      { token: "number.hex", foreground: "00FFFF" },
+      { token: "string",     foreground: "FF8419" },
+      { token: "string.escape", foreground: "d7ba7d" },
+      { token: "regexp",     foreground: "FF8419" },
+      { token: "regexp.escape", foreground: "d16969" },
+      { token: "operator",   foreground: "d4d4d4" },
+      { token: "delimiter",  foreground: "d4d4d4" },
+      { token: "delimiter.bracket", foreground: "FFC300" },
+      { token: "delimiter.parenthesis", foreground: "FF7383" },
+      { token: "delimiter.square", foreground: "FF8419" },
+      { token: "type",       foreground: "4ec9b0" },
+      { token: "type.identifier", foreground: "4ec9b0" },
+      { token: "identifier", foreground: "ffffff" },
+      { token: "function",   foreground: "FF7383" },
+      { token: "variable",   foreground: "ffffff" },
+      { token: "property",   foreground: "ffffff" },
+      { token: "constant",   foreground: "4fc1ff" },
+      { token: "tag",        foreground: "569cd6" },
+      { token: "attribute.name", foreground: "ffffff" },
+      { token: "attribute.value", foreground: "FF8419" },
+      { token: "",           foreground: "ffffff" },
+    ],
     colors: {
-      "editor.background": "#0a0a0a",
+      "editor.background": background,
+      "editor.foreground": "#ffffff",
+      "editorCursor.foreground": "#aeafad",
+      "editor.selectionBackground": "#264f78",
+      "editor.lineHighlightBackground": "#00000000",
     },
   });
   

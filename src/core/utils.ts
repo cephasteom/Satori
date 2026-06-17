@@ -91,7 +91,7 @@ export const utilities = {
     },
     instruments: () => {
         channel.postMessage({ type: 'success', message: 'Instruments ->\n' });
-        channel.postMessage({ type: 'info', message: 'synth, sampler, granular, acid, tone.synth, tone.am, tone.fm, tone.mono' } );
+        channel.postMessage({ type: 'info', message: 'synth, sampler, granular, acid, tone.synth, tone.am, tone.fm, tone.mono, faust.fm, faust.pad, faust.karplus, faust.noiseres, faust.kick, faust.snare, faust.hihat' } );
     },
     effects: () => {
         channel.postMessage({ type: 'success', message: 'Effects ->\n' });
