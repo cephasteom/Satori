@@ -9,10 +9,10 @@ const getMethods = (json: any[]): Record<string, any> => {
             ...obj,
             [item.name]:
             {
-                description: (item.signatures[0]?.comment?.summary || [])
+                description: (item.signatures ? item.signatures[0]?.comment?.summary || [] : [])
                     .filter((comment: Record<string, string>) => comment.kind === 'text')
                     .reduce((desc: string, comment: Record<string, string>) => desc + comment.text, ''),
-                examples: (item.signatures[0]?.comment?.blockTags || [])
+                examples: (item.signatures ? item.signatures[0]?.comment?.blockTags || [] : [])
                     .filter((example: Record<string, string>) => example.tag === '@example')
                     .map((example: Record<string, string[]>) => example.content[0]?.text || '')
             }

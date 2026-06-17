@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "docs:pattern": "npx typedoc src/core/Pattern.ts --json src/docs/Pattern.json",
     "docs:stream": "npx typedoc src/core/Stream.ts --json src/docs/Stream.json",
-    "docs:instruments": "npx typedoc src/oto/ct-synths/rnbo/Synth.ts src/oto/ct-synths/rnbo/Sampler2.ts src/oto/ct-synths/rnbo/Granular2.ts src/oto/ct-synths/rnbo/AcidSynth.ts src/oto/ct-synths/tone/Synth.ts src/oto/ct-synths/tone/AMSynth.ts src/oto/ct-synths/tone/FMSynth.ts src/oto/ct-synths/tone/MonoSynth.ts --json src/docs/instruments.json",
+    "docs:instruments": "npx typedoc src/oto/ct-synths/rnbo/Synth.ts src/oto/ct-synths/rnbo/Sampler2.ts src/oto/ct-synths/rnbo/Granular2.ts src/oto/ct-synths/rnbo/AcidSynth.ts src/oto/ct-synths/tone/Synth.ts src/oto/ct-synths/tone/AMSynth.ts src/oto/ct-synths/tone/FMSynth.ts src/oto/ct-synths/tone/MonoSynth.ts src/oto/ct-synths/faust/FMSynth.ts src/oto/ct-synths/faust/Pad.ts src/oto/ct-synths/faust/Karplus.ts src/oto/ct-synths/faust/NoiseRes.ts src/oto/ct-synths/faust/Kick.ts src/oto/ct-synths/faust/Snare.ts src/oto/ct-synths/faust/Hihat.ts --json src/docs/instruments.json",
     "docs:fx": "npx typedoc src/oto/ct-synths/rnbo/Delay.ts src/oto/ct-synths/rnbo/ReverbGen.ts src/oto/ct-synths/rnbo/FXChannel.ts --json src/docs/fx.json",
     "docs": "npm run docs:pattern && npm run docs:stream && npm run docs:instruments && npm run docs:fx"
   },
