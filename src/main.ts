@@ -23,7 +23,12 @@ const urlParams = new URLSearchParams(window.location.search);
 
 // initialize UI components
 initDocs();
-initEditor({background: '#282828'});
+initEditor({
+    background: '#282828', 
+    fontFamily: '"IBM Plex Mono", monospace',
+    letterSpacing: '2',
+    fontSize: '14'
+});
 initConsole();
 
 // select engine to use based on URL param, default to Oto (browser based synth engine)
@@ -62,6 +67,7 @@ playBtn?.addEventListener('click', () => {
         satori.stop();
         setPlayState(false);
     } else {
+        window.dispatchEvent(new CustomEvent("triggerEvaluate"));
         satori.play();
         setPlayState(true);
     }

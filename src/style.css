@@ -17,7 +17,7 @@
     --app-opacity: 1;
     --font-1: 'NATS Regular', system-ui, sans-serif;
     --font-2: "IBM Plex Mono", monospace;
-    --font-sz: 1rem;
+    --font-sz: 14px;
     --text-xs:  calc(var(--font-sz) * 0.69);
     --text-sm:  calc(var(--font-sz) * 0.85);
     --text-lg:  calc(var(--font-sz) * 1.15);
@@ -101,6 +101,7 @@ header {
 .sidebar {
     background-color: var(--black-lighter);
     padding: var(--spacer);
+    padding-top: calc(var(--spacer) * 3);
     display: flex;
     flex-direction: column;
     gap: calc(var(--spacer) * 3);
