@@ -8,10 +8,6 @@
     color: var(--theme-3)
 }
 
-.prism-code-editor {
-    --editor__bg-highlight: transparent;
-}
-
 .console__messages {
     height: 100%;
     overflow-y: scroll;

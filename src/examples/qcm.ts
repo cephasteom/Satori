@@ -1,4 +1,5 @@
 export default `// Teom Algorithm for kick, snare, and hat // Cephas Teom, 2025 */
+global.set({cps: .5, e: once()});
 
 [s0,s1,s2].map((s,i) => s.set({
   inst:1, bank:'ksh', i,

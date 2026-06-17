@@ -282,13 +282,6 @@ header {
     height: 100%;
 }
 
-.prism-code-editor {
-    font-family: var(--font-2)!important;
-    letter-spacing: 15%;
-
-    font-size: var(--font-sz);
-}
-
 /* ─── scrollbars ──────────────────────────────────────────────── */
 
 ::-webkit-scrollbar {
