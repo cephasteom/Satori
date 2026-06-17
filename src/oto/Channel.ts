@@ -10,7 +10,6 @@ import TAM from './ct-synths/tone/AMSynth'
 import FXChannel from './ct-synths/rnbo/FXChannel2';
 import FXDelay from './ct-synths/rnbo/Delay';
 import ReverbGen from './ct-synths/rnbo/ReverbGen';
-import SimpleSynth from './ct-synths/faust/SimpleSynth';
 import FMSynth from './ct-synths/faust/FMSynth';
 import Pad from './ct-synths/faust/Pad'
 import FDistortion from './ct-synths/faust/Distortion'
@@ -32,7 +31,7 @@ output.connect(destination) // connect to system audio output
 
 const busses = Array.from({length: 4}, () => new Gain(1))
 
-declare type Instrument = typeof Synth | typeof Sampler | typeof Granular | typeof AcidSynth | typeof TSynth | typeof TMono | typeof TFM | typeof TAM | typeof SimpleSynth
+declare type Instrument = typeof Synth | typeof Sampler | typeof Granular | typeof AcidSynth | typeof TSynth | typeof TMono | typeof TFM | typeof TAM | typeof FMSynth | typeof Pad | typeof Karplus | typeof NoiseRes | typeof Kick | typeof Snare | typeof Hihat
 
 const instMap: Record<string, Instrument> = {
     'synth': Synth,
@@ -43,7 +42,6 @@ const instMap: Record<string, Instrument> = {
     'tone.mono': TMono,
     'tone.fm': TFM,
     'tone.am': TAM,
-    'faust.simple': SimpleSynth,
     'faust.fm': FMSynth,
     'faust.pad': Pad,
     'faust.karplus': Karplus,
