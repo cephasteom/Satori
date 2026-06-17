@@ -33,7 +33,6 @@
     "noisejs": "^2.1.0",
     "partysocket": "^1.1.19",
     "pegjs": "^0.10.0",
-    "prism-code-editor": "^4.1.0",
     "quantum-circuit": "^0.9.245",
     "tone": "^15.1.22",
     "webmidi": "^3.1.14",
