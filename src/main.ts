@@ -23,7 +23,7 @@ const urlParams = new URLSearchParams(window.location.search);
 
 // initialize UI components
 initDocs();
-initEditor();
+initEditor('#editor', '#282828');
 initConsole();
 
 // select engine to use based on URL param, default to Oto (browser based synth engine)

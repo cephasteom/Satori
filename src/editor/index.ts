@@ -25,7 +25,7 @@ self.MonacoEnvironment = {
   },
 };
 
-export const init = async (element: string = "#editor") => {
+export const init = async (element: string = "#editor", background: string = '#0a0a0a') => {
   const container = document.querySelector<HTMLElement>(element);
   if (!container) throw new Error(`No element found for selector: ${element}`);
 
@@ -34,7 +34,7 @@ export const init = async (element: string = "#editor") => {
     inherit: true,   // inherit the rest of the base theme's rules
     rules: [],
     colors: {
-      "editor.background": "#0a0a0a",
+      "editor.background": background,
     },
   });
   
