@@ -43,6 +43,30 @@ ws && initWebSocket(wsPort);
 // Create a new Satori instance and pass in handlers
 const satori = new Satori(handlers);
 
+const playBtn = document.getElementById('play-btn');
+const playIcon = document.getElementById('play-icon');
+const stopIcon = document.getElementById('stop-icon');
+const playLabel = playBtn?.querySelector('span');
+let isPlaying = false;
+
+const setPlayState = (playing: boolean) => {
+    isPlaying = playing;
+    if (playIcon) playIcon.style.display = playing ? 'none' : '';
+    if (stopIcon) stopIcon.style.display = playing ? '' : 'none';
+    if (playLabel) playLabel.textContent = playing ? 'Stop' : 'Play';
+    playBtn?.classList.toggle('active', playing);
+};
+
+playBtn?.addEventListener('click', () => {
+    if (isPlaying) {
+        satori.stop();
+        setPlayState(false);
+    } else {
+        satori.play();
+        setPlayState(true);
+    }
+});
+
 // Handle hide/show of help components
 const toggleComponent = (id: string, displayStyle: string = 'block') => {
     const el = document.getElementById(id);
@@ -73,7 +97,7 @@ const saveActiveComponent = (name: string) => {
 }
 
 const toggleButtonActive = (index: number) => {
-    const button = document.querySelectorAll('.sidebar button')[index];
+    const button = document.querySelectorAll('.sidebar button:not(#play-btn)')[index];
     if(button) button.classList.toggle('active');
 }
 
@@ -87,7 +111,7 @@ activeComponents.forEach(component => {
     }
 });
 
-document.querySelectorAll('.sidebar button').forEach((button, index) => {
+document.querySelectorAll('.sidebar button:not(#play-btn)').forEach((button, index) => {
     button.addEventListener('click', () => {
         toggleComponent(components[index]);
         toggleButtonActive(index);
@@ -106,10 +130,14 @@ window.addEventListener('keydown', (e) => {
     }
 
     // Play / Stop controls
-    if((e.altKey || e.ctrlKey) && e.key === 'Enter') satori.play();
+    if((e.altKey || e.ctrlKey) && e.key === 'Enter') {
+        satori.play();
+        setPlayState(true);
+    }
     if((e.altKey || e.ctrlKey) && e.code === 'Period') {
         e.preventDefault();
         satori.stop();
+        setPlayState(false);
     }
 });
 
