@@ -1,8 +1,6 @@
 import './ui';
 import { Satori } from '../src/core/Satori';
 import { presets } from './presets';
-// @ts-ignore
-import './editor-theme.css';
 import { init as initEditor } from '../src/editor';
 import { init as initConsole } from '../src/console';
 import { init as initDocs } from '../src/docs';

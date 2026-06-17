@@ -23,7 +23,12 @@ const urlParams = new URLSearchParams(window.location.search);
 
 // initialize UI components
 initDocs();
-initEditor({background: '#282828'});
+initEditor({
+    background: '#282828', 
+    fontFamily: '"IBM Plex Mono", monospace',
+    letterSpacing: '2',
+    fontSize: '14'
+});
 initConsole();
 
 // select engine to use based on URL param, default to Oto (browser based synth engine)
@@ -42,6 +47,31 @@ ws && initWebSocket(wsPort);
 
 // Create a new Satori instance and pass in handlers
 const satori = new Satori(handlers);
+
+const playBtn = document.getElementById('play-btn');
+const playIcon = document.getElementById('play-icon');
+const stopIcon = document.getElementById('stop-icon');
+const playLabel = playBtn?.querySelector('span');
+let isPlaying = false;
+
+const setPlayState = (playing: boolean) => {
+    isPlaying = playing;
+    if (playIcon) playIcon.style.display = playing ? 'none' : '';
+    if (stopIcon) stopIcon.style.display = playing ? '' : 'none';
+    if (playLabel) playLabel.textContent = playing ? 'Stop' : 'Play';
+    playBtn?.classList.toggle('active', playing);
+};
+
+playBtn?.addEventListener('click', () => {
+    if (isPlaying) {
+        satori.stop();
+        setPlayState(false);
+    } else {
+        window.dispatchEvent(new CustomEvent("triggerEvaluate"));
+        satori.play();
+        setPlayState(true);
+    }
+});
 
 // Handle hide/show of help components
 const toggleComponent = (id: string, displayStyle: string = 'block') => {
@@ -73,7 +103,7 @@ const saveActiveComponent = (name: string) => {
 }
 
 const toggleButtonActive = (index: number) => {
-    const button = document.querySelectorAll('.sidebar button')[index];
+    const button = document.querySelectorAll('.sidebar button:not(#play-btn)')[index];
     if(button) button.classList.toggle('active');
 }
 
@@ -87,7 +117,7 @@ activeComponents.forEach(component => {
     }
 });
 
-document.querySelectorAll('.sidebar button').forEach((button, index) => {
+document.querySelectorAll('.sidebar button:not(#play-btn)').forEach((button, index) => {
     button.addEventListener('click', () => {
         toggleComponent(components[index]);
         toggleButtonActive(index);
@@ -106,19 +136,46 @@ window.addEventListener('keydown', (e) => {
     }
 
     // Play / Stop controls
-    if((e.altKey || e.ctrlKey) && e.key === 'Enter') satori.play();
+    if((e.altKey || e.ctrlKey) && e.key === 'Enter') {
+        satori.play();
+        setPlayState(true);
+    }
     if((e.altKey || e.ctrlKey) && e.code === 'Period') {
         e.preventDefault();
         satori.stop();
+        setPlayState(false);
     }
 });
 
-const examplesSelect = document.getElementById('examples')
-examplesSelect?.addEventListener('change', e => {
-    // @ts-ignore
-    const {value} = e.target
-    // @ts-ignore
-    const code = examples[value]
-    if(code) window.dispatchEvent(new CustomEvent("setCode", { detail: { code } }));
+const modalOverlay = document.getElementById('modal-overlay');
+const examplesBtn = document.getElementById('examples-btn');
+const modalClose = document.getElementById('modal-close');
 
-})
+const openModal = () => modalOverlay?.classList.remove('hidden');
+const closeModal = () => modalOverlay?.classList.add('hidden');
+
+examplesBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openModal();
+});
+
+modalClose?.addEventListener('click', closeModal);
+
+modalOverlay?.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) closeModal();
+});
+
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+});
+
+document.querySelectorAll('.example-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        const key = (btn as HTMLElement).dataset.example as string;
+        const code = examples[key as keyof typeof examples];
+        if (code) {
+            window.dispatchEvent(new CustomEvent('setCode', { detail: { code } }));
+            closeModal();
+        }
+    });
+});

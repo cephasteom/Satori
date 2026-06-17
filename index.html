@@ -17,19 +17,19 @@
       <header>
         <span class="logo"><img src="/logo.svg" alt="Satori Logo"></span>
         <nav>
-          <a href="https://github.com/cephasteom/satori" target="_blank">Github</a>
           <a href="https://cephasteom.co.uk" target="_blank">About</a>
-          <select id="examples">
-            <option>examples</option>
-            <option>breaks</option>
-            <option>quantum</option>
-          </select>
+          <a href="#" id="examples-btn">Code</a>
+          <a href="https://github.com/cephasteom/satori" target="_blank">Github</a>
         </nav>
       </header>
 
-      
       <div class="app">
         <nav class="sidebar">
+          <button id="play-btn">
+            <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80L0 432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.8 23-24.5 23-41s-8.7-32.2-23-41L73 39z"/></svg>
+            <svg id="stop-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" style="display:none"><path d="M0 128C0 92.7 28.7 64 64 64H320c35.3 0 64 28.7 64 64V384c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128z"/></svg>
+            <span>Play</span>
+          </button>
           <button>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M360.8 1.2c-17-4.9-34.7 5-39.6 22l-128 448c-4.9 17 5 34.7 22 39.6s34.7-5 39.6-22l128-448c4.9-17-5-34.7-22-39.6zm64.6 136.1c-12.5 12.5-12.5 32.8 0 45.3l73.4 73.4-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l96-96c12.5-12.5 12.5-32.8 0-45.3l-96-96c-12.5-12.5-32.8-12.5-45.3 0zm-274.7 0c-12.5-12.5-32.8-12.5-45.3 0l-96 96c-12.5 12.5-12.5 32.8 0 45.3l96 96c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 150.6 182.6c12.5-12.5 12.5-32.8 0-45.3z"/></svg>
             <span>cnsl</span>
@@ -55,6 +55,21 @@
         </section>
       </div>
     </main>
+
+    <div class="modal-overlay hidden" id="modal-overlay">
+      <div class="modal">
+        <div class="modal-titlebar">
+          <span class="modal-title">Code</span>
+          <button class="modal-close" id="modal-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal-body">
+          <div class="examples-list">
+            <button class="example-btn" data-example="breaks">Breaks</button>
+            <button class="example-btn" data-example="quantum">Quantum</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

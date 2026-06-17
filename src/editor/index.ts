@@ -26,7 +26,13 @@ self.MonacoEnvironment = {
 };
 
 export const init = async (options: Record<string, string>) => {
-  const { element = "#editor", background = "#0a0a0a" } = options
+  const { 
+    element = "#editor", 
+    background = "#0a0a0a",
+    fontFamily = "Courier New, Lucida Console, monospace",
+    fontSize = 16,
+    letterSpacing = 0
+  } = options
   const container = document.querySelector<HTMLElement>(element);
   if (!container) throw new Error(`No element found for selector: ${element}`);
 
@@ -78,8 +84,9 @@ export const init = async (options: Record<string, string>) => {
     value: localStorage.getItem("satori.code") ?? preset,
     language: 'javascript',
     theme: 'satori',
-    fontSize: 16,
-    fontFamily: "Courier New, Lucida Console, monospace",
+    fontFamily,
+    fontSize: +fontSize,
+    letterSpacing: +letterSpacing,
     lineNumbers: 'off',
     glyphMargin: false,
     folding: false,
