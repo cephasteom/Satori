@@ -18,6 +18,8 @@ import FTape from './ct-synths/faust/Tape'
 import Karplus from './ct-synths/faust/Karplus';
 import NoiseRes from './ct-synths/faust/NoiseRes';
 import Kick from './ct-synths/faust/Kick';
+import Snare from './ct-synths/faust/Snare';
+import Hihat from './ct-synths/faust/Hihat';
 
 import { samples } from './samples';
 const satori = new BroadcastChannel('satori');
@@ -46,7 +48,9 @@ const instMap: Record<string, Instrument> = {
     'faust.pad': Pad,
     'faust.karplus': Karplus,
     'faust.noiseres': NoiseRes,
-    'faust.kick': Kick
+    'faust.kick': Kick,
+    'faust.snare': Snare,
+    'faust.hihat': Hihat
 }
 
 /**
