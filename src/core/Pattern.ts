@@ -363,6 +363,20 @@ const neq = withValue((threshold, value) => value != threshold ? 1 : 0);
 const not = withValue((value) => value ? 0 : 1);
 
 /**
+ * Checks whether a value is even
+ * @param value - value or pattern to check.
+ * @example random().mtr(0,10).floor().even()
+ */
+const even = withValue((value) => value % 2 === 0 ? 1 : 0);
+
+/**
+ * Checks whether a value is even
+ * @param value - value or pattern to check.
+ * @example random().mtr(0,10).floor().even()
+ */
+const odd = withValue((value) => value % 2 === 0 ? 0 : 1);
+
+/**
  * Use a custom function to transform pattern values.
  * @param func - function to apply. Receives the current value as the first argument.
  * @example seq(1,2,3).fn(x => x * x) // 1,4,9
@@ -1798,7 +1812,7 @@ export const methods = {
     ifelse, ie, and, or, xor, not, when,
     cts, ctms, cps, cthz,
     mtof, ftom, mton,
-    lt, gt, eq, neq,
+    lt, gt, eq, neq, even, odd,
     at, combine, includes, indexesOf, join,
     ...operators.reduce((obj, name) => ({
         ...obj,
