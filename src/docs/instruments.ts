@@ -36,7 +36,9 @@ const sharedMethods = sharedKeys(...Object.values(instruments)).reduce((obj, key
 }, {} as Record<string, any>);
 
 export const instrumentsDoc = `
-Satori includes a default Synth, Sampler, Granular, and AcidSynth instrument. You can set the instrument on a stream using the <code>inst</code> parameter:
+Satori includes the following synths and samplers: synth, sampler, granular, acid, tone.synth, tone.am, tone.fm, tone.mono, faust.fm, faust.pad, faust.karplus, faust.noiseres, faust.kick, faust.snare, faust.hihat. To get a list whilst performing, run <code>instruments()</code>.
+
+You can set the instrument on a stream using the <code>inst</code> parameter:
 ${marked(`\`\`\`typescript
 s0.set({ inst: 'synth' }) // set synth instrument
 s1.set({ inst: 'sampler' }) // set sampler instrument
