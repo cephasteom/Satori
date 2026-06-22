@@ -1,7 +1,9 @@
 # Satori
 A live coding language for unlimited pattern interference. It supersedes Zen, which was restricted to grid-based event triggering. Satori offers fully flexible timing, and allows parameters from any musical layer to control or transform those of any other. As with Zen, it also includes a simple API for designing, running, and sonifying quantum algorithms via its built-in simulator.
 
-The codebase is modular by design. You can use Satori as a complete live coding environment—combining the core language, editor, console, help docs, and synthesis engine—or import individual modules into your own projects. See the docs below for different use cases. A fully functional version of Satori is hosted at: [satori.cephasteom.co.uk](https://satori.cephasteom.co.uk).
+The codebase is modular by design. You can use Satori as a complete live coding environment—combining the core language, editor, console, help docs, and synthesis engine—or import individual modules into your own projects. See the docs below for different use cases. A fully functional version of Satori is hosted at: [satori.cephasteom.co.uk](https://satori.cephasteom.co.uk). 
+
+A fork of the project for exploring Partitioned Quantum Cellular Automata (PQCA) is hosted at [satori.cephasteom.co.uk](https://satori.cephasteom.co.uk) and was generously funded by the folks at [Qollab](https://qollab.xyz/) and [IonQ](https://www.ionq.com/).
 
 ## Local Development
 To run this project locally, as a complete application:
