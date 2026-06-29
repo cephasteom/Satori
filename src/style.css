@@ -406,3 +406,11 @@ header {
         display: none;
     }
 }
+
+.mtk6 {
+    color: var(--theme-3)!important;
+}
+
+.mtk11 {
+    color: var(--theme-3)!important;
+}
