@@ -168,7 +168,8 @@ header {
     display: flex;
     flex-direction: column;
     gap: calc(var(--spacer)/2);
-    padding: var(--spacer) var(--spacer) var(--spacer) 0;
+    padding: calc(var(--spacer)/2);
+    padding-left: 0;
     height: calc(100vh - var(--header-height));
     overflow: scroll;
     width: 100%;
