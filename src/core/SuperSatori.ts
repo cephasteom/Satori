@@ -5,29 +5,57 @@ declare type Event = {id: string, params: Record<string, any>, time: number, typ
 
 const satori = new BroadcastChannel('satori');
 
+// how long to wait for SuperSatori to respond before assuming it isn't running
+const CONNECT_TIMEOUT = 1000;
+
 let ws: WebSocket;
 
-export function init() {
-    ws = new WebSocket('ws://localhost:8080')
-    
-    ws.onopen = () => satori.postMessage({ type: 'success', message: 'Connected to SuperSatori' })
-    ws.onerror = () => satori.postMessage({ type: 'error', message: 'SuperSatori error' })
-    ws.onclose = () => satori.postMessage({ type: 'error', message: 'SuperSatori disconnected' })
-    ws.onmessage = (message) => {
-        const data = JSON.parse(message.data);
-        const synthdefs = Object.entries(data.synthdefs || {})
-            // @ts-ignore
-            .map(([name, def = {}]) => `${name}: ${Object.keys(def).join(', ')}`)
+/**
+ * Try to connect to SuperSatori on load. Resolves with the event handler if
+ * SuperSatori is found within CONNECT_TIMEOUT, or null otherwise, so the
+ * caller can decide whether to use it as the synth engine.
+ */
+export function connect(): Promise<Function | null> {
+    return new Promise((resolve) => {
+        ws = new WebSocket('ws://localhost:8080');
+        let settled = false;
 
-        switch (data.type) {
-            case 'synthdefs':
-                satori.postMessage({ type: 'success', message: 'SuperSatori synths -> \n' })
-                synthdefs.forEach(synthdef => satori.postMessage({ type: 'info', message: synthdef }))
-                break;
+        const fail = () => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            satori.postMessage({ type: 'info', message: 'No SuperSatori found, using default synth engine' });
+            resolve(null);
+        };
+        const timer = setTimeout(fail, CONNECT_TIMEOUT);
+
+        ws.onopen = () => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            satori.postMessage({ type: 'success', message: 'Connected to SuperSatori, using as synth engine' });
+            resolve(handler);
+        };
+        ws.onerror = fail;
+        ws.onclose = () => {
+            // if we haven't resolved yet, treat close as a failed connection attempt
+            if (!settled) return fail();
+            satori.postMessage({ type: 'error', message: 'SuperSatori disconnected' });
+        };
+        ws.onmessage = (message) => {
+            const data = JSON.parse(message.data);
+            const synthdefs = Object.entries(data.synthdefs || {})
+                // @ts-ignore
+                .map(([name, def = {}]) => `${name}: ${Object.keys(def).join(', ')}`)
+
+            switch (data.type) {
+                case 'synthdefs':
+                    satori.postMessage({ type: 'success', message: 'SuperSatori synths -> \n' })
+                    synthdefs.forEach(synthdef => satori.postMessage({ type: 'info', message: synthdef }))
+                    break;
+            }
         }
-    }
-
-    return handler
+    });
 }
 
 export function handler(event: Event, time: number) {

@@ -1,6 +1,6 @@
 import { Satori } from './core/Satori';
 import { init as initOto } from './oto';
-import { init as initSuperSatori } from './core/SuperSatori';
+import { connect as connectSuperSatori } from './core/SuperSatori';
 import { handler as midiHandler } from './core/MIDI';
 import { init as initWebSocket } from './core/WebSocket';
 
@@ -31,22 +31,26 @@ initEditor({
 });
 initConsole();
 
-// select engine to use based on URL param, default to Oto (browser based synth engine)
-// SuperSatori (SuperCollider synth engine) can be used by adding ?engine=supersatori to the URL
-const engine = urlParams.get('engine');
 const ws = urlParams.get('ws');
 const wsPort = parseInt(urlParams.get('wsPort') || '5001');
 
 // handlers process events and are fired on every tick of the scheduler
-const handlers = engine === 'supersatori' 
-    ? [initSuperSatori()]
-    : [initOto(), midiHandler];
+// default to Oto (browser based synth engine) + MIDI
+const handlers: Function[] = [initOto(), midiHandler];
 
 // broadcast satori over WebSocket if ?ws=true is in the URL
 ws && initWebSocket(wsPort);
 
 // Create a new Satori instance and pass in handlers
 const satori = new Satori(handlers);
+
+// try to connect to SuperSatori (SuperCollider synth engine) on load; if found,
+// use it as the synth engine in place of Oto/MIDI
+connectSuperSatori().then(superSatoriHandler => {
+    if (!superSatoriHandler) return;
+    handlers.length = 0;
+    handlers.push(superSatoriHandler);
+});
 
 const playBtn = document.getElementById('play-btn');
 const playIcon = document.getElementById('play-icon');
