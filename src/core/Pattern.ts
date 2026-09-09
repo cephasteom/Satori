@@ -6,7 +6,7 @@
 import { complex, round, pow, abs } from 'mathjs'
 import { parse, evalNode } from './mini';
 import { circuit, runCircuit } from './Qubit';
-import { cyclesPerSecond, flatten, to2D, transposeOctave, unwrapArray } from './utils';
+import { cyclesPerSecond, flatten, mapValue, readPath, to2D, transposeOctave } from './utils';
 import { setupInputListener, syncLoopState } from './MidiInput';
 import pkg from 'noisejs';
 import { WebMidi } from 'webmidi';
@@ -161,17 +161,17 @@ const reset = (condition: Pattern<any>, pattern: Pattern<any>) => {
  * @param callback - function to edit each Hap value @param v - current Hap value, w - value to edit with, from - start time, to - end time
  * @ignore - internal use only
  */
-const withValue = (callback: (...args: any[]) => any) => 
+const withValue = (callback: (...args: any[]) => any) =>
     (...args: (number|Pattern<any>)[]) => {
         const pattern = args[args.length - 1] as Pattern<any>;
         return P((from, to) => pattern.query(from, to).map((hap) => ({
             ...hap,
-            value: unwrapArray([hap.value].flat().map(v => callback(
-                ...args.slice(0, -1).map(a => 
+            value: mapValue(hap.value, v => callback(
+                ...args.slice(0, -1).map(a =>
                     typeof a === 'function' ? a : unwrap(a, hap.from, hap.to)
                 ),
                 v, hap.from, hap.to
-            )))
+            ))
         })))
     }
 
@@ -238,10 +238,10 @@ const cthz = (cycles: number|string|Pattern<number>) =>
  * @param midi - MIDI note number or pattern of MIDI note numbers
  * @returns 
  */
-const mtof = (midi: number|string|Pattern<number>) => 
+const mtof = (midi: number|string|Pattern<number>) =>
     P((from, to) => wrap(midi).query(from, to).map(hap => ({
         ...hap,
-        value: [unwrap(hap.value, from, to)].flat().map((m: number) => 440 * 2 ** ((m - 69) / 12))[0]
+        value: mapValue(unwrap(hap.value, from, to), (m: number) => 440 * 2 ** ((m - 69) / 12))
     })));
 
 /**
@@ -250,10 +250,10 @@ const mtof = (midi: number|string|Pattern<number>) =>
  * @returns 
  */
 const ftom = (freq: number|string|Pattern<number>) =>
-    P((from, to) => ([{
-        from, to,
-        value: 69 + 12 * Math.log2(unwrap(freq, from, to) / 440)
-    }]));
+    P((from, to) => wrap(freq).query(from, to).map(hap => ({
+        ...hap,
+        value: mapValue(unwrap(hap.value, from, to), (f: number) => 69 + 12 * Math.log2(f / 440))
+    })));
 
 /**
  * MIDI to normalised range (0-1).
@@ -261,13 +261,13 @@ const ftom = (freq: number|string|Pattern<number>) =>
  * @param midi - MIDI note number or pattern of MIDI note numbers
  * @example mton(69) // 0.5, since MIDI 69 (A4) is 440 Hz, which is halfway between 20 and 20000 on a log scale
  */
-const mton = (midi: number|string|Pattern<number>) => 
+const mton = (midi: number|string|Pattern<number>) =>
     P((from, to) => wrap(midi).query(from, to).map(hap => ({
         ...hap,
-        value: [unwrap(hap.value, from, to)].flat().map((m: number) => {
+        value: mapValue(unwrap(hap.value, from, to), (m: number) => {
             const freq = 440 * 2 ** ((m - 69) / 12);
             return Math.log(freq / 20) / Math.log(20000 / 20);
-        })[0]
+        })
     })));
 
 /**
@@ -937,7 +937,9 @@ const at = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const indexes = args.slice(0, -1).map(a => [unwrap(a, from, to)].flat()).flat(); // remove pattern
     return pattern.query(from, to).map(hap => {
-        const values = unwrapArray([hap.value].flat())
+        // keep this a real array (not unwrapArray'd back to a scalar) so .filter() resolves
+        // to Array.prototype.filter, not the Pattern method Number/String are monkey-patched with
+        const values: any[] = [hap.value].flat()
             .filter((_: any, i: number, arr: any[]) => indexes
                 .map(i => i % arr.length)
                 .includes(i)
@@ -947,7 +949,7 @@ const at = (...args: any[]) => P((from, to) => {
         value: values.length > 1 ? values : values[0] || 0
     }
     });
-}); 
+});
 
 /**
  * Assuming an array, return the indexes of the elements that match the given value.
@@ -955,12 +957,15 @@ const at = (...args: any[]) => P((from, to) => {
  * @example 'C E G'.indexesOf('E') // returns [1]
  * @example 'C E G'.indexesOf('D') // returns []
  */
+// deliberately always returns an array (unlike at/includes), even when 0 or 1 matches, so callers don't need to guess its shape
 const indexesOf = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const checkValues = args.slice(0, -1).map(a => unwrap(a, from, to)).flat(); // remove pattern
     return pattern.query(from, to).map(hap => ({
         ...hap,
-        value: unwrapArray([hap.value].flat()).reduce((indexes: number[], v: any, i: number) => 
+        // keep this a real array (not unwrapArray'd back to a scalar) so .reduce() resolves
+        // to Array.prototype.reduce, not the Pattern method Number/String are monkey-patched with
+        value: ([hap.value].flat() as any[]).reduce((indexes: number[], v: any, i: number) =>
             checkValues.includes(v) ? [...indexes, i] : indexes
         , [])
     }));
@@ -990,12 +995,15 @@ const combine = (...args: any[]) => P((from, to) => {
 const includes = (...args: any[]) => P((from, to) => {
     const pattern = args[args.length - 1] as Pattern<any>;
     const values = args.slice(0, -1).map(a => unwrap(a, from, to)).flat(); // remove pattern
-    return pattern.query(from, to).map(hap => ({
-        ...hap,
-        value: values.some(v => 
-            unwrapArray([hap.value].flat()).includes(v)
-        ) ? 1 : 0
-    }));
+    return pattern.query(from, to).map(hap => {
+        // keep this a real array (not unwrapArray'd back to a scalar) so .includes()
+        // resolves to Array.prototype.includes, not the Pattern method Number/String are monkey-patched with
+        const haystack: any[] = [hap.value].flat();
+        return {
+            ...hap,
+            value: values.some(v => haystack.includes(v)) ? 1 : 0
+        };
+    });
 });
 
 /**
@@ -1545,12 +1553,7 @@ const changed = (pattern: Pattern<any>) => {
     let lastValue: any = null;
     return P((from, to) => pattern.query(from, to).map(hap => {
         const value = hap.value;
-        const is2D = Array.isArray(value) && Array.isArray(value[0]);
-        const result = is2D
-            ? (value as number[][]).map((row: number[], r: number) => row.map((v: number, c: number) => v !== lastValue?.[r]?.[c] ? 1 : 0))
-            : Array.isArray(value)
-                ? Array.from(value, (v: number, i: number) => v !== lastValue?.[i] ? 1 : 0)
-                : value !== lastValue ? 1 : 0;
+        const result = mapValue(value, (v: number, path) => v !== readPath(lastValue, path) ? 1 : 0);
         lastValue = value;
         return { ...hap, value: result };
     }));
@@ -1564,12 +1567,7 @@ const born = (pattern: Pattern<any>) => {
     let lastValue: any = null;
     return P((from, to) => pattern.query(from, to).map(hap => {
         const value = hap.value;
-        const is2D = Array.isArray(value) && Array.isArray(value[0]);
-        const result = is2D
-            ? (value as number[][]).map((row: number[], r: number) => row.map((v: number, c: number) => v && !lastValue?.[r]?.[c] ? 1 : 0))
-            : Array.isArray(value)
-                ? value.map((v, i) => v && !lastValue?.[i] ? 1 : 0)
-                : value && !lastValue ? 1 : 0;
+        const result = mapValue(value, (v: number, path) => v && !readPath(lastValue, path) ? 1 : 0);
         lastValue = value;
         return { ...hap, value: result };
     }));
@@ -1583,12 +1581,7 @@ const died = (pattern: Pattern<any>) => {
     let lastValue: any = null;
     return P((from, to) => pattern.query(from, to).map(hap => {
         const value = hap.value;
-        const is2D = Array.isArray(value) && Array.isArray(value[0]);
-        const result = is2D
-            ? (value as number[][]).map((row: number[], r: number) => row.map((v: number, c: number) => !v && lastValue?.[r]?.[c] ? 1 : 0))
-            : Array.isArray(value)
-                ? value.map((v, i) => !v && lastValue?.[i] ? 1 : 0)
-                : !value && lastValue ? 1 : 0;
+        const result = mapValue(value, (v: number, path) => !v && readPath(lastValue, path) ? 1 : 0);
         lastValue = value;
         return { ...hap, value: result };
     }));

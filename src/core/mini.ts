@@ -19,6 +19,7 @@ import peg from 'pegjs';
 // 'Clyd' => seq([60,62,64,66,67,69,71,73]) - scale to MIDI
 // 'Clyd%8' => seq([60,62,64,66,67,69,71,73]) - scale to MIDI, with 8 notes
 // 'Clyd..' => seq(60,62,64,66,67,69,71,73) - spread out scale or chord over time
+// '1 ~ 1 ~' => seq(1, null, 1, null) - ~ is a rest, taking up a beat but playing nothing
 
 // Extensions
 export const extensions: Record<string, number[]> = {
@@ -200,9 +201,13 @@ Primary
   / Spread
   / StackMusic
   / MidiNote
+  / Rest
   / StringToken
   / Number
   / Group
+
+Rest
+  = "~" { return null; }
 
 EuclidRhythm
   = pulses:Number ":" steps:Number {

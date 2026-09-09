@@ -46,6 +46,25 @@ export function unwrapArray(value: any): any {
     return Array.isArray(value) && value.length === 1 ? value[0] : value;
 }
 
+// read a value out of a scalar/1D/2D structure at the given path, as produced by mapValue's callback
+export function readPath(value: any, path: number[]): any {
+    return path.reduce((acc, i) => acc?.[i], value);
+}
+
+// Applies callback to each element of value, preserving scalar/1D/2D shape.
+// A 1-element array result collapses back to a scalar (matches unwrapArray's contract).
+// path identifies the element's position ([], [i], or [r, c]) so callbacks can compare
+// against the same position in another same-shaped value (e.g. a previous hap's value).
+export function mapValue<T, R>(value: any, callback: (v: T, path: number[]) => R): any {
+    if (Array.isArray(value) && Array.isArray(value[0])) {
+        return value.map((row: T[], r: number) => row.map((v, c) => callback(v, [r, c])));
+    }
+    if (Array.isArray(value)) {
+        return unwrapArray(value.map((v: T, i: number) => callback(v, [i])));
+    }
+    return callback(value, []);
+}
+
 // a function that can flatten different types of lists
 export const flatten = (data: Uint8Array | Uint8Array[] | number[] | number[][]): Uint8Array => {
     if (data instanceof Uint8Array) return data;
