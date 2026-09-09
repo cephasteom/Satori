@@ -60,9 +60,39 @@ long-run wander if omitted.
 For each ping, `t0` = local send time, `t3` = local receive time of the reply (both
 `performance.now()` ms):
 - Reject if `rtt = t3 - t0 > 50ms` (on loopback this indicates a stall, not real latency).
-- Track a rolling `minRtt`; reject unless `rtt <= minRtt * 1.5` (NTP-style near-best filter).
+- Track an RTT floor over a **rolling window of the last ~30 raw RTTs**, taken as the **20th
+  percentile** of that window (not the strict minimum — see the callout below), and admit a
+  sample only if `rtt <= floor * 2 + 2ms`.
+- Liveness fallback: force-accept a sample if it's been ≥10 seconds (wall-clock time, not ping
+  count) since the last accepted sample, regardless of the RTT band or the outlier check, so the
+  model can never go stale for longer than that, whatever the current ping cadence is.
 - Once the model has ≥5 samples, reject if the implied offset disagrees with the current
-  model's prediction by more than 15ms (catches fast-but-wrong outliers the RTT filter misses).
+  model's prediction by more than 15ms (catches fast-but-wrong outliers the RTT filter misses;
+  skipped when the liveness fallback fires, since a real regime change is exactly what that
+  fallback exists to admit).
+
+**Two things caught in real testing, both worth not re-introducing:**
+
+1. *Don't use an all-time running minimum for the RTT floor.* An earlier version did
+   (`minRtt = Math.min(minRtt, rtt)`, reject unless `rtt <= minRtt * 1.5`), and it froze:
+   real loopback RTT jitter bounces in a several-ms band, so as soon as one unusually fast
+   round trip set `minRtt` low (observed: 1.00ms), every later sample fell outside `1.5x` of it
+   and got rejected — permanently, since the minimum only ever tightens.
+2. *A rolling **minimum** doesn't fully fix that either — use a percentile.* Switching to a
+   bounded rolling window still leaves the same failure mode, just slower: at the steady-state
+   ~4s ping interval, a 30-sample window takes ~2 minutes to flush out one lucky low sample,
+   during which the floor (and thus the acceptance band) stays artificially tight. A percentile
+   (here, the 20th) fixes this at the root — one fluke sample can't single-handedly set the
+   floor, it takes a real cluster of fast samples to move it, so the floor tracks the *typical*
+   best case rather than the *luckiest-ever* one.
+
+Both times, the symptom was the same: the model silently stopped updating for extended periods
+while continuing to report an increasingly stale offset/skew — exactly the kind of silent
+wander this whole design exists to prevent. The liveness fallback is a backstop for whatever
+this percentile approach still misses, not the primary fix; being time-based (not a count of
+rejected attempts) matters because the ping cadence itself changes between burst and steady
+state, so a fixed *attempt* count implies a wildly different *time* bound depending on when it
+fires.
 
 ## Reference implementation
 
@@ -97,10 +127,30 @@ class LinearClockModel {
   predict(x: number) { return x + this.predictOffset(x) }
 }
 
+// Rolling-window, percentile-based RTT floor — see "Sample filtering" above for why
+// percentile-of-window, not an all-time or windowed strict minimum.
+class RttFloor {
+  private samples: number[] = []
+  constructor(private windowSize = 30, private percentile = 0.2) {}
+  push(rtt: number) {
+    this.samples.push(rtt)
+    if (this.samples.length > this.windowSize) this.samples.shift()
+  }
+  reset() { this.samples = [] }
+  get value() {
+    if (!this.samples.length) return Infinity
+    const sorted = [...this.samples].sort((a, b) => a - b)
+    return sorted[Math.floor(sorted.length * this.percentile)]
+  }
+}
+
+const FORCE_ACCEPT_AFTER_MS = 10_000 // liveness backstop: never let the model go stale longer than this, whatever the ping cadence is
+
 class SyncClient {
   private pingId = 0
   private pending = new Map<number, number>() // pingId -> t0 (perf ms)
-  private minRtt = Infinity
+  private rttFloor = new RttFloor(30)
+  private lastAcceptedAt = performance.now()
   public scModel = new LinearClockModel(50)
   public audioModel = new LinearClockModel(50)
   private timer: ReturnType<typeof setTimeout> | null = null
@@ -112,7 +162,8 @@ class SyncClient {
   }
 
   private onReconnect() {
-    this.scModel.reset(); this.audioModel.reset(); this.pending.clear(); this.minRtt = Infinity
+    this.scModel.reset(); this.audioModel.reset(); this.pending.clear()
+    this.rttFloor.reset(); this.lastAcceptedAt = performance.now()
     this.scheduleNext(0, 8, 150)
   }
 
@@ -144,11 +195,18 @@ class SyncClient {
     this.pending.delete(msg.pingId)
     const t3 = performance.now(); const rtt = t3 - t0
     if (rtt > 50) return
-    this.minRtt = Math.min(this.minRtt, rtt)
-    if (rtt > this.minRtt * 1.5) return
+
+    this.rttFloor.push(rtt)
+    const floor = this.rttFloor.value
+    const withinBand = rtt <= floor * 2 + 2
+    const forceAccept = (t3 - this.lastAcceptedAt) >= FORCE_ACCEPT_AFTER_MS
+    if (!withinBand && !forceAccept) return
+
     const xSec = (t0 + t3) / 2 / 1000
     const serverTime: number = msg.serverTime
-    if (this.scModel.isOutlier(xSec, serverTime)) return
+    if (!forceAccept && this.scModel.isOutlier(xSec, serverTime)) return
+
+    this.lastAcceptedAt = t3
     this.scModel.addSample(xSec, serverTime)
   }
 

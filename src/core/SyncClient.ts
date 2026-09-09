@@ -65,6 +65,41 @@ class LinearClockModel {
     predict(x: number) { return x + this.predictOffset(x); }
 }
 
+// Rolling-window, percentile-based RTT floor. A strict (all-time or windowed)
+// minimum freezes: loopback RTT jitter bounces in a several-ms band, so one
+// lucky fast round trip sets the floor low and every later sample falls
+// outside the acceptance band forever after (or, for a windowed minimum, for
+// as long as it takes that one sample to roll out of the window - minutes at
+// steady-state cadence). A percentile fixes this at the root: it takes a real
+// cluster of fast samples to move it, so the floor tracks the typical best
+// case rather than the luckiest-ever one.
+class RttFloor {
+    private samples: number[] = [];
+    private windowSize: number;
+    private percentile: number;
+
+    constructor(windowSize = 30, percentile = 0.2) {
+        this.windowSize = windowSize;
+        this.percentile = percentile;
+    }
+
+    push(rtt: number) {
+        this.samples.push(rtt);
+        if (this.samples.length > this.windowSize) this.samples.shift();
+    }
+
+    reset() { this.samples = []; }
+
+    get value() {
+        if (!this.samples.length) return Infinity;
+        const sorted = [...this.samples].sort((a, b) => a - b);
+        return sorted[Math.floor(sorted.length * this.percentile)];
+    }
+}
+
+// liveness backstop: never let the model go stale longer than this, whatever the ping cadence is
+const FORCE_ACCEPT_AFTER_MS = 10_000;
+
 /**
  * Continuously measures this client's offset/drift against SuperSatori's SC
  * SystemClock via a sync ping/pong, chaining two linear clock models
@@ -78,7 +113,8 @@ class LinearClockModel {
 export class SyncClient {
     private pingId = 0;
     private pending = new Map<number, number>(); // pingId -> t0 (perf ms)
-    private minRtt = Infinity;
+    private rttFloor = new RttFloor(30);
+    private lastAcceptedAt = performance.now();
     private scModel = new LinearClockModel(50);
     private audioModel = new LinearClockModel(50);
     private timer: ReturnType<typeof setTimeout> | null = null;
@@ -94,7 +130,8 @@ export class SyncClient {
         this.scModel.reset();
         this.audioModel.reset();
         this.pending.clear();
-        this.minRtt = Infinity;
+        this.rttFloor.reset();
+        this.lastAcceptedAt = performance.now();
         this.scheduleNext(0, 8, 150);
     }
 
@@ -136,12 +173,20 @@ export class SyncClient {
         const rtt = t3 - t0;
         // on loopback, rtt this high indicates a stall, not real latency
         if (rtt > 50) return;
-        this.minRtt = Math.min(this.minRtt, rtt);
-        // NTP-style near-best filter
-        if (rtt > this.minRtt * 1.5) return;
+
+        this.rttFloor.push(rtt);
+        const floor = this.rttFloor.value;
+        const withinBand = rtt <= floor * 2 + 2;
+        // never let the model go stale longer than FORCE_ACCEPT_AFTER_MS, regardless of the
+        // RTT band or outlier check, whatever the current ping cadence is
+        const forceAccept = (t3 - this.lastAcceptedAt) >= FORCE_ACCEPT_AFTER_MS;
+        if (!withinBand && !forceAccept) return;
+
         const xSec = (t0 + t3) / 2 / 1000;
         const serverTime = msg.serverTime;
-        if (this.scModel.isOutlier(xSec, serverTime)) return;
+        if (!forceAccept && this.scModel.isOutlier(xSec, serverTime)) return;
+
+        this.lastAcceptedAt = t3;
         this.scModel.addSample(xSec, serverTime);
     }
 
