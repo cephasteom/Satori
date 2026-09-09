@@ -1,5 +1,5 @@
-import { immediate } from "tone";
 import { formatParamKey } from "../oto/utils";
+import { SyncClient } from "./SyncClient";
 
 declare type Event = {id: string, params: Record<string, any>, time: number, type: string};
 
@@ -9,6 +9,9 @@ const satori = new BroadcastChannel('satori');
 const CONNECT_TIMEOUT = 1000;
 
 let ws: WebSocket;
+// tracks this client's offset/drift against SuperSatori's SC SystemClock, so
+// event times can be translated from AudioContext domain into that domain
+let sync: SyncClient;
 
 /**
  * Try to connect to SuperSatori on load. Resolves with the event handler if
@@ -33,6 +36,7 @@ export function connect(): Promise<Function | null> {
             if (settled) return;
             settled = true;
             clearTimeout(timer);
+            sync = new SyncClient(ws);
             satori.postMessage({ type: 'success', message: 'Connected to SuperSatori, using as synth engine' });
             resolve(handler);
         };
@@ -44,15 +48,19 @@ export function connect(): Promise<Function | null> {
         };
         ws.onmessage = (message) => {
             const data = JSON.parse(message.data);
-            const synthdefs = Object.entries(data.synthdefs || {})
-                // @ts-ignore
-                .map(([name, def = {}]) => `${name}: ${Object.keys(def).join(', ')}`)
 
             switch (data.type) {
-                case 'synthdefs':
+                case 'syncReply':
+                    sync.handleReply(data);
+                    break;
+                case 'synthdefs': {
+                    const synthdefs = Object.entries(data.synthdefs || {})
+                        // @ts-ignore
+                        .map(([name, def = {}]) => `${name}: ${Object.keys(def).join(', ')}`)
                     satori.postMessage({ type: 'success', message: 'SuperSatori synths -> \n' })
                     synthdefs.forEach(synthdef => satori.postMessage({ type: 'info', message: synthdef }))
                     break;
+                }
             }
         }
     });
@@ -84,7 +92,7 @@ export function handleEvent(event: Event, time: number) {
     
     ws.send(JSON.stringify({
         ...event,
-        delta: time - immediate(),
+        atTime: sync.audioTimeToScTime(time),
         params
     }))
 }
@@ -92,7 +100,7 @@ export function handleEvent(event: Event, time: number) {
 export function handleMutation(event: Event, time: number) {
     ws.send(JSON.stringify({
         ...event,
-        delta: time - immediate(),
+        atTime: sync.audioTimeToScTime(time),
         params: Object.entries(event.params)
             // only mutate params that are prefixed with '_'
             .filter(([key, _]) => key.startsWith('_'))
