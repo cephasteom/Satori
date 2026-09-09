@@ -88,4 +88,19 @@ s1.set({ n: s0.n.add(12), // s1 uses s0's note + 12 semitones
     e: not(s0.e).and('1*8') }) // s1 triggers on 8th notes, but only when s0 is not triggering
 \`\`\``)}
         </li>
+        <li>
+            <h4>Updating parameters in place</h4>
+            <p>Once a parameter has been set, calling a pattern method on it (like <code>.add()</code> above) is <em>pure</em> - it returns a new pattern and leaves the parameter untouched, which is what makes Stream Interference above safe. <code>.set()</code> is the exception: calling <code>.set()</code> directly on a parameter replaces it in place. Only what's enclosed within <code>.set()</code> actually updates the value - any pattern methods used to build that argument are still just building a value, not mutating anything themselves.</p>
+            ${marked(`\`\`\`typescript
+s0.set({ n: 60 })
+s0.n.add(2) // pure: returns a new pattern, s0.n is still 60
+s0.n.set(65) // mutates: s0.n is now 65
+s0.n.set((2).add(2)) // mutates: sets n to 2 + 2 - only the outer set() commits it
+\`\`\``)}
+            <p>If a parameter has never been set, calling <em>any</em> pattern method on it populates it, equivalent to using <code>.set()</code>. Once populated, it follows the rule above - only <code>.set()</code> updates it again.</p>
+            ${marked(`\`\`\`typescript
+s0.e.once() // e was never set, so this populates it - same as s0.set({ e: once() })
+s0.e.once() // e is now set, so this is a pure call and does not reset it again
+\`\`\``)}
+        </li>
     </ul>`
